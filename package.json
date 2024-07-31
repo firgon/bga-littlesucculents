@@ -1,0 +1,30 @@
+{
+  "name": "bga-littlesucculents",
+  "version": "1.0.0",
+  "description": "",
+  "main": "littlesucculents.js",
+  "scripts": {
+    "build:ts": "tsc",
+    "build:scss": "sass --no-source-map src/modules/css/littlesucculents.scss littlesucculents.css",
+    "watch:ts": "tsc --watch",
+    "watch:scss": "sass --watch src/modules/css/littlesucculents.scss littlesucculents.css",
+    "watch": "npm run watch:ts && npm run watch:scss",
+    "build": "npm run build:ts && npm run build:scss"
+  },
+  "author": "firgon",
+  "license": "MIT",
+  "dependencies": {
+    "bga-dice": "thoun/bga-dice#0.0.1",
+    "bga-animations": "thoun/bga-animations#1.1.1",
+    "bga-cards": "thoun/bga-cards#3.2.1"
+  },
+  "devDependencies": {
+    "sass": "^1.32.6",
+    "typescript": "^4.1.3",
+    "@prettier/plugin-php": "^0.19.1",
+    "prettier": "^2.7.1"
+  },
+  "prettier": {
+    "braceStyle": "1tbs"
+  }
+}

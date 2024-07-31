@@ -1,0 +1,30 @@
+<html>
+    <head>
+        <title>bga-dice demo</title>
+        <script>
+            function define() {}
+        </script>
+        <link href="../bga-dice.css" rel="stylesheet"></script>
+        <script src="../bga-dice.js" type="text/javascript"></script>
+        <link href="./demo.css" rel="stylesheet"></script>
+        <script src="./common.js" type="text/javascript"></script>
+        <script src="./custom-die-type.js" type="text/javascript"></script>
+        <link href="./custom-die-type.css" rel="stylesheet"></script>
+        <script src="./custom-line-stock.js" type="text/javascript"></script>
+        <script src="./custom-manager.js" type="text/javascript"></script>
+    </head>
+    <body>
+        <h1>Custom die</h1>
+
+        <div class="block">
+            <div id="line-stock" class="selection-stock"></div>
+            <button onclick="roll()">roll</button>
+        </div>
+
+        <script>
+            initCommon();
+            initManager();
+            initLineStock();
+        </script>
+    </body>
+</html>
