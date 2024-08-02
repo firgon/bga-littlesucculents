@@ -8,6 +8,7 @@
 
 const POT = "pot";
 const PLANT = "plant";
+const WATER = "water";
 
 const YELLOW = "yellow";
 const PURPLE = "purple";
@@ -17,6 +18,7 @@ const GREY = "grey";
 const RED = "red";
 const PINK = "pink";
 const ORANGE = "orange";
+const ALL_COLORS = [YELLOW, PURPLE, GREEN, BLUE, RED, PINK];
 
 const RAINBOW = "rainbow";
 const SET_A = "setA";
@@ -40,10 +42,10 @@ const ST_END_GAME = 99;
  * Cheat Module
  */
 
-const OPTION_DEBUG = 103;
-const OPTION_DEBUG_OFF = 0;
-const OPTION_DEBUG_ON = 1;
-
+const OPTION_PLANT_SET = 100;
+const OPTION_PLANT_SET_A = 0;
+const OPTION_PLANT_SET_B = 1;
+const OPTION_PLANT_RANDOM_SET = 2;
 /******************
  ****** STATS ******
  ******************/
@@ -90,3 +92,5 @@ const PLAYER = "player";
 const VISIBLE_DECK = "visibleDeck";
 const DECK_PLANT = "deckplant";
 const DECK_POT = "deckpot";
+const BOX = 'box';
+const DISCARD = 'discard';

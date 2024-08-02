@@ -32,8 +32,7 @@ class Players extends \LSU\Helpers\DB_Manager
       'player_color',
       'player_canal',
       'player_name',
-      'player_avatar',
-      'player_pending_actions'
+      'player_avatar'
     ]);
 
     $values = [];
@@ -45,8 +44,7 @@ class Players extends \LSU\Helpers\DB_Manager
         $color,
         $player['player_canal'],
         $player['player_name'],
-        $player['player_avatar'],
-        '[]'
+        $player['player_avatar']
       ];
     }
 
@@ -113,7 +111,7 @@ class Players extends \LSU\Helpers\DB_Manager
   /*
    * getUiData : get all ui data of all players
    */
-  public static function getUiData($pId)
+  public static function getUiData($pId = null)
   {
     return self::getAll()
       ->map(function ($player) use ($pId) {

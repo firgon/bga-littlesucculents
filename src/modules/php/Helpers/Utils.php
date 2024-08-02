@@ -103,17 +103,17 @@ abstract class Utils extends \APP_DbObject
             })
         );
     }
-}
 
-static function array_uunique($array, $comparator)
-{
-    $unique_array = [];
-    do {
-        $element = array_shift($array);
-        $unique_array[] = $element;
+    static function array_uunique($array, $comparator)
+    {
+        $unique_array = [];
+        do {
+            $element = array_shift($array);
+            $unique_array[] = $element;
 
-        $array = array_udiff($array, [$element], $comparator);
-    } while (count($array) > 0);
+            $array = array_udiff($array, [$element], $comparator);
+        } while (count($array) > 0);
 
-    return $unique_array;
+        return $unique_array;
+    }
 }

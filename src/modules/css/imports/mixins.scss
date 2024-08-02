@@ -1,5 +1,8 @@
 @use "sass:math";
-@mixin getBackgroundPosition($x, $maxx, $maxy) {
+
+@use "variables.scss" as var;
+
+@mixin getBackgroundPosition($x, $maxx: 7, $maxy: 7) {
   $x: $x - 1;
   background-position-x: math.div($x % $maxx * 100%, ($maxx - 1));
   @if ($maxy > 1) {
@@ -9,4 +12,31 @@
     );
   }
   background-size: $maxx * 100%;
+}
+
+@mixin getIcon($n) {
+  background-image: url("img/icons.png");
+  @include getBackgroundPosition($n, 8, 8);
+}
+
+@mixin size($width, $height) {
+  height: addScale($height);
+  width: addScale($width);
+}
+
+@function addScale($n) {
+  @return calc($n / var.$card-width * var(--scale));
+}
+
+@mixin createBackGroundForMap($list, $maxX: 7, $maxY: 7) {
+  @each $name, $place in $list {
+    &[data-data-id="#{$name}"] {
+      @include getBackgroundPosition($place, $maxX, $maxY);
+    }
+  }
+}
+
+@mixin textBorder($color: black) {
+  text-shadow: 1px 0 0 $color, 0 1px 0 $color, -1px 0 0 $color, 0 -1px 0 $color,
+    1px 1px 0 $color, -1px 1px 0 $color, 1px -1px 0 $color, -1px -1px 0 $color;
 }

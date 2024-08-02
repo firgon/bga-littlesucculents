@@ -3,6 +3,8 @@
 namespace LSU\Core;
 
 use LSU\Core\Game;
+use LSU\Managers\Players;
+
 /*
  * Globals
  */
@@ -33,6 +35,13 @@ class Globals extends \LSU\Helpers\DB_Manager
     static::setTurn(0);
     static::setFirstPlayer($activePlayerId);
     static::setCheatMode(Game::isStudio());
+  }
+
+  public static function changeFirstPlayer()
+  {
+    $firstPlayer = static::getFirstPlayer();
+    static::setFirstPlayer(Players::getNextId($firstPlayer));
+    Notifications::updatePlayers();
   }
 
   /*

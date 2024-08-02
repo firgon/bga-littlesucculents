@@ -87,7 +87,6 @@ class LittleSucculents extends Table
     protected function setupNewGame($players, $options = array())
     {
         Players::setupNewGame($players, $options);
-        Preferences::setupNewGame($players, $this->player_preferences);
         //Stats::checkExistence();
         Cards::setupNewGame($players, $options);
 
@@ -111,9 +110,8 @@ class LittleSucculents extends Table
     {
         $pId = self::getCurrentPId();
         return [
-            'prefs' => Preferences::getUiData($pId),
             'players' => Players::getUiData($pId),
-            'cheatModule' => Globals::isCheatMode() ? CheatModule::getUiData() : null
+            'cards' => Cards::getUiData()
         ];
     }
 
@@ -270,6 +268,44 @@ class LittleSucculents extends Table
     public function translate($text)
     {
         return self::_($text);
+        _('Baby Toes');
+        _('Balanced display<br>5 <vp>');
+        _('Snake Plant');
+        _('Plant is max <leaf><br>5 <vp>');
+        _('Mexican Firecracker');
+        _('Most 5 <vp><br>Second 2 <vp>');
+        _('String of Pearls');
+        _('Pot size<br>+6');
+        _('String of Dolphins');
+        _('Growth<br>+2');
+        _('Jellybean Plant');
+        _('1 <vp> per colour<br>in display');
+        _('Calico Hearts');
+        _('1 <vp> per space<br>from money plant');
+        _('Bunny Ears');
+        _('Total <leaf><br>Odd -1 <vp>/ Even 4 <vp>');
+        _('Ribbon Plant');
+        _('1 <vp> per copy<br>in all displays');
+        _('Baby Sun Rose');
+        _('Take 1 <leaf> from display<br>in grow phase');
+        _('Coral Cactus');
+        _('+1 <water><br> in grow phase');
+        _('Living Stone');
+        _('3 <vp>');
+        _('Rainbow West');
+        _('Can flower<br>the colour of its pot');
+        _('Aloe Vera');
+        _('each <water> in wathering can<br> is worth 1 <vp>');
+        _('Moon Cactus');
+        _('If no flowers in display<br>7 <vp>');
+        _('Leaf Window');
+        _('If money plant is max <leaf><br>7 <vp>');
+        _('Mermaid Tail');
+        _('Display has most plants<br>7 <vp>');
+        _('Pet Rock');
+        _('<leaf> don\'t score<br>5 <vp>');
+        _('Money Plant');
+        _('<leaf> are <money><br>but worth 0<vp>');
     }
 
     // Shorthand

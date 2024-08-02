@@ -13,7 +13,18 @@ interface Player {
   name: string;
   score: string;
   zombie: number;
-  lives: number;
+
+  water: number;
+  money: number;
+}
+
+interface GameDatasCards {
+  deckpot: number;
+  deckplant: number;
+  board: Card[];
+  player: Card[];
+  discardpot: { n: number; topCard?: Card };
+  discardplant: { n: number; topCard?: Card };
 }
 
 interface GameDatas {
@@ -31,4 +42,5 @@ interface GameDatas {
 
   // Add here variables you set up in getAllDatas
   cheatModule: boolean;
+  cards: GameDatasCards;
 }

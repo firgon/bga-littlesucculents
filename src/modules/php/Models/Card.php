@@ -17,15 +17,19 @@ class Card extends \LSU\Helpers\DB_Model
         'location' => 'card_location',
         'state' => ['card_state', 'int'],
         'extraDatas' => ['extra_datas', 'obj'],
-        // 'playerId' => ['player_id', 'int'],
-        'color' => 'color',
-        'value' => ['value', 'int'],
+        'playerId' => ['player_id', 'int'],
+        'dataId' => ['data_id', 'int'],
+        'tokenNb' => ['token_nb', 'int'],
+        'flowered' => ['flowered', 'int'],
     ];
 
     protected $staticAttributes = [
-        // 'color',
-        // ['value', 'int'],
-        'action',
+        'type',
+        ['maxLeaf', 'int'],
+        ['maxWater', 'int'],
+        'color',
+        'class',
+        'name'
     ];
 
     public function __construct($row, $datas)
@@ -34,10 +38,5 @@ class Card extends \LSU\Helpers\DB_Model
         foreach ($datas as $attribute => $value) {
             $this->$attribute = $value;
         }
-    }
-
-    public function isSupported($players, $options)
-    {
-        return true; // Useful for expansion/ban list/ etc...
     }
 }

@@ -1996,6 +1996,13 @@ var Generics = /** @class */ (function () {
             div.innerText = card.dataId.toString();
         element.append(div);
     };
+    Generics.addTextDiv = function (text, classe, element) {
+        var _a;
+        var div = (_a = element.querySelector("." + classe)) !== null && _a !== void 0 ? _a : document.createElement("div");
+        div.classList.add(classe);
+        div.innerHTML = text;
+        element.append(div);
+    };
     Generics.getCardContainer = function (card) {
         return card.location;
     };
@@ -2009,11 +2016,10 @@ define([
     "ebg/stock",
     g_gamethemeurl + "modules/js/Core/game.js",
     g_gamethemeurl + "modules/js/Core/modal.js",
-    g_gamethemeurl + "modules/js/Players.js",
     g_gamethemeurl + "modules/js/Utils/cheatModule.js",
     g_gamethemeurl + "modules/js/zoomUI.js",
 ], function (dojo, declare) {
-    return declare("bgagame.littlesucculents", [customgame.game, littlesucculents.players, littlesucculents.cheatModule, littlesucculents.zoomUI], new LittleSucculentsGame());
+    return declare("bgagame.littlesucculents", [customgame.game, littlesucculents.cheatModule, littlesucculents.zoomUI], new LittleSucculentsGame());
 });
 var CardSetting = /** @class */ (function () {
     function CardSetting(animationManager) {
@@ -2031,8 +2037,16 @@ var CardSetting = /** @class */ (function () {
         element.classList.add(card.type);
     };
     CardSetting.prototype.setupFrontDiv = function (card, element) {
+        var _a;
         if (card.dataId)
             element.dataset.dataId = card.dataId.toString();
+        if (card.type == "plant") {
+            Generics.addTextDiv((_a = card.hint) !== null && _a !== void 0 ? _a : "", "text", element);
+            Generics.addTextDiv(card.name, "title", element);
+        }
+        else if (card.type == "pot") {
+            Generics.addTextDiv(card.maxLeaf.toString(), "size", element);
+        }
         Generics.addIdDiv(card, element);
     };
     return CardSetting;
@@ -2042,16 +2056,18 @@ var MyCardManager = /** @class */ (function (_super) {
     function MyCardManager() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    MyCardManager.prototype.updateCardInformations = function (card, settings) {
-        _super.prototype.updateCardInformations.call(this, card, settings);
-        var newPlace = this.game._stocks[Generics.getCardContainer(card)];
-        if (!newPlace.contains(card))
-            newPlace.addCard(card);
-        // this.game.addCustomTooltip(
-        //   CardSetting.getElementId(card) + "-front",
-        //   this.game.tooltip_tpl(card, "tooltip")
-        // );
-    };
+    // public updateCardInformations(
+    //   card: T,
+    //   settings?: Omit<FlipCardSettings, "updateData">
+    // ): void {
+    //   super.updateCardInformations(card, settings);
+    //   const newPlace = this.game._stocks[Generics.getCardContainer(card)];
+    //   if (!newPlace.contains(card)) newPlace.addCard(card);
+    //   // this.game.addCustomTooltip(
+    //   //   CardSetting.getElementId(card) + "-front",
+    //   //   this.game.tooltip_tpl(card, "tooltip")
+    //   // );
+    // }
     MyCardManager.prototype.isElementFlipped = function (card) {
         return this.getCardElement(card).dataset.side == "back";
     };
@@ -2144,6 +2160,86 @@ var MyCardManager = /** @class */ (function (_super) {
 //     }
 //   };
 // }
+var littlesucculents_f = function (data) {
+    return {
+        type: data[0],
+        maxLeaf: data[1],
+        maxWater: data[2],
+        nb: data[3],
+        color: data[4],
+        deck: data[5],
+        class: data[6],
+        name: data[7],
+        hint: data[8],
+    };
+};
+/*
+ * Game Constants
+ */
+var POT = "pot";
+var PLANT = "plant";
+var WATER = "water";
+var YELLOW = "yellow";
+var PURPLE = "purple";
+var GREEN = "green";
+var BLUE = "blue";
+var GREY = "grey";
+var RED = "red";
+var PINK = "pink";
+var ORANGE = "orange";
+var DECK_PLANT = "deckplant";
+var DECK_POT = "deckpot";
+var RAINBOW = "rainbow";
+var SET_A = "setA";
+var SET_B = "setB";
+var STARTER = "starter";
+// prettier-ignore
+var CARDS_DATA = {
+    1: littlesucculents_f([POT, 2, 1, 8, GREY, STARTER, 'Pot', 'Pot', '']),
+    2: littlesucculents_f([POT, 6, 2, 1, PINK, DECK_POT, 'Pot', 'Pot', '']),
+    3: littlesucculents_f([POT, 8, 3, 1, PINK, DECK_POT, 'Pot', 'Pot', '']),
+    4: littlesucculents_f([POT, 12, 4, 1, PINK, DECK_POT, 'Pot', 'Pot', '']),
+    5: littlesucculents_f([POT, 6, 2, 1, ORANGE, DECK_POT, 'Pot', 'Pot', '']),
+    6: littlesucculents_f([POT, 8, 3, 1, ORANGE, DECK_POT, 'Pot', 'Pot', '']),
+    7: littlesucculents_f([POT, 12, 4, 1, ORANGE, DECK_POT, 'Pot', 'Pot', '']),
+    8: littlesucculents_f([POT, 6, 2, 1, YELLOW, DECK_POT, 'Pot', 'Pot', '']),
+    9: littlesucculents_f([POT, 8, 3, 1, YELLOW, DECK_POT, 'Pot', 'Pot', '']),
+    10: littlesucculents_f([POT, 12, 4, 1, YELLOW, DECK_POT, 'Pot', 'Pot', '']),
+    11: littlesucculents_f([POT, 6, 2, 1, GREEN, DECK_POT, 'Pot', 'Pot', '']),
+    12: littlesucculents_f([POT, 8, 3, 1, GREEN, DECK_POT, 'Pot', 'Pot', '']),
+    13: littlesucculents_f([POT, 12, 4, 1, GREEN, DECK_POT, 'Pot', 'Pot', '']),
+    14: littlesucculents_f([POT, 6, 2, 1, BLUE, DECK_POT, 'Pot', 'Pot', '']),
+    15: littlesucculents_f([POT, 8, 3, 1, BLUE, DECK_POT, 'Pot', 'Pot', '']),
+    16: littlesucculents_f([POT, 12, 4, 1, BLUE, DECK_POT, 'Pot', 'Pot', '']),
+    17: littlesucculents_f([POT, 6, 2, 1, RED, DECK_POT, 'Pot', 'Pot', '']),
+    18: littlesucculents_f([POT, 8, 3, 1, RED, DECK_POT, 'Pot', 'Pot', '']),
+    19: littlesucculents_f([POT, 12, 4, 1, RED, DECK_POT, 'Pot', 'Pot', '']),
+    20: littlesucculents_f([POT, 4, 1, 6, RAINBOW, DECK_POT, 'Pot', 'Pot']),
+    21: littlesucculents_f([PLANT, 0, 0, 6, PINK, SET_A, 'BabyToes', 'Baby Toes', 'Balanced display<br>5 <vp>']),
+    22: littlesucculents_f([PLANT, 0, 0, 6, ORANGE, SET_A, 'SnakePlant', 'Snake Plant', 'Plant is max <leaf><br>5 <vp>']),
+    23: littlesucculents_f([PLANT, 0, 0, 6, YELLOW, SET_A, 'MexicanFirecracker', 'Mexican Firecracker', 'Most 5 <vp><br>Second 2 <vp>']),
+    24: littlesucculents_f([PLANT, 0, 0, 6, GREEN, SET_A, 'StringofPearls', 'String of Pearls', 'Pot size<br>+6']),
+    25: littlesucculents_f([PLANT, 0, 0, 6, BLUE, SET_A, 'StringofDolphins', 'String of Dolphins', 'Growth<br>+2']),
+    26: littlesucculents_f([PLANT, 0, 0, 6, RED, SET_A, 'JellybeanPlant', 'Jellybean Plant', '1 <vp> per colour<br>in display']),
+    27: littlesucculents_f([PLANT, 0, 0, 6, PINK, SET_B, 'CalicoHearts', 'Calico Hearts', '1 <vp> per space<br>from money plant']),
+    28: littlesucculents_f([PLANT, 0, 0, 6, ORANGE, SET_B, 'BunnyEars', 'Bunny Ears', 'Total <leaf><br>Odd -1 <vp>/ Even 4 <vp>']),
+    29: littlesucculents_f([PLANT, 0, 0, 6, YELLOW, SET_B, 'RibbonPlant', 'Ribbon Plant', '1 <vp> per copy<br>in all displays']),
+    30: littlesucculents_f([PLANT, 0, 0, 6, GREEN, SET_B, 'BabySunRose', 'Baby Sun Rose', 'Take 1 <leaf> from display<br>in grow phase']),
+    31: littlesucculents_f([PLANT, 0, 0, 6, BLUE, SET_B, 'CoralCactus', 'Coral Cactus', '+1 <water><br> in grow phase']),
+    32: littlesucculents_f([PLANT, 0, 0, 6, RED, SET_B, 'LivingStone', 'Living Stone', '3 <vp>']),
+    33: littlesucculents_f([PLANT, 0, 0, 1, RAINBOW, DECK_PLANT, 'RainbowWest', 'Rainbow West', 'Can flower<br>the colour of its pot']),
+    34: littlesucculents_f([PLANT, 0, 0, 1, GREY, DECK_PLANT, 'AloeVera', 'Aloe Vera', 'each <water> in wathering can<br> is worth 1 <vp>']),
+    35: littlesucculents_f([PLANT, 0, 0, 1, GREY, DECK_PLANT, 'MoonCactus', 'Moon Cactus', 'If no flowers in display<br>7 <vp>']),
+    36: littlesucculents_f([PLANT, 0, 0, 1, GREY, DECK_PLANT, 'LeafWindow', 'Leaf Window', 'If money plant is max <leaf><br>7 <vp>']),
+    37: littlesucculents_f([PLANT, 0, 0, 1, GREY, DECK_PLANT, 'MermaidTail', 'Mermaid Tail', 'Display has most plants<br>7 <vp>']),
+    38: littlesucculents_f([PLANT, 0, 0, 1, GREY, DECK_PLANT, 'PetRock', 'Pet Rock', '<leaf> don\'t score<br>5 <vp>']),
+    39: littlesucculents_f([POT, 4, 2, 4, GREY, STARTER + POT, 'Pot', 'Pot', '']),
+    40: littlesucculents_f([PLANT, 0, 0, 4, GREY, STARTER + PLANT, 'MoneyPlant', 'Money Plant', '<leaf> are <money><br>but worth 0<vp>']),
+    41: littlesucculents_f([WATER, 0, 1, 3, GREY, WATER, 'Water', 'Water', '']),
+    42: littlesucculents_f([WATER, 0, 2, 3, GREY, WATER, 'Water', 'Water', '']),
+    43: littlesucculents_f([WATER, 0, 3, 3, GREY, WATER, 'Water', 'Water', '']),
+    44: littlesucculents_f([WATER, 0, 4, 3, GREY, WATER, 'Water', 'Water', '']),
+};
 /**
  *------
  * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
@@ -2171,23 +2267,20 @@ var isDebug = window.location.host == "studio.boardgamearena.com" ||
 var debug = isDebug ? console.info.bind(window.console) : function () { };
 var LittleSucculentsGame = /** @class */ (function (_super) {
     __extends(LittleSucculentsGame, _super);
-    // _diceManager: NRDiceManager;
-    // public _diceStocks: { [playerId: number]: LineDiceStock };
-    // private _cardManager: CardManager;
-    // private _tradeManager: TradeManager;
-    // public _args: { [playerId: number]: CardsAndDiceToActivateArgs };
     function LittleSucculentsGame() {
         var _this = _super.call(this) || this;
         _this._activeStates = ["play"];
         _this._notifications = [
-            ["moveDie", 50],
-            ["drawDie", 0],
+            ["updatePlayers", 0],
             // ['completeOtherHand', 1000, (notif) => notif.args.player_id == this.player_id],
         ];
         // Fix mobile viewport (remove CSS zoom)
         _this.default_viewport = "width=800";
         _this._counters = {};
-        _this._stocks = [];
+        _this._stocks = {};
+        _this._animationManager = new AnimationManager(_this);
+        var cardGameSetting = new CardSetting(_this._animationManager);
+        _this._cardManager = new MyCardManager(_this, cardGameSetting);
         return _this;
     }
     /*
@@ -2206,11 +2299,10 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     LittleSucculentsGame.prototype.setup = function (gamedatas) {
         debug("setup", gamedatas);
         this.gamedatas = gamedatas;
-        //create decks as bga stock + deckInfos
-        // this.counters['deck'] = this.addCounterOnDeck('deck', gamedatas.cards.deck_count);
-        // this.setupMarket(gamedatas.cards);
         // Setting up player boards
         this.setupPlayers(gamedatas);
+        this.setupCards(gamedatas);
+        $("ebd-body").classList.toggle("two-players", Object.keys(gamedatas.players).length == 2);
         //create zoom panel and define Utils
         this.setupZoomUI();
         //add general tooltips
@@ -2270,6 +2362,31 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     //     0
     //   );
     // }
+    LittleSucculentsGame.prototype.addStatics = function (c) {
+        Object.assign(c, CARDS_DATA[c.dataId]);
+        return c;
+    };
+    /**
+     * make active all slots where a card can be played
+     */
+    LittleSucculentsGame.prototype.activePossibleSlots = function () {
+        document.querySelectorAll(".gamezone-cards").forEach(function (gamezone) {
+            var _loop_3 = function (index) {
+                [1, -1].forEach(function (side) {
+                    var adjacentNumber = index == 0 ? 0 : index - 1;
+                    var plantElem = gamezone.querySelector("[data-slot-id='plant" + index * side + "']");
+                    var potElem = gamezone.querySelector("[data-slot-id='pot" + index * side + "']");
+                    var previousPotElem = gamezone.querySelector("[data-slot-id='pot" + adjacentNumber * side + "']");
+                    potElem.classList.toggle("active", potElem.childNodes.length > 0 ||
+                        previousPotElem.childNodes.length > 0);
+                    plantElem.classList.toggle("active", potElem.classList.contains("active"));
+                });
+            };
+            for (var index = 0; index <= 13; index++) {
+                _loop_3(index);
+            }
+        });
+    };
     /*
     █████████             █████     ███
     ███░░░░░███           ░░███     ░░░
@@ -2284,6 +2401,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
                                                                    
     */
     LittleSucculentsGame.prototype.displayChoicesForDie = function () {
+        // } //   this._diceManager.unselectAll(); //   }); //     actionName: "actModifyDie", //     value: index, //     diceIds: this._diceManager.getAllSelectedDice().map((die) => die.id), //   this.takeAction({ // callback = (index) => { // nDieToSelect = 1,
         debug("displayChoicesForDie");
     };
     LittleSucculentsGame.prototype.updateBtnPay = function () {
@@ -2368,41 +2486,119 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
                                                                                                                  
                                                                                                                  
         */
-    // setupTrading(trades: tradeFromDb[]) {
-    //   const title = _("Dice trading");
-    //   $("trading-title").textContent = title;
-    //   trades.forEach((trade) => {
-    //     this._tradeManager.addObject(new Trade(trade));
-    //   });
-    // }
-    LittleSucculentsGame.prototype.updateDeckGnomes = function (n, level) {
-        if (!this._counters["deckGnomes"]) {
-            this._counters["deckGnomes"] = this.addCounterOnDeck("deckGnomes", n);
+    LittleSucculentsGame.prototype.setupCards = function (gamedatas) {
+        var _this = this;
+        ["discardplant", "discardpot"].forEach(function (deck) {
+            _this._stocks[deck] = new Deck(_this._cardManager, $(deck), {
+                counter: { show: true, hideWhenEmpty: true },
+                autoUpdateCardNumber: true,
+                autoRemovePreviousCards: true,
+                topCard: gamedatas.cards[deck].topCard,
+                cardNumber: gamedatas.cards[deck].n,
+            });
+        });
+        ["deckplant", "deckpot"].forEach(function (deck) {
+            _this._stocks[deck] = new Deck(_this._cardManager, $(deck), {
+                counter: { show: true, hideWhenEmpty: false },
+                autoUpdateCardNumber: true,
+                cardNumber: gamedatas.cards[deck].n,
+            });
+        });
+        ["board"].forEach(function (deck) {
+            _this._stocks[deck] = new SlotStock(_this._cardManager, $(deck), {
+                slotsIds: ["pot1", "pot2", "pot3", "plant1", "plant2", "plant3"],
+                mapCardToSlot: function (card) {
+                    card = _this.addStatics(card);
+                    return card.type + card.state;
+                },
+            });
+        });
+        var slotIds = [];
+        for (var index = -13; index <= 13; index++) {
+            slotIds.push("pot" + index);
+            slotIds.push("plant" + index);
         }
-        else {
-            this._counters["deckGnomes"].toValue(n);
+        Object.keys(gamedatas.players).forEach(function (playerId) {
+            _this._stocks[playerId] = new SlotStock(_this._cardManager, $("gamezone-cards-" + playerId), {
+                slotsIds: slotIds,
+                mapCardToSlot: function (card) {
+                    card = _this.addStatics(card);
+                    return card.type + card.state;
+                },
+                wrap: "wrap",
+            });
+        });
+        this.updateCards(gamedatas.cards);
+    };
+    LittleSucculentsGame.prototype.updateCards = function (cards) {
+        var _this = this;
+        ["discardplant", "discardpot"].forEach(function (deck) {
+            if (cards[deck].topCard)
+                _this._stocks[deck].addCard(_this.addStatics(cards[deck].topCard));
+        });
+        ["deckplant", "deckpot"].forEach(function (deck) {
+            _this._stocks[deck].setCardNumber(cards[deck]);
+        });
+        cards.board.forEach(function (card) {
+            return _this._stocks["board"].addCard(_this.addStatics(card));
+        });
+        cards.player.forEach(function (card) {
+            return _this._stocks[card.playerId].addCard(_this.addStatics(card));
+        });
+        this.activePossibleSlots();
+    };
+    //           ████
+    //          ░░███
+    // ████████  ░███   ██████   █████ ████  ██████  ████████   █████
+    //░░███░░███ ░███  ░░░░░███ ░░███ ░███  ███░░███░░███░░███ ███░░
+    // ░███ ░███ ░███   ███████  ░███ ░███ ░███████  ░███ ░░░ ░░█████
+    // ░███ ░███ ░███  ███░░███  ░███ ░███ ░███░░░   ░███      ░░░░███
+    // ░███████  █████░░████████ ░░███████ ░░██████  █████     ██████
+    // ░███░░░  ░░░░░  ░░░░░░░░   ░░░░░███  ░░░░░░  ░░░░░     ░░░░░░
+    // ░███                       ███ ░███
+    // █████                     ░░██████
+    //░░░░░                       ░░░░░░
+    LittleSucculentsGame.prototype.setupPlayers = function (gamedatas) {
+        for (var playerId in gamedatas.players) {
+            var player = gamedatas.players[playerId];
+            this.place("tplPlayerPanel", player, "overall_player_board_" + playerId);
+            this.createCounter("water-" + playerId, player.water);
+            this.createCounter("money-" + playerId, player.money);
+            this.place("board_tpl", player, "table");
         }
-        $("deckGnomes").dataset.level = "" + level;
+        //add general tooltips
+        this.myUpdatePlayerOrdering("gamezone", "table");
+        // dojo.place(
+        //   '<div id="firstPlayer" class="firstPlayer"></div>',
+        //   "overall_player_board_" + gamedatas.firstPlayer
+        // );
+        // this.addTooltip("firstPlayer", _("First player"), "");
+    };
+    /**
+     * Update player Panel (firstPlayer token, scores...)
+     * TODO
+     * @param players
+     */
+    LittleSucculentsGame.prototype.updatePlayers = function (players) { };
+    LittleSucculentsGame.prototype.board_tpl = function (player) {
+        return "<div id='gamezone-".concat(player.id, "' class='succulents-gamezone' style='border-color:#").concat(player.color, "'>\n  <div class='player-board-name' style='background-color:#").concat(player.color, "'>\n    ").concat(player.name, "\n  </div>\n  <div id='gamezone-cards-").concat(player.id, "' class='gamezone-cards'>\n    \n  </div>\n  \n</div>");
     };
     // semi generic
     LittleSucculentsGame.prototype.tplPlayerPanel = function (player) {
-        //   const firstPlayerToken =
-        //     player.firstPlayer == 1
-        //       ? '<div id="firstPlayerToken" class="first-player">1st</div>'
-        //       : "";
-        //   return `<div id='littlesucculents-player-infos_${player.id}' class='player-infos'>
-        // <div class='lives-counter counter' id='lives-counter-${player.id}'>0</div>
-        // ${firstPlayerToken}
-        // </div>`;
-        return "";
+        return "<div id='succulents-player-infos_".concat(player.id, "' class='player-infos'>\n      <div class='money counter' id='money-").concat(player.id, "'></div>\n      <div class='water counter' id='water-").concat(player.id, "'></div>\n      <div class=\"first-player-holder\" id='first-player-").concat(player.id, "'></div>\n    </div>");
     };
-    LittleSucculentsGame.prototype.table_tpl = function (player) {
-        debug("table_tpl", player);
-        return "<div id=\"player_table_".concat(player.id, "\" class=\"player_table\" style=\"border-color:#").concat(player.color, "\">\n\t<div class=\"title\" style=\"background-color:#").concat(player.color, "\">").concat(player.name, "</div>\n\t\t<div id=\"gnomes_row_").concat(player.id, "\" class=\"cards_row\">\n      <div class=\"fakeComponent\"></div>\n\t\t\t<div id=\"dice_stock_").concat(player.id, "\"  class=\"dice_stock\"></div>\n\t\t</div>\n\t\t<div id=\"littlesucculents_row_").concat(player.id, "\" class=\"cards_row\"></div>\n\t</div>");
+    LittleSucculentsGame.prototype.getPlayers = function () {
+        return Object.values(this.gamedatas.players);
     };
-    LittleSucculentsGame.prototype.card_tpl = function (card, extraclass) {
-        if (extraclass === void 0) { extraclass = ""; }
-        return "";
+    LittleSucculentsGame.prototype.getColoredName = function (pId) {
+        var name = this.gamedatas.players[pId].name;
+        return this.coloredPlayerName(name);
+    };
+    LittleSucculentsGame.prototype.getPlayerColor = function (pId) {
+        return this.gamedatas.players[pId].color;
+    };
+    LittleSucculentsGame.prototype.isSolo = function () {
+        return this.getPlayers().length == 1;
     };
     /*
       █████████  ██████████ ██████   █████ ██████████ ███████████   █████   █████████   █████████
@@ -2421,7 +2617,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         if (valuesToDisable === void 0) { valuesToDisable = []; }
         if (from === void 0) { from = 1; }
         if (to === void 0) { to = 6; }
-        var _loop_3 = function (index) {
+        var _loop_4 = function (index) {
             if (!$("btn-" + index)) {
                 this_1.addActionButton("btn-" + index, "" + index, function () {
                     callback(index);
@@ -2433,7 +2629,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         };
         var this_1 = this;
         for (var index = from; index <= to; index++) {
-            _loop_3(index);
+            _loop_4(index);
         }
     };
     /**
@@ -2469,11 +2665,9 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     };
     //place each player board in good order.
     LittleSucculentsGame.prototype.myUpdatePlayerOrdering = function (elementName, container) {
-        var index = 0;
         for (var i in this.gamedatas.playerorder) {
             var playerId = this.gamedatas.playerorder[i];
-            dojo.place(elementName + "_" + playerId, container, index);
-            index++;
+            dojo.place(elementName + "-" + playerId, container, "last");
         }
     };
     LittleSucculentsGame.prototype.displayTitle = function (title) {

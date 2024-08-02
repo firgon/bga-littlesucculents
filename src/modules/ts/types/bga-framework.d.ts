@@ -270,7 +270,7 @@ declare class GameGui implements Game {
     autoclick?: boolean
   ): void;
   stopActionTimer(): void;
-  getColoredName(pId: number): string;
+  coloredPlayerName(name: string): string;
   coloredYou(): string;
   fsr(log: string, args: {}): string;
 }

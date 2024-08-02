@@ -28,15 +28,15 @@ class Player extends \LSU\Helpers\DB_Model
     'canUndo' => ['player_can_undo', 'int'],
     'pendingActions' => ['player_pending_actions', 'obj'],
     'zombie' => 'player_zombie',
+    'water' => ['player_water', 'int']
   ];
-  
+
   public $bindedAttributes = [];
 
   public function getUiData($currentPlayerId = null)
   {
     $data = parent::getUiData();
-    // $isCurrent = $this->id == $currentPlayerId;
-    // $data['hand'] = $this->getCardsInHand($isCurrent);
+    $data['money'] = $this->getPlant(0)->getTokenNb();
     // $data['table'] = $this->getCardsOnTable();
     // $data['score1'] = Cells::getScore1($this->id);
     // $data['rewards'] = $this->getRewards();
@@ -44,6 +44,11 @@ class Player extends \LSU\Helpers\DB_Model
     // $data['score3'] = $this->getScore();
 
     return $data;
+  }
+
+  public function getPlant($state)
+  {
+    return Cards::getInLocationPId(PLAYER, $this->getId(), $state)->first();
   }
 
   public function getCardsInHand($isCurrent = true)
@@ -95,7 +100,7 @@ class Player extends \LSU\Helpers\DB_Model
                                                                              
                                                                              
   */
-  
+
   public function addActionToPendingAction($action, $bFirst = false)
   {
     // $player = is_numeric($player) ? Players::get($player) : $player;

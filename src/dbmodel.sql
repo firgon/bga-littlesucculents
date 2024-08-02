@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS `cards` (
 	`extra_datas` JSON NULL,
 	`flowered` int(1) NULL,
   `token_nb` int(3) NULL,
+  `data_id` int(3) NULL,
+	`player_id` int(10) DEFAULT 0,
 	PRIMARY KEY (`card_id`)
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8;
 
