@@ -3,15 +3,23 @@ class Generics {
     let div = document.createElement("div");
     div.classList.add("id_number");
     if (card.dataId) div.innerText = card.dataId.toString();
-    element.append(div);
+
+    if (element.querySelector(".id_number")) {
+      element.replaceChild(div, element.querySelector(".id_number"));
+    } else {
+      element.append(div);
+    }
   }
 
   static addTextDiv(text: string, classe: string, element: HTMLElement): void {
-    let div =
-      element.querySelector("." + classe) ?? document.createElement("div");
+    let div = document.createElement("div");
     div.classList.add(classe);
-    div.innerHTML = text;
-    element.append(div);
+    const innerDiv = document.createElement("div");
+    innerDiv.innerHTML = text;
+    div.append(innerDiv);
+    if (element.querySelector("." + classe))
+      element.replaceChild(div, element.querySelector("." + classe));
+    else element.append(div);
   }
 
   static getCardContainer(card: Card) {

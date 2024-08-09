@@ -34,7 +34,7 @@ class Globals extends \LSU\Helpers\DB_Manager
   {
     static::setTurn(0);
     static::setFirstPlayer($activePlayerId);
-    static::setCheatMode(Game::isStudio());
+    // static::setCheatMode(Game::isStudio());
   }
 
   public static function changeFirstPlayer()

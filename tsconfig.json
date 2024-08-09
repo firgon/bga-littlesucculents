@@ -35,6 +35,7 @@
 
       
         "src/modules/ts/define.ts",
+        "src/modules/ts/token.ts",
         "src/modules/ts/cards.ts",
         // "src/modules/ts/dice.ts",
         "src/modules/ts/littlesucculents.ts"

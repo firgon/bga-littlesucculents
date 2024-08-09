@@ -12,11 +12,18 @@
 <div id="LSU_caution"></div>
 <div id="table">
 	<div id="board-container">
-		<div id="discardplant"></div>       
-		<div id="deckplant"></div>
-		<div id="board"></div>
-		<div id="deckpot"></div>       
-		<div id="discardpot"></div>
+		<div class="lsu-row">
+			<div id="water"></div>
+			<div id="visibleDeck"></div>
+			<div id="waterboard"></div>
+		</div>
+		<div class="lsu-row">
+			<!-- <div id="discardplant"></div>      -->  
+			<div id="deckplant"></div>
+			<div id="board"></div>
+			<div id="deckpot"></div>       
+			<!-- <div id="discardpot"></div> -->
+		</div>
 	</div>
 </div>
 

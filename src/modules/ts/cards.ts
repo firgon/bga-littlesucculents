@@ -1,11 +1,18 @@
 interface Card {
   id: number;
-  location: "player" | "visibleDeck" | "board" | "deckPlant" | "deckPot";
+  location:
+    | "player"
+    | "visibleDeck"
+    | "board"
+    | "deckPlant"
+    | "deckPot"
+    | "water"
+    | "waterboard";
   state: number;
   extraDatas: any;
   playerId: number;
   dataId: number;
-  tokens: number;
+  tokenNb: number;
 
   type?: "pot" | "plant" | "water";
   color?: string;
@@ -13,6 +20,8 @@ interface Card {
   maxLeaf?: number;
   hint?: string;
   name?: string;
+
+  tokenList?: [];
 }
 
 class CardSetting<T extends Card> implements CardManagerSettings<T> {
@@ -35,13 +44,20 @@ class CardSetting<T extends Card> implements CardManagerSettings<T> {
   setupFrontDiv(card: T, element: HTMLDivElement) {
     if (card.dataId) element.dataset.dataId = card.dataId.toString();
     if (card.type == "plant") {
-      Generics.addTextDiv(card.hint ?? "", "text", element);
-      Generics.addTextDiv(card.name, "title", element);
+      Generics.addTextDiv(
+        this.animationManager.game.insertIcons(card.hint),
+        "text",
+        element
+      );
+      Generics.addTextDiv(_(card.name), "title", element);
     } else if (card.type == "pot") {
       Generics.addTextDiv(card.maxLeaf.toString(), "size", element);
     }
 
     Generics.addIdDiv(card, element);
+
+    //generate Tokens
+    Token.adjustTokens(card, element);
   }
   unselectableCardClass?: string;
 }
@@ -68,99 +84,29 @@ class MyCardManager<T extends Card> extends CardManager<T> {
   }
 }
 
-// class DeckForSuperGame<T extends Card> extends Deck<T> {
-//   public mine: boolean = false;
-//   public getElement() {
-//     return this.element;
-//   }
+class SlotStockForSucculents<T extends Card> extends SlotStock<T> {
+  public game: LittleSucculentsGame;
 
-//   /**
-//    * Set the the cards number.
-//    *
-//    * @param cardNumber the cards number
-//    * @param topCard the deck top card. If unset, will generated a fake card (default). Set it to null to not generate a new topCard.
-//    */
-//   public setCardNumber(
-//     cardNumber: number,
-//     topCard: T | null | undefined = undefined
-//   ): Promise<boolean> {
-//     let promise = Promise.resolve(false);
-//     const oldTopCard = this.getTopCard();
-//     if (false) {
-//       const newTopCard = topCard || this.getFakeCard();
-//       if (
-//         !oldTopCard ||
-//         this.manager.getId(newTopCard) != this.manager.getId(oldTopCard)
-//       ) {
-//         promise = this.addCard(newTopCard, undefined, <AddCardToDeckSettings>{
-//           autoUpdateCardNumber: false,
-//         });
-//       }
-//     } else if (cardNumber == 0 && oldTopCard) {
-//       promise = this.removeCard(oldTopCard, <RemoveCardSettings>{
-//         autoUpdateCardNumber: false,
-//       });
-//     }
-//     this.cardNumber = cardNumber;
+  constructor(
+    protected manager: CardManager<T>,
+    protected element: HTMLElement,
+    settings: SlotStockSettings<T>
+  ) {
+    super(manager, element, settings);
+    this.game = manager.game as LittleSucculentsGame;
+  }
 
-//     this.element.dataset.empty = (this.cardNumber == 0).toString();
+  public addCard(
+    card: T,
+    animation?: CardAnimation<T>,
+    settings?: AddCardToSlotSettings
+  ): Promise<boolean> {
+    this.game.addStatics(card);
 
-//     let thickness = 0;
-//     this.thicknesses.forEach((threshold, index) => {
-//       if (this.cardNumber >= threshold) {
-//         thickness = index;
-//       }
-//     });
-//     this.element.style.setProperty("--thickness", `${thickness}px`);
+    return super.addCard(card, animation, settings);
+  }
+}
 
-//     const counterDiv = this.element.querySelector(".bga-cards_deck-counter");
-//     if (counterDiv) {
-//       counterDiv.innerHTML = `${cardNumber}`;
-//     }
-
-//     return promise;
-//   }
-// }
-
-// class SuperAllVisibleDeck<T extends Card> extends AllVisibleDeck<T> {
-//   public mine: boolean = false;
-//   public getElement() {
-//     return this.element;
-//   }
-// }
-// class DeckSuper<T extends Card> extends DeckForSuperGame<T> {
-//   public onSelectionChange = (selection: T[], lastChange: T) => {
-//     debug(selection, lastChange);
-//     const game = this.manager.game as SuperGameGame;
-//     if (
-//       game.isCurrentPlayerActive()
-//       // && (this.manager.game as SuperGameGame).isState("play")
-//     ) {
-//       if (!selection.length) {
-//         return game.restoreServerGameState();
-//       }
-//       if (lastChange.type == "mission") {
-//         game.clientState(
-//           "clientMission",
-//           _("${You} must choose which Supers go on the mission"),
-//           {
-//             card: lastChange,
-//             You: game.coloredYou(),
-//           }
-//         );
-//       } else {
-//         game.clientState(
-//           "clientRecruit",
-//           _("${You} must choose a slot for this Super"),
-//           {
-//             card: lastChange,
-//             You: game.coloredYou(),
-//           }
-//         );
-//       }
-//     }
-//   };
-// }
 let littlesucculents_f = (data) => {
   return {
     type: data[0],
@@ -183,7 +129,6 @@ const PLANT = "plant";
 const WATER = "water";
 
 const YELLOW = "yellow";
-const PURPLE = "purple";
 const GREEN = "green";
 const BLUE = "blue";
 const GREY = "grey";

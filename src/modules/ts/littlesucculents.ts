@@ -308,12 +308,12 @@ class LittleSucculentsGame extends GameGui {
 	  */
 
   setupCards(gamedatas: GameDatas) {
-    ["discardplant", "discardpot"].forEach((deck) => {
+    [/*"discardplant", "discardpot",*/ "water"].forEach((deck) => {
       this._stocks[deck] = new Deck(this._cardManager, $(deck), {
         counter: { show: true, hideWhenEmpty: true },
-        autoUpdateCardNumber: true,
+        autoUpdateCardNumber: false,
         autoRemovePreviousCards: true,
-        topCard: gamedatas.cards[deck].topCard,
+        topCard: this.addStatics(gamedatas.cards[deck].topCard),
         cardNumber: gamedatas.cards[deck].n,
       });
     });
@@ -324,15 +324,36 @@ class LittleSucculentsGame extends GameGui {
         cardNumber: gamedatas.cards[deck].n,
       });
     });
-    ["board"].forEach((deck) => {
-      this._stocks[deck] = new SlotStock(this._cardManager, $(deck), {
-        slotsIds: ["pot1", "pot2", "pot3", "plant1", "plant2", "plant3"],
+    this._stocks["waterboard"] = new Deck(
+      this._cardManager,
+      $("waterboard"),
+      {}
+    );
+    $("waterboard").dataset.label = _("Next weather :");
+    this._stocks["board"] = new SlotStock(this._cardManager, $("board"), {
+      slotsIds: ["pot1", "pot2", "pot3", "plant1", "plant2", "plant3"],
+      mapCardToSlot: (card) => {
+        card = this.addStatics(card);
+        return card.type + card.state;
+      },
+    });
+    const colors = ["red", "green", "blue", "pink", "yellow", "orange"];
+    this._stocks["visibleDeck"] = new SlotStock(
+      this._cardManager,
+      $("visibleDeck"),
+      {
+        slotsIds: colors,
         mapCardToSlot: (card) => {
           card = this.addStatics(card);
-          return card.type + card.state;
+          return card.color;
         },
-      });
+      }
+    );
+    colors.forEach((color) => {
+      const elem = document.querySelector(`[data-slot-id='${color}']`);
+      this.addAutomaticCounter(elem as HTMLElement);
     });
+
     let slotIds = [];
     for (let index = -13; index <= 13; index++) {
       slotIds.push("pot" + index);
@@ -357,7 +378,7 @@ class LittleSucculentsGame extends GameGui {
   }
 
   updateCards(cards: GameDatasCards) {
-    ["discardplant", "discardpot"].forEach((deck) => {
+    [/*"discardplant", "discardpot", */ "water"].forEach((deck) => {
       if (cards[deck].topCard)
         this._stocks[deck].addCard(this.addStatics(cards[deck].topCard));
     });
@@ -370,7 +391,20 @@ class LittleSucculentsGame extends GameGui {
     cards.player.forEach((card) =>
       this._stocks[card.playerId].addCard(this.addStatics(card))
     );
+    cards.visibleDeck.forEach((card) =>
+      this._stocks["visibleDeck"].addCard(this.addStatics(card))
+    );
 
+    this._stocks["waterboard"].addCard(this.addStatics(cards.waterboard));
+
+    //display available flowers
+    cards.flowerableColors.forEach((color) => {
+      const elem = document.createElement("div");
+      elem.classList.add("token", "flower", color);
+      document.querySelector(`[data-slot-id='${color}']`).append(elem);
+    });
+
+    //remove slots of each player that are not reachable for now
     this.activePossibleSlots();
   }
 
@@ -391,9 +425,15 @@ class LittleSucculentsGame extends GameGui {
 
       this.place("tplPlayerPanel", player, "overall_player_board_" + playerId);
 
-      this.createCounter("water-" + playerId, player.water);
+      this._counters["water-" + playerId] = this.createCounter(
+        "water-" + playerId,
+        player.water
+      );
 
-      this.createCounter("money-" + playerId, player.money);
+      this._counters["money-" + playerId] = this.createCounter(
+        "money-" + playerId,
+        player.money
+      );
 
       this.place("board_tpl", player, "table");
     }
@@ -433,7 +473,9 @@ class LittleSucculentsGame extends GameGui {
     return `<div id='succulents-player-infos_${player.id}' class='player-infos'>
       <div class='money counter' id='money-${player.id}'></div>
       <div class='water counter' id='water-${player.id}'></div>
-      <div class="first-player-holder" id='first-player-${player.id}'></div>
+      <div class="first-player-holder" id='first-player-${player.id}'>${
+      player.isFirst ? '<div id="firstPlayer"></div>' : ""
+    }</div>
     </div>`;
   }
 
@@ -466,6 +508,51 @@ class LittleSucculentsGame extends GameGui {
 																							 
 																							 
   */
+
+  addAutomaticCounter(elem: HTMLElement) {
+    elem.classList.add("automaticCounter");
+    let observer = new MutationObserver((mutationRecords) => {
+      mutationRecords.forEach((record) => {
+        (record.target as HTMLElement).dataset.nb = (
+          record.target as HTMLElement
+        )
+          .querySelectorAll(".card")
+          .length.toString();
+      });
+    });
+    observer.observe(elem, { childList: true });
+  }
+
+  insertIcons(text: string, preventRecursion = false): string {
+    const translations: any = [
+      // [
+      //   /<([-+]\d)\s(egg|damage|die|life|tactic|nird|gnome|scientist)>/gm,
+      //   "numberedIcon",
+      // ],
+      ["<vp>", "vp"],
+      ["<water>", "water"],
+      ["<leaf>", "leaf"],
+      ["<money>", "money"],
+      // [/([^<])(\/)/gm, "slash"],
+    ];
+    let index = 0; //assuming there is only 1 serie of indexed icons in a card
+    for (const entry of translations) {
+      text = text.replaceAll(
+        entry[0],
+        entry[2] && entry[2] == "text"
+          ? (entry[1] as string)
+          : entry[1] == "numberedIcon"
+          ? `<span class='inline-icon icon-$2' data-nb='$1'></span>`
+          : entry[1] == "indexedIcons"
+          ? `<div class="box index${index++}"><span class='inline-icon icon-$1'></span>X $2</div>`
+          : entry[1] == "method"
+          ? this[entry[2]]()
+          : (entry[0] instanceof RegExp ? "$1" : "") + //assuming that all regex have a first capturing group useless
+            `<span class='inline-icon icon-${entry[1]}'></span>`
+      );
+    }
+    return text;
+  }
 
   createNumberButtons(
     callback: Function,

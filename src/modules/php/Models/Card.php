@@ -2,6 +2,7 @@
 
 namespace LSU\Models;
 
+use LSU\Managers\Cards;
 use LSU\Managers\Players;
 
 /*
@@ -38,5 +39,20 @@ class Card extends \LSU\Helpers\DB_Model
         foreach ($datas as $attribute => $value) {
             $this->$attribute = $value;
         }
+    }
+
+    public function isPlant()
+    {
+        return $this->getType() == PLANT;
+    }
+
+    public function isPot()
+    {
+        return $this->getType() == POT;
+    }
+
+    public function isCuttable($pId)
+    {
+        return $this->getType() == PLANT && $this->getPlayerId() != $pId && Cards::isAvailable($this->getColor());
     }
 }

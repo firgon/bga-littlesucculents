@@ -16,6 +16,7 @@ interface Player {
 
   water: number;
   money: number;
+  isFirst: boolean;
 }
 
 interface GameDatasCards {
@@ -25,6 +26,10 @@ interface GameDatasCards {
   player: Card[];
   discardpot: { n: number; topCard?: Card };
   discardplant: { n: number; topCard?: Card };
+  water: { n: number; topCard?: Card };
+  waterboard: Card;
+  visibleDeck: Card[];
+  flowerableColors: string[];
 }
 
 interface GameDatas {

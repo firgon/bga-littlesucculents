@@ -42,7 +42,46 @@ class Cards extends \LSU\Helpers\Pieces
                 'n' => static::countInLocation(DISCARD . PLANT),
                 'topCard' => static::getTopOf(DISCARD . PLANT)
             ],
+            WATER => [
+                'n' => static::countInLocation(WATER),
+                'topCard' => static::getTopOf(WATER)
+            ],
+            WATER . BOARD => static::getInLocation(WATER . BOARD)->first(),
+            VISIBLE_DECK => static::getInLocation(VISIBLE_DECK)->toArray(),
+            "flowerableColors" => static::getFlowerableColors(),
         ];
+    }
+
+    public static function getBuyableCards()
+    {
+        return static::getInLocation(BOARD);
+    }
+
+    public static function getCuttableCards($pId)
+    {
+        return static::getInLocation(PLAYER)->filter(
+            fn ($card) =>
+            $card->isCuttable($pId)
+        );
+    }
+
+    public static function getFlowerableColors()
+    {
+        $cards = self::getInLocationQ(PLAYER)
+            ->where('flowered', FLOWERED)
+            ->get();
+        return array_diff(ALL_COLORS, $cards->map(fn ($card) => $card->getColor())->toArray());
+    }
+
+    public static function getFlowerableCards($pId)
+    {
+        $flowerableColors = static::getFlowerableColors();
+        return static::getInLocationPId(PLAYER, $pId)->filter(fn ($card) => in_array($card->getColor(), $flowerableColors));
+    }
+
+    public static function isAvailable($color)
+    {
+        return static::getInLocation(VISIBLE_DECK)->filter(fn ($card) => $card->getColor() == $color)->count() > 0;
     }
 
     /* Creation of the Cards */
@@ -128,6 +167,7 @@ class Cards extends \LSU\Helpers\Pieces
         }
 
         static::shuffle(WATER);
+        static::pickForLocation(1, WATER, WATER . BOARD);
     }
 
     public static function getCards()

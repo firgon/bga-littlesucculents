@@ -10,15 +10,16 @@ const POT = "pot";
 const PLANT = "plant";
 const WATER = "water";
 
+
+const GREY = "grey";
+
 const YELLOW = "yellow";
-const PURPLE = "purple";
 const GREEN = "green";
 const BLUE = "blue";
-const GREY = "grey";
 const RED = "red";
 const PINK = "pink";
 const ORANGE = "orange";
-const ALL_COLORS = [YELLOW, PURPLE, GREEN, BLUE, RED, PINK];
+const ALL_COLORS = [YELLOW, ORANGE, GREEN, BLUE, RED, PINK];
 
 const RAINBOW = "rainbow";
 const SET_A = "setA";
@@ -94,3 +95,7 @@ const DECK_PLANT = "deckplant";
 const DECK_POT = "deckpot";
 const BOX = 'box';
 const DISCARD = 'discard';
+
+//flags
+const FLOWERED = 1;
+const NOT_FLOWERED = 0;

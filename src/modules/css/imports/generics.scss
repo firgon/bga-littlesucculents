@@ -1,7 +1,7 @@
 @use "safeMode.scss";
 @use "modals.scss";
 @use "mixins.scss" as mix;
-@use "variables.scss";
+@use "variables.scss" as var;
 
 // html {
 //   background-image: url("img/background.jpg");
@@ -9,3 +9,26 @@
 //   background-attachment: fixed;
 //   background-position: center center;
 // }
+
+.automaticCounter {
+  &[data-nb]::before {
+    @include mix.size(44, 44);
+    color: black;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 2px 1px black;
+    font-size: 14px;
+    // padding: 2px 2px 2px 2px;
+    // position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    content: attr(data-nb);
+    position: absolute;
+    top: mix.addScale(15);
+    right: mix.addScale(15);
+    // top: -8%;
+    z-index: 1;
+    font-family: var.$default-font;
+  }
+}

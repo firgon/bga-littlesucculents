@@ -16,10 +16,20 @@ trait TurnTrait
 {
 	public function argPlay()
 	{
-		$activePlayer = Players::getActive();
+		//possible actions  
+		// buy a card, 
+		// cut another player plant, 
+		// flower his succulent or 
+		// tend to his plants
+		$pId = Players::getActiveId();
+		$buyableCards = Cards::getBuyableCards();
+		$cuttableCards = Cards::getCuttableCards($pId);
+		$flowerableCards = Cards::getFlowerableCards($pId);
 
 		return [
-			'player_name' => $activePlayer->getName()
+			"buyableCards" => $buyableCards,
+			"cuttableCards" => $cuttableCards,
+			"flowerableCards" => $flowerableCards,
 		];
 	}
 

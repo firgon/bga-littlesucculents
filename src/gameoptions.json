@@ -2,19 +2,19 @@
   "100": {
     "name": "Plant set",
     "values": {
-      "1": {
+      "0": {
         "name": "A-Set",
         "firstgameonly": true
       },
-      "2": {
+      "1": {
         "name": "B-Set",
         "nobeginner": true
       },
-      "3": {
+      "2": {
         "name": "Random Set",
         "nobeginner": true
       }
     },
-    "default": 1
+    "default": 0
   }
 }

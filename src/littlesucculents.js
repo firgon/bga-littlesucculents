@@ -1994,14 +1994,23 @@ var Generics = /** @class */ (function () {
         div.classList.add("id_number");
         if (card.dataId)
             div.innerText = card.dataId.toString();
-        element.append(div);
+        if (element.querySelector(".id_number")) {
+            element.replaceChild(div, element.querySelector(".id_number"));
+        }
+        else {
+            element.append(div);
+        }
     };
     Generics.addTextDiv = function (text, classe, element) {
-        var _a;
-        var div = (_a = element.querySelector("." + classe)) !== null && _a !== void 0 ? _a : document.createElement("div");
+        var div = document.createElement("div");
         div.classList.add(classe);
-        div.innerHTML = text;
-        element.append(div);
+        var innerDiv = document.createElement("div");
+        innerDiv.innerHTML = text;
+        div.append(innerDiv);
+        if (element.querySelector("." + classe))
+            element.replaceChild(div, element.querySelector("." + classe));
+        else
+            element.append(div);
     };
     Generics.getCardContainer = function (card) {
         return card.location;
@@ -2021,6 +2030,79 @@ define([
 ], function (dojo, declare) {
     return declare("bgagame.littlesucculents", [customgame.game, littlesucculents.cheatModule, littlesucculents.zoomUI], new LittleSucculentsGame());
 });
+var Token = /** @class */ (function () {
+    function Token() {
+    }
+    Token.countTokens = function (elem) {
+        return elem.querySelectorAll(".token").length;
+    };
+    Token.adjustTokens = function (card, element) {
+        var _a = Token.getAvailablePlaces(card, element), busyPlaces = _a[0], availablePlaces = _a[1];
+        if (card.tokenNb)
+            debug("adjust_Token", card, busyPlaces, availablePlaces);
+        if (busyPlaces.length < card.tokenNb) {
+            Token.addTokens(card.tokenNb - busyPlaces.length, element, availablePlaces);
+        }
+        else {
+            Token.removeTokens(Math.abs(card.tokenNb - busyPlaces.length), element);
+        }
+    };
+    Token.addTokens = function (nb, elem, availablePlaces) {
+        for (var index = 0; index < nb; index++) {
+            var token = Token.createToken(availablePlaces[index].toString());
+            elem.append(token);
+        }
+    };
+    Token.removeTokens = function (nb, elem) {
+        var tokens = elem.querySelectorAll(".token");
+        var _loop_3 = function (index) {
+            var element = tokens[index];
+            element.classList.add("trashed");
+            setTimeout(function () {
+                element.remove();
+            }, 500);
+        };
+        for (var index = 0; index < nb; index++) {
+            _loop_3(index);
+        }
+    };
+    Token.createToken = function (place) {
+        var result = document.createElement("div");
+        result.classList.add("token");
+        var sides = document.createElement("div");
+        sides.classList.add("sides");
+        ["front", "back"].forEach(function (side) {
+            var sideElem = document.createElement("div");
+            sideElem.classList.add(side);
+            sideElem.classList.add("side");
+            sides.append(sideElem);
+        });
+        var rotate = Math.random() * 90 - 45;
+        result.style.transform = "rotate(".concat(rotate, "deg)");
+        result.append(sides);
+        result.dataset.placeId = place;
+        return result;
+    };
+    Token.getAvailablePlaces = function (card, element) {
+        var _a;
+        var places = Array.from(new Array(((_a = card.tokenNb) !== null && _a !== void 0 ? _a : 0) + 2), function (x, i) { return i + 1; });
+        var busyPlaces = Array.from(element.querySelectorAll(".token")).map(function (elem) { return +elem.dataset.placeId; });
+        var getShuffledArr = function (arr) {
+            var _a;
+            var newArr = arr.slice();
+            for (var i = newArr.length - 1; i > 0; i--) {
+                var rand = Math.floor(Math.random() * (i + 1));
+                _a = [newArr[rand], newArr[i]], newArr[i] = _a[0], newArr[rand] = _a[1];
+            }
+            return newArr;
+        };
+        return [
+            busyPlaces,
+            getShuffledArr(places.filter(function (x) { return !busyPlaces.includes(x); })),
+        ];
+    };
+    return Token;
+}());
 var CardSetting = /** @class */ (function () {
     function CardSetting(animationManager) {
         this.animationManager = animationManager;
@@ -2037,17 +2119,18 @@ var CardSetting = /** @class */ (function () {
         element.classList.add(card.type);
     };
     CardSetting.prototype.setupFrontDiv = function (card, element) {
-        var _a;
         if (card.dataId)
             element.dataset.dataId = card.dataId.toString();
         if (card.type == "plant") {
-            Generics.addTextDiv((_a = card.hint) !== null && _a !== void 0 ? _a : "", "text", element);
-            Generics.addTextDiv(card.name, "title", element);
+            Generics.addTextDiv(this.animationManager.game.insertIcons(card.hint), "text", element);
+            Generics.addTextDiv(_(card.name), "title", element);
         }
         else if (card.type == "pot") {
             Generics.addTextDiv(card.maxLeaf.toString(), "size", element);
         }
         Generics.addIdDiv(card, element);
+        //generate Tokens
+        Token.adjustTokens(card, element);
     };
     return CardSetting;
 }());
@@ -2073,93 +2156,21 @@ var MyCardManager = /** @class */ (function (_super) {
     };
     return MyCardManager;
 }(CardManager));
-// class DeckForSuperGame<T extends Card> extends Deck<T> {
-//   public mine: boolean = false;
-//   public getElement() {
-//     return this.element;
-//   }
-//   /**
-//    * Set the the cards number.
-//    *
-//    * @param cardNumber the cards number
-//    * @param topCard the deck top card. If unset, will generated a fake card (default). Set it to null to not generate a new topCard.
-//    */
-//   public setCardNumber(
-//     cardNumber: number,
-//     topCard: T | null | undefined = undefined
-//   ): Promise<boolean> {
-//     let promise = Promise.resolve(false);
-//     const oldTopCard = this.getTopCard();
-//     if (false) {
-//       const newTopCard = topCard || this.getFakeCard();
-//       if (
-//         !oldTopCard ||
-//         this.manager.getId(newTopCard) != this.manager.getId(oldTopCard)
-//       ) {
-//         promise = this.addCard(newTopCard, undefined, <AddCardToDeckSettings>{
-//           autoUpdateCardNumber: false,
-//         });
-//       }
-//     } else if (cardNumber == 0 && oldTopCard) {
-//       promise = this.removeCard(oldTopCard, <RemoveCardSettings>{
-//         autoUpdateCardNumber: false,
-//       });
-//     }
-//     this.cardNumber = cardNumber;
-//     this.element.dataset.empty = (this.cardNumber == 0).toString();
-//     let thickness = 0;
-//     this.thicknesses.forEach((threshold, index) => {
-//       if (this.cardNumber >= threshold) {
-//         thickness = index;
-//       }
-//     });
-//     this.element.style.setProperty("--thickness", `${thickness}px`);
-//     const counterDiv = this.element.querySelector(".bga-cards_deck-counter");
-//     if (counterDiv) {
-//       counterDiv.innerHTML = `${cardNumber}`;
-//     }
-//     return promise;
-//   }
-// }
-// class SuperAllVisibleDeck<T extends Card> extends AllVisibleDeck<T> {
-//   public mine: boolean = false;
-//   public getElement() {
-//     return this.element;
-//   }
-// }
-// class DeckSuper<T extends Card> extends DeckForSuperGame<T> {
-//   public onSelectionChange = (selection: T[], lastChange: T) => {
-//     debug(selection, lastChange);
-//     const game = this.manager.game as SuperGameGame;
-//     if (
-//       game.isCurrentPlayerActive()
-//       // && (this.manager.game as SuperGameGame).isState("play")
-//     ) {
-//       if (!selection.length) {
-//         return game.restoreServerGameState();
-//       }
-//       if (lastChange.type == "mission") {
-//         game.clientState(
-//           "clientMission",
-//           _("${You} must choose which Supers go on the mission"),
-//           {
-//             card: lastChange,
-//             You: game.coloredYou(),
-//           }
-//         );
-//       } else {
-//         game.clientState(
-//           "clientRecruit",
-//           _("${You} must choose a slot for this Super"),
-//           {
-//             card: lastChange,
-//             You: game.coloredYou(),
-//           }
-//         );
-//       }
-//     }
-//   };
-// }
+var SlotStockForSucculents = /** @class */ (function (_super) {
+    __extends(SlotStockForSucculents, _super);
+    function SlotStockForSucculents(manager, element, settings) {
+        var _this = _super.call(this, manager, element, settings) || this;
+        _this.manager = manager;
+        _this.element = element;
+        _this.game = manager.game;
+        return _this;
+    }
+    SlotStockForSucculents.prototype.addCard = function (card, animation, settings) {
+        this.game.addStatics(card);
+        return _super.prototype.addCard.call(this, card, animation, settings);
+    };
+    return SlotStockForSucculents;
+}(SlotStock));
 var littlesucculents_f = function (data) {
     return {
         type: data[0],
@@ -2180,7 +2191,6 @@ var POT = "pot";
 var PLANT = "plant";
 var WATER = "water";
 var YELLOW = "yellow";
-var PURPLE = "purple";
 var GREEN = "green";
 var BLUE = "blue";
 var GREY = "grey";
@@ -2371,7 +2381,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
      */
     LittleSucculentsGame.prototype.activePossibleSlots = function () {
         document.querySelectorAll(".gamezone-cards").forEach(function (gamezone) {
-            var _loop_3 = function (index) {
+            var _loop_4 = function (index) {
                 [1, -1].forEach(function (side) {
                     var adjacentNumber = index == 0 ? 0 : index - 1;
                     var plantElem = gamezone.querySelector("[data-slot-id='plant" + index * side + "']");
@@ -2383,7 +2393,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
                 });
             };
             for (var index = 0; index <= 13; index++) {
-                _loop_3(index);
+                _loop_4(index);
             }
         });
     };
@@ -2488,12 +2498,12 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         */
     LittleSucculentsGame.prototype.setupCards = function (gamedatas) {
         var _this = this;
-        ["discardplant", "discardpot"].forEach(function (deck) {
+        [/*"discardplant", "discardpot",*/ "water"].forEach(function (deck) {
             _this._stocks[deck] = new Deck(_this._cardManager, $(deck), {
                 counter: { show: true, hideWhenEmpty: true },
-                autoUpdateCardNumber: true,
+                autoUpdateCardNumber: false,
                 autoRemovePreviousCards: true,
-                topCard: gamedatas.cards[deck].topCard,
+                topCard: _this.addStatics(gamedatas.cards[deck].topCard),
                 cardNumber: gamedatas.cards[deck].n,
             });
         });
@@ -2504,14 +2514,26 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
                 cardNumber: gamedatas.cards[deck].n,
             });
         });
-        ["board"].forEach(function (deck) {
-            _this._stocks[deck] = new SlotStock(_this._cardManager, $(deck), {
-                slotsIds: ["pot1", "pot2", "pot3", "plant1", "plant2", "plant3"],
-                mapCardToSlot: function (card) {
-                    card = _this.addStatics(card);
-                    return card.type + card.state;
-                },
-            });
+        this._stocks["waterboard"] = new Deck(this._cardManager, $("waterboard"), {});
+        $("waterboard").dataset.label = _("Next weather :");
+        this._stocks["board"] = new SlotStock(this._cardManager, $("board"), {
+            slotsIds: ["pot1", "pot2", "pot3", "plant1", "plant2", "plant3"],
+            mapCardToSlot: function (card) {
+                card = _this.addStatics(card);
+                return card.type + card.state;
+            },
+        });
+        var colors = ["red", "green", "blue", "pink", "yellow", "orange"];
+        this._stocks["visibleDeck"] = new SlotStock(this._cardManager, $("visibleDeck"), {
+            slotsIds: colors,
+            mapCardToSlot: function (card) {
+                card = _this.addStatics(card);
+                return card.color;
+            },
+        });
+        colors.forEach(function (color) {
+            var elem = document.querySelector("[data-slot-id='".concat(color, "']"));
+            _this.addAutomaticCounter(elem);
         });
         var slotIds = [];
         for (var index = -13; index <= 13; index++) {
@@ -2532,7 +2554,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     };
     LittleSucculentsGame.prototype.updateCards = function (cards) {
         var _this = this;
-        ["discardplant", "discardpot"].forEach(function (deck) {
+        [/*"discardplant", "discardpot", */ "water"].forEach(function (deck) {
             if (cards[deck].topCard)
                 _this._stocks[deck].addCard(_this.addStatics(cards[deck].topCard));
         });
@@ -2545,6 +2567,17 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         cards.player.forEach(function (card) {
             return _this._stocks[card.playerId].addCard(_this.addStatics(card));
         });
+        cards.visibleDeck.forEach(function (card) {
+            return _this._stocks["visibleDeck"].addCard(_this.addStatics(card));
+        });
+        this._stocks["waterboard"].addCard(this.addStatics(cards.waterboard));
+        //display available flowers
+        cards.flowerableColors.forEach(function (color) {
+            var elem = document.createElement("div");
+            elem.classList.add("token", "flower", color);
+            document.querySelector("[data-slot-id='".concat(color, "']")).append(elem);
+        });
+        //remove slots of each player that are not reachable for now
         this.activePossibleSlots();
     };
     //           ████
@@ -2562,8 +2595,8 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         for (var playerId in gamedatas.players) {
             var player = gamedatas.players[playerId];
             this.place("tplPlayerPanel", player, "overall_player_board_" + playerId);
-            this.createCounter("water-" + playerId, player.water);
-            this.createCounter("money-" + playerId, player.money);
+            this._counters["water-" + playerId] = this.createCounter("water-" + playerId, player.water);
+            this._counters["money-" + playerId] = this.createCounter("money-" + playerId, player.money);
             this.place("board_tpl", player, "table");
         }
         //add general tooltips
@@ -2585,7 +2618,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     };
     // semi generic
     LittleSucculentsGame.prototype.tplPlayerPanel = function (player) {
-        return "<div id='succulents-player-infos_".concat(player.id, "' class='player-infos'>\n      <div class='money counter' id='money-").concat(player.id, "'></div>\n      <div class='water counter' id='water-").concat(player.id, "'></div>\n      <div class=\"first-player-holder\" id='first-player-").concat(player.id, "'></div>\n    </div>");
+        return "<div id='succulents-player-infos_".concat(player.id, "' class='player-infos'>\n      <div class='money counter' id='money-").concat(player.id, "'></div>\n      <div class='water counter' id='water-").concat(player.id, "'></div>\n      <div class=\"first-player-holder\" id='first-player-").concat(player.id, "'>").concat(player.isFirst ? '<div id="firstPlayer"></div>' : "", "</div>\n    </div>");
     };
     LittleSucculentsGame.prototype.getPlayers = function () {
         return Object.values(this.gamedatas.players);
@@ -2613,11 +2646,51 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
                                                                                                
                                                                                                
     */
+    LittleSucculentsGame.prototype.addAutomaticCounter = function (elem) {
+        elem.classList.add("automaticCounter");
+        var observer = new MutationObserver(function (mutationRecords) {
+            mutationRecords.forEach(function (record) {
+                record.target.dataset.nb = record.target
+                    .querySelectorAll(".card")
+                    .length.toString();
+            });
+        });
+        observer.observe(elem, { childList: true });
+    };
+    LittleSucculentsGame.prototype.insertIcons = function (text, preventRecursion) {
+        if (preventRecursion === void 0) { preventRecursion = false; }
+        var translations = [
+            // [
+            //   /<([-+]\d)\s(egg|damage|die|life|tactic|nird|gnome|scientist)>/gm,
+            //   "numberedIcon",
+            // ],
+            ["<vp>", "vp"],
+            ["<water>", "water"],
+            ["<leaf>", "leaf"],
+            ["<money>", "money"],
+            // [/([^<])(\/)/gm, "slash"],
+        ];
+        var index = 0; //assuming there is only 1 serie of indexed icons in a card
+        for (var _i = 0, translations_1 = translations; _i < translations_1.length; _i++) {
+            var entry = translations_1[_i];
+            text = text.replaceAll(entry[0], entry[2] && entry[2] == "text"
+                ? entry[1]
+                : entry[1] == "numberedIcon"
+                    ? "<span class='inline-icon icon-$2' data-nb='$1'></span>"
+                    : entry[1] == "indexedIcons"
+                        ? "<div class=\"box index".concat(index++, "\"><span class='inline-icon icon-$1'></span>X $2</div>")
+                        : entry[1] == "method"
+                            ? this[entry[2]]()
+                            : (entry[0] instanceof RegExp ? "$1" : "") + //assuming that all regex have a first capturing group useless
+                                "<span class='inline-icon icon-".concat(entry[1], "'></span>"));
+        }
+        return text;
+    };
     LittleSucculentsGame.prototype.createNumberButtons = function (callback, valuesToDisable, from, to) {
         if (valuesToDisable === void 0) { valuesToDisable = []; }
         if (from === void 0) { from = 1; }
         if (to === void 0) { to = 6; }
-        var _loop_4 = function (index) {
+        var _loop_5 = function (index) {
             if (!$("btn-" + index)) {
                 this_1.addActionButton("btn-" + index, "" + index, function () {
                     callback(index);
@@ -2629,7 +2702,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         };
         var this_1 = this;
         for (var index = from; index <= to; index++) {
-            _loop_4(index);
+            _loop_5(index);
         }
     };
     /**

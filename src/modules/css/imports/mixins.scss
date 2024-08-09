@@ -16,7 +16,7 @@
 
 @mixin getIcon($n) {
   background-image: url("img/icons.png");
-  @include getBackgroundPosition($n, 8, 8);
+  @include getBackgroundPosition($n, 4, 1);
 }
 
 @mixin size($width, $height) {

@@ -48,6 +48,7 @@
 @use "imports/modals.scss";
 @use "imports/mixins.scss" as mix;
 @use "imports/variables.scss" as var;
+@use "imports/generics.scss";
 @use "../../../node_modules/bga-cards/src/bga-cards.scss";
 
 %shadow {
@@ -74,75 +75,178 @@
       &[data-slot-id="pot2"] {
         left: 75.9%;
       }
+      &[data-slot-id="plant3"] {
+        display: none;
+      }
+      &[data-slot-id="pot3"] {
+        display: none;
+      }
     }
+  }
+}
+
+#visibleDeck .slot {
+  @include mix.size(300, 500);
+}
+
+.token.flower {
+  @include mix.size(150, 150);
+  background-image: url(img/tokens.png);
+  box-shadow: 0 2px black;
+  border-radius: 100%;
+  border: 1px solid black;
+  &.blue {
+    @include mix.getBackgroundPosition(4, 3, 3);
+  }
+  &.green {
+    @include mix.getBackgroundPosition(5, 3, 3);
+  }
+  &.orange {
+    @include mix.getBackgroundPosition(6, 3, 3);
+  }
+  &.pink {
+    @include mix.getBackgroundPosition(7, 3, 3);
+  }
+  &.red {
+    @include mix.getBackgroundPosition(8, 3, 3);
+  }
+  &.yellow {
+    @include mix.getBackgroundPosition(9, 3, 3);
   }
 }
 
 .card {
   @include mix.size(300, 415);
   border-radius: mix.addScale(20);
+  position: absolute;
   .card-sides {
     border-radius: inherit;
     .card-side {
       border-radius: inherit;
       background-image: url(img/cards.jpg);
     }
-  }
 
-  .back {
-    @include mix.getBackgroundPosition(20);
-  }
-  .front {
-    @include mix.createBackGroundForMap(var.$imageList);
-    .title {
-      font-family: var.$title-font;
-      position: absolute;
-      display: flex;
-      width: 100%;
-      text-align: center;
-      padding-left: 20%;
-      padding-right: 20%;
-
-      width: 60%;
-      top: 5%;
-      font-size: mix.addScale(40);
+    .back {
+      @include mix.getBackgroundPosition(20);
     }
-    .text {
-      font-family: var.$main-font;
-      position: absolute;
-      display: flex;
-      width: 100%;
+    .front {
+      overflow: visible;
+      @include mix.createBackGroundForMap(var.$imageList);
+      .title {
+        font-family: var.$title-font;
+        position: absolute;
+        display: flex;
+        width: 100%;
+        text-align: center;
+        padding-left: 10%;
+        padding-right: 10%;
+        width: 80%;
+        top: 5%;
+        font-size: mix.addScale(40);
+      }
+      .text {
+        font-family: var.$main-font;
+        position: absolute;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        @include mix.textBorder(white);
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: mix.addScale(30);
+        bottom: mix.addScale(12);
+      }
+      .size {
+        font-family: var.$main-font;
+        position: absolute;
+        top: 5%;
+        right: 0;
+        font-size: mix.addScale(60);
+      }
+    }
+  }
+
+  &.pot {
+    .token .sides {
+      transform: rotateY(180deg);
+    }
+  }
+  &:hover {
+    .token {
+      opacity: 0.2;
+      transition: opacity 0.3s 0.5s;
+    }
+  }
+  .token:not(.flower) {
+    @include mix.size(80, 80);
+    position: absolute;
+    opacity: 1;
+
+    $placeList: 1 72% 54%, 2 49% 59%, 3 26% 59%, 4 1% 52%, 5 -7% 25%, 6 5% 63%,
+      7 69% 67%, 8 76% 36%, 9 65% 21%, 10 22% 69%, 11 77% 8%, 12 11% -3%,
+      13 1% 10%, 14 63% -5%, 15 0% 80%, 16 20% 80%, 17 54% 77%, 18 75% 81%;
+    @each $index, $left, $top in $placeList {
+      &[data-place-id="#{$index}"] {
+        left: #{$left};
+        top: #{$top};
+      }
+    }
+
+    .sides {
+      box-sizing: border-box;
+      transform-style: preserve-3d;
+      transition: transform 0.7s;
       height: 100%;
-      @include mix.textBorder(white);
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-size: mix.addScale(30);
-      bottom: mix.addScale(12);
-    }
-    .size {
-      font-family: var.$main-font;
-      position: absolute;
-      top: 5%;
-      right: 0;
-      font-size: mix.addScale(60);
+      box-shadow: mix.addScale(0) mix.addScale(5) black;
+      border-radius: 100%;
+      border: 1px solid black;
+      .side {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        transform-style: preserve-3d;
+        &.front {
+          background-image: url(img/tokens.png);
+          @include mix.getBackgroundPosition(1, 3, 3);
+        }
+        &.back {
+          transform: rotateY(180deg);
+          background-image: url(img/tokens.png);
+          @include mix.getBackgroundPosition(2, 3, 3);
+        }
+      }
     }
   }
 }
 .slot {
   @extend .card;
   position: relative;
+  > .token {
+    position: absolute;
+    left: 25%;
+    bottom: 0;
+  }
 }
 
 #board-container {
   display: flex;
+  flex-direction: column;
   justify-content: space-around;
-  align-items: center;
+  align-items: stretch;
   padding-bottom: 5px;
   flex-wrap: wrap;
-  width: 110%;
+  width: 100%;
+  gap: mix.addScale(20);
+  .lsu-row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
   .deck {
     @extend .card;
+    position: relative;
   }
   #board {
     position: relative;
@@ -184,6 +288,18 @@
       @include mix.getBackgroundPosition(42);
     }
   }
+
+  #waterboard {
+    &::before {
+      position: absolute;
+      bottom: 100%;
+      width: 100%;
+      font-size: mix.addScale(30);
+      font-family: var.$main-font;
+      @include mix.textBorder(white);
+      content: attr(data-label);
+    }
+  }
 }
 #table {
   display: flex;
@@ -217,7 +333,28 @@
   ░░░░░░░░░   ░░░░░░  ░░░░ ░░░░░  ░░░░░░  ░░░░░     ░░░░░  ░░░░░░  
                                                                   
 */
-
+.inline-icon {
+  display: inline-block;
+  line-height: normal;
+  width: 1.5em;
+  height: 1.5em;
+  background-image: url(img/icons.png);
+  position: relative;
+  vertical-align: bottom;
+  margin-left: -0.5em;
+  &.icon-money {
+    @include mix.getIcon(1);
+  }
+  &.icon-vp {
+    @include mix.getIcon(2);
+  }
+  &.icon-leaf {
+    @include mix.getIcon(3);
+  }
+  &.icon-water {
+    @include mix.getIcon(4);
+  }
+}
 .id_number {
   display: none;
 }
@@ -302,6 +439,16 @@
   flex-direction: row;
   margin: 5px;
   justify-content: flex-start;
+
+  #firstPlayer {
+    width: 40px;
+    height: 40px;
+    background-image: url(img/tokens.png);
+    box-shadow: 0 2px black;
+    border-radius: 100%;
+    border: 1px solid black;
+    @include mix.getBackgroundPosition(3, 3, 3);
+  }
 
   .counter {
     display: inline-flex;

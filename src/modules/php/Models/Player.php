@@ -2,6 +2,7 @@
 
 namespace LSU\Models;
 
+use LSU\Core\Globals;
 use LSU\Core\Stats;
 use LSU\Core\Preferences;
 use LSU\Managers\Players;
@@ -37,11 +38,7 @@ class Player extends \LSU\Helpers\DB_Model
   {
     $data = parent::getUiData();
     $data['money'] = $this->getPlant(0)->getTokenNb();
-    // $data['table'] = $this->getCardsOnTable();
-    // $data['score1'] = Cells::getScore1($this->id);
-    // $data['rewards'] = $this->getRewards();
-    // $data['score2'] = array_sum($data['rewards']);
-    // $data['score3'] = $this->getScore();
+    $data['isFirst'] = Globals::getFirstPlayer() == $this->getId();
 
     return $data;
   }
