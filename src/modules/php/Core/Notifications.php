@@ -15,8 +15,15 @@ class Notifications
       'player' => $player,
       'n' => $n
     ];
-    $msg = _('${player_name} pays ${n}');
+    $msg = _('${player_name} pays ${n} to buy a new card');
     static::notifyAll('pay', $msg, $data);
+  }
+  public static function place($card)
+  {
+    $data = [
+      'card' => $card,
+    ];
+    static::notifyAll('moveCard', '', $data);
   }
 
   public static function updatePlayers()

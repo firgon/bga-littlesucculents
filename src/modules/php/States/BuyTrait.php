@@ -33,6 +33,10 @@ trait BuyTrait
 		$player->pay($card->getState());
 
 		//move card
+		$card->setLocation(PLAYER);
+		$card->setState($state);
+		$card->setPlayerId($pId);
+		Notifications::place($card);
 
 		//adjust tokens (loose leaf if there are too many)
 
