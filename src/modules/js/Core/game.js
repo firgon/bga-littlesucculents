@@ -204,6 +204,10 @@ define([
       dojo.empty("customActions");
       dojo.empty("restartAction");
 
+      this.clearSelectable();
+    },
+
+    clearSelectable() {
       this._connections.forEach(dojo.disconnect);
       this._connections = [];
       this._selectableNodes.forEach((node) => {
@@ -1029,6 +1033,7 @@ define([
     },
 
     clientState(name, descriptionmyturn, args) {
+      args.you = this.coloredYou();
       this.setClientState(name, {
         descriptionmyturn,
         args,

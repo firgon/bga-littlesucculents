@@ -31,7 +31,13 @@ const STARTER = "starter";
  */
 const ST_GAME_SETUP = 1;
 
-// const ST_PLAY = 2;
+const ST_PLAY = 2;
+
+const ST_CONFIRM = 5;
+
+const ST_NEXT_PLAYER = 10;
+
+const ST_GROW = 15;
 
 
 
@@ -47,6 +53,11 @@ const OPTION_PLANT_SET = 100;
 const OPTION_PLANT_SET_A = 0;
 const OPTION_PLANT_SET_B = 1;
 const OPTION_PLANT_RANDOM_SET = 2;
+
+const PREF_CONFIRM = 101;
+const PREF_CONFIRM_YES = 0;
+const PREF_CONFIRM_TIMER = 1;
+const PREF_CONFIRM_NO = 2;
 /******************
  ****** STATS ******
  ******************/
@@ -86,6 +97,7 @@ const PRIVATESTATE = "private";
 const END_TURN = 'endTurn';
 const END_GAME = 'endGame';
 const ACTIVE_PLAYER = "activeplayer";
+const CONFIRM = 'confirm';
 
 //location
 const BOARD = "board";

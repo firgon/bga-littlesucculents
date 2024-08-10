@@ -63,24 +63,48 @@ $machinestates = [
         ]
     ],
 
-    2 => [
+    ST_PLAY => [
         "name" => "play",
         "description" => clienttranslate('${actplayer} can buy a card, cut another player plant, flower his succulent or tend to his plants'),
-        "descriptionmyturn" => clienttranslate('${you} can : '), //won't be displayed
+        "descriptionmyturn" => clienttranslate('${you} can : '),
         "type" => ACTIVE_PLAYER,
         "args" => "argPlay",
         "action" => "stPlay",
-        "possibleactions" => ['actPlay'], //this action is possible if player is not in any private state which usually happens when they are inactive
+        "possibleactions" => ['actBuy', 'actGenericAction'],
         "transitions" => [
-            END_TURN => ST_PRE_END_OF_GAME
+            CONFIRM => ST_CONFIRM,
+            END_TURN => ST_NEXT_PLAYER,
         ]
+    ],
+
+    ST_CONFIRM => [
+        "name" => "play",
+        "description" => clienttranslate('${actplayer} must confirm his turn or undo'),
+        "descriptionmyturn" => clienttranslate('${you} must confirm his turn or undo'),
+        "type" => ACTIVE_PLAYER,
+        "args" => "argPlay",
+        "action" => "stPlay",
+        "possibleactions" => ['actConfirm', 'actUndo'],
+        "transitions" => [
+            END_TURN => ST_NEXT_PLAYER
+        ]
+    ],
+
+    ST_NEXT_PLAYER => [
+        'name' => 'nextPlayer',
+        'type' => GAME,
+        'action' => 'stNextPlayer',
+        'transitions' => [
+            'grow' => ST_GROW,
+            END_TURN => ST_PLAY
+        ],
     ],
 
     ST_PRE_END_OF_GAME => [
         'name' => 'preEndOfGame',
         'type' => GAME,
         'action' => 'stPreEndOfGame',
-        'transitions' => ['' => ST_END_GAME],
+        'transitions' => [END_TURN => ST_END_GAME],
     ],
 
     // Final state.

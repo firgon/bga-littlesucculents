@@ -2169,6 +2169,14 @@ var SlotStockForSucculents = /** @class */ (function (_super) {
         this.game.addStatics(card);
         return _super.prototype.addCard.call(this, card, animation, settings);
     };
+    SlotStockForSucculents.prototype.createSlot = function (slotId) {
+        var _a;
+        this.slots[slotId] = document.createElement("div");
+        this.slots[slotId].id = slotId;
+        this.slots[slotId].dataset.slotId = slotId;
+        this.element.appendChild(this.slots[slotId]);
+        (_a = this.slots[slotId].classList).add.apply(_a, __spreadArray(["slot"], this.slotClasses, true));
+    };
     return SlotStockForSucculents;
 }(SlotStock));
 var littlesucculents_f = function (data) {
@@ -2339,7 +2347,63 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     // onLeavingStateAttack(): void {
     //   this._diceManager.unActivateAll(false);
     // }
-    LittleSucculentsGame.prototype.onEnteringStateAttack = function (args) { };
+    LittleSucculentsGame.prototype.onEnteringStatePlay = function (args) {
+        var _this = this;
+        if (Object.values(args.buyableCards).length > 0) {
+            this.addActionButton("btn-buy", _("Buy a card"), function () {
+                _this.clientState("clientBuy", _("${you} can choose a card from market"), {
+                    buyableCards: args.buyableCards,
+                    possiblePlaces: args.possiblePlaces,
+                });
+            });
+        }
+        if (Object.values(args.cuttableCards).length > 0) {
+            this.addActionButton("btn-cut", _("Cut a plant"), function () {
+                _this.clientState("clientCut", _("${you} can choose a plant to cut from an opponent display"), {
+                    cuttableCards: args.cuttableCards,
+                    possiblePlantPlaces: args.possiblePlaces[PLANT],
+                });
+            });
+        }
+        if (Object.values(args.flowerableCards).length > 0) {
+            this.addActionButton("btn-flower", _("Flower a plant"), function () {
+                _this.clientState("clientFlower", _("${you} can choose a plant to flower"), {
+                    flowerableCards: args.flowerableCards,
+                });
+            });
+        }
+        this.addActionButton("btn-tend", _("Tend"), function () {
+            _this.clientState("clientTend", _("${you} can choose a plant to flower"), {
+                flowerableCards: args.flowerableCards,
+            });
+        });
+    };
+    LittleSucculentsGame.prototype.onLeavingStateClientBuy = function () {
+        this._stocks["board"].setSelectionMode("none");
+    };
+    LittleSucculentsGame.prototype.onEnteringStateClientBuy = function (args) {
+        var _this = this;
+        this._stocks["board"].setSelectionMode("single");
+        this._stocks["board"].setSelectableCards(Object.values(args.buyableCards).map(function (c) { return _this.addStatics(c); }));
+        this._stocks["board"].onSelectionChange = function (selection, lastChange) {
+            if (selection.includes(lastChange)) {
+                args.possiblePlaces[lastChange.type].forEach(function (slotId) {
+                    debug("J'active ", lastChange.type + slotId);
+                    _this.onClick(lastChange.type + slotId, function () {
+                        _this.takeAction({
+                            actionName: "actBuy",
+                            cardId: lastChange.id,
+                            state: slotId,
+                        });
+                    });
+                });
+            }
+            else {
+                _this.clearSelectable();
+            }
+        };
+        this.addResetClientStateButton();
+    };
     //   █████████               ███                             █████     ███
     //  ███░░░░░███             ░░░                             ░░███     ░░░
     // ░███    ░███  ████████   ████  █████████████    ██████   ███████   ████   ██████  ████████    █████
@@ -2541,7 +2605,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             slotIds.push("plant" + index);
         }
         Object.keys(gamedatas.players).forEach(function (playerId) {
-            _this._stocks[playerId] = new SlotStock(_this._cardManager, $("gamezone-cards-" + playerId), {
+            _this._stocks[playerId] = new SlotStockForSucculents(_this._cardManager, $("gamezone-cards-" + playerId), {
                 slotsIds: slotIds,
                 mapCardToSlot: function (card) {
                     card = _this.addStatics(card);
@@ -2564,9 +2628,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         cards.board.forEach(function (card) {
             return _this._stocks["board"].addCard(_this.addStatics(card));
         });
-        cards.player.forEach(function (card) {
-            return _this._stocks[card.playerId].addCard(_this.addStatics(card));
-        });
+        cards.player.forEach(function (card) { return _this._stocks[card.playerId].addCard(card); });
         cards.visibleDeck.forEach(function (card) {
             return _this._stocks["visibleDeck"].addCard(_this.addStatics(card));
         });

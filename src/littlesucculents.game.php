@@ -47,6 +47,8 @@ class LittleSucculents extends Table
 {
     use LSU\DebugTrait;
     use LSU\States\TurnTrait;
+    use LSU\States\GenericTrait;
+    use LSU\States\BuyTrait;
 
     public static $instance = null;
     function __construct()
@@ -224,9 +226,7 @@ class LittleSucculents extends Table
      *  - int $from_version : current version of this game database, in numerical form.
      *      For example, if the game was running with a release of your game named "140430-1345", $from_version is equal to 1404301345
      */
-    public function upgradeTableDb($from_version)
-    {
-    }
+    public function upgradeTableDb($from_version) {}
 
     /////////////////////////////////////////////////////////////
     // Exposing protected methods, please use at your own risk //

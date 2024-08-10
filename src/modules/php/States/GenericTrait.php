@@ -17,24 +17,16 @@ trait GenericTrait
 
 	public function stNextPlayer()
 	{
-		$activePlayer = Players::getActive();
+		$activePlayerId = Players::getActiveId();
 
-		die($activePlayer);
+		$nextPlayer = Players::getNextId($activePlayerId);
 
-		if ($activePlayer) {
-			$nextState = $activePlayer->getNextPendingAction();
-			if ($nextState) {
-				Game::goTo($nextState);
-			} else {
-				//TODO add check end game
-				if (true) {
-					$this->activeNextPlayer();
-					$this->giveExtraTime(Players::getActiveId());
-					Game::transition(END_TURN);
-				} else {
-					Game::transition(END_GAME);
-				}
-			}
+		if ($nextPlayer == Globals::getFirstPlayer()) {
+			Game::transition('grow');
+		} else {
+			$this->activeNextPlayer();
+			$this->giveExtraTime(Players::getActiveId());
+			Game::transition(END_TURN);
 		}
 	}
 

@@ -105,6 +105,14 @@ class SlotStockForSucculents<T extends Card> extends SlotStock<T> {
 
     return super.addCard(card, animation, settings);
   }
+
+  protected createSlot(slotId: SlotId) {
+    this.slots[slotId] = document.createElement("div");
+    this.slots[slotId].id = slotId;
+    this.slots[slotId].dataset.slotId = slotId;
+    this.element.appendChild(this.slots[slotId]);
+    this.slots[slotId].classList.add(...["slot", ...this.slotClasses]);
+  }
 }
 
 let littlesucculents_f = (data) => {

@@ -1,1 +1,18 @@
-{}
+{
+  "101": {
+    "name": "Turn confirmation",
+    "needReload": false,
+    "values": {
+      "1": {
+        "name": "Yes"
+      },
+      "2": {
+        "name": "Auto with timer"
+      },
+      "3": {
+        "name": "No"
+      }
+    },
+    "default": 1
+  }
+}

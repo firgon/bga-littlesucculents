@@ -9,6 +9,16 @@ use LSU\Core\Globals;
 
 class Notifications
 {
+  public static function pay($player, $n)
+  {
+    $data = [
+      'player' => $player,
+      'n' => $n
+    ];
+    $msg = _('${player_name} pays ${n}');
+    static::notifyAll('pay', $msg, $data);
+  }
+
   public static function updatePlayers()
   {
     static::notifyAll('updatePlayers', '', Players::getUiData());

@@ -21,21 +21,25 @@ trait TurnTrait
 		// cut another player plant, 
 		// flower his succulent or 
 		// tend to his plants
-		$pId = Players::getActiveId();
-		$buyableCards = Cards::getBuyableCards();
-		$cuttableCards = Cards::getCuttableCards($pId);
-		$flowerableCards = Cards::getFlowerableCards($pId);
+		$player = Players::getActive();
+		$possiblePotPlaces = $player->getPossiblePlaces(POT);
+		$possiblePlantPlaces = $player->getPossiblePlaces(PLANT);
+		$buyableCards = Cards::getBuyableCards($player);
+		$cuttableCards = Cards::getCuttableCards($player);
+		$flowerableCards = Cards::getFlowerableCards($player);
 
 		return [
 			"buyableCards" => $buyableCards,
 			"cuttableCards" => $cuttableCards,
 			"flowerableCards" => $flowerableCards,
+			"possiblePlaces" => [
+				PLANT => $possiblePlantPlaces,
+				POT => $possiblePotPlaces,
+			]
 		];
 	}
 
-	public function stPlay()
-	{
-	}
+	public function stPlay() {}
 
 	public function actPlay($pId2, $color, $value, $pId = null)
 	{

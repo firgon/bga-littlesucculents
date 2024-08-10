@@ -739,6 +739,7 @@ body > .card, body > .slot, #board-container body > .deck {
   box-shadow: 0 2px black;
   border-radius: 100%;
   border: 1px solid black;
+  z-index: 2;
 }
 .token.flower.blue {
   background-position-x: 0%;
@@ -1056,6 +1057,7 @@ body > .card, body > .slot, #board-container body > .deck {
   width: calc(0.2666666667 * var(--scale));
   position: absolute;
   opacity: 1;
+  z-index: 2;
 }
 .card .token:not(.flower)[data-place-id="1"], #board-container .deck .token:not(.flower)[data-place-id="1"], .slot .token:not(.flower)[data-place-id="1"] {
   left: 72%;
@@ -1255,6 +1257,37 @@ body > .card, body > .slot, #board-container body > .deck {
 }
 #table .succulents-gamezone .gamezone-cards .slot:empty:not(.active) {
   display: none;
+}
+
+/*
+                  ████                     █████     ███                     
+                 ░░███                    ░░███     ░░░                      
+  █████   ██████  ░███   ██████   ██████  ███████   ████   ██████  ████████  
+ ███░░   ███░░███ ░███  ███░░███ ███░░███░░░███░   ░░███  ███░░███░░███░░███ 
+░░█████ ░███████  ░███ ░███████ ░███ ░░░   ░███     ░███ ░███ ░███ ░███ ░███ 
+ ░░░░███░███░░░   ░███ ░███░░░  ░███  ███  ░███ ███ ░███ ░███ ░███ ░███ ░███ 
+ ██████ ░░██████  █████░░██████ ░░██████   ░░█████  █████░░██████  ████ █████
+░░░░░░   ░░░░░░  ░░░░░  ░░░░░░   ░░░░░░     ░░░░░  ░░░░░  ░░░░░░  ░░░░ ░░░░░ 
+
+
+
+*/
+.bga-cards_selectable-card .card-side.front::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(30, 221, 39, 0.315);
+}
+.bga-cards_selectable-card.bga-cards_selected-card {
+  border: 3px green solid;
+}
+
+.selectable {
+  box-sizing: border-box;
+  border: 3px green solid;
+  background-color: rgba(30, 221, 39, 0.315);
+  cursor: pointer;
 }
 
 /*

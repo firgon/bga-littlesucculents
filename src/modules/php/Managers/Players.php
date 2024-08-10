@@ -7,6 +7,7 @@ use LSU\Core\Globals;
 use LSU\Core\Notifications;
 use LSU\Core\Stats;
 use LSU\Helpers\Utils;
+use LSU\Models\Player;
 
 /*
  * Players manager : allows to easily access players ...
@@ -72,7 +73,7 @@ class Players extends \LSU\Helpers\DB_Manager
   /*
    * get : returns the Player object for the given player ID
    */
-  public static function get($pId = null)
+  public static function get($pId = null): Player
   {
     $pId = $pId ?: self::getActiveId();
     return self::DB()

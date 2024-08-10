@@ -116,15 +116,84 @@ class LittleSucculentsGame extends GameGui {
   //   this._diceManager.unActivateAll(false);
   // }
 
-  onEnteringStateAttack(args: {
-    // attackingCard: CardFromDb;
-    // dice: { [dieId: number]: NRDice };
-    // n: number;
-    // choosableGnomes: number[];
-    // cardsAndDice: TradeArgs;
-    // canSplit: boolean;
-    // canReroll: boolean;
-  }) {}
+  onEnteringStatePlay(args: {
+    buyableCards: { [cardId: number]: Card };
+    cuttableCards: { [cardId: number]: Card };
+    flowerableCards: { [cardId: number]: string[] };
+    possiblePlaces: { plant: number[]; pot: number[] };
+  }) {
+    if (Object.values(args.buyableCards).length > 0) {
+      this.addActionButton("btn-buy", _("Buy a card"), () => {
+        this.clientState(
+          "clientBuy",
+          _("${you} can choose a card from market"),
+          {
+            buyableCards: args.buyableCards,
+            possiblePlaces: args.possiblePlaces,
+          }
+        );
+      });
+    }
+    if (Object.values(args.cuttableCards).length > 0) {
+      this.addActionButton("btn-cut", _("Cut a plant"), () => {
+        this.clientState(
+          "clientCut",
+          _("${you} can choose a plant to cut from an opponent display"),
+          {
+            cuttableCards: args.cuttableCards,
+            possiblePlantPlaces: args.possiblePlaces[PLANT],
+          }
+        );
+      });
+    }
+    if (Object.values(args.flowerableCards).length > 0) {
+      this.addActionButton("btn-flower", _("Flower a plant"), () => {
+        this.clientState(
+          "clientFlower",
+          _("${you} can choose a plant to flower"),
+          {
+            flowerableCards: args.flowerableCards,
+          }
+        );
+      });
+    }
+    this.addActionButton("btn-tend", _("Tend"), () => {
+      this.clientState("clientTend", _("${you} can choose a plant to flower"), {
+        flowerableCards: args.flowerableCards,
+      });
+    });
+  }
+
+  onLeavingStateClientBuy(): void {
+    this._stocks["board"].setSelectionMode("none");
+  }
+
+  onEnteringStateClientBuy(args: {
+    buyableCards: { [cardId: number]: Card };
+    possiblePlaces: { plant: number[]; pot: number[] };
+  }) {
+    this._stocks["board"].setSelectionMode("single");
+    this._stocks["board"].setSelectableCards(
+      Object.values(args.buyableCards).map((c) => this.addStatics(c))
+    );
+    this._stocks["board"].onSelectionChange = (selection, lastChange) => {
+      if (selection.includes(lastChange)) {
+        args.possiblePlaces[lastChange.type].forEach((slotId) => {
+          debug("J'active ", lastChange.type + slotId);
+          this.onClick(lastChange.type + slotId, () => {
+            this.takeAction({
+              actionName: "actBuy",
+              cardId: lastChange.id,
+              state: slotId,
+            });
+          });
+        });
+      } else {
+        this.clearSelectable();
+      }
+    };
+    this.addResetClientStateButton();
+  }
 
   //   █████████               ███                             █████     ███
   //  ███░░░░░███             ░░░                             ░░███     ░░░
@@ -360,7 +429,7 @@ class LittleSucculentsGame extends GameGui {
       slotIds.push("plant" + index);
     }
     Object.keys(gamedatas.players).forEach((playerId) => {
-      this._stocks[playerId] = new SlotStock(
+      this._stocks[playerId] = new SlotStockForSucculents(
         this._cardManager,
         $("gamezone-cards-" + playerId),
         {
@@ -388,9 +457,7 @@ class LittleSucculentsGame extends GameGui {
     cards.board.forEach((card) =>
       this._stocks["board"].addCard(this.addStatics(card))
     );
-    cards.player.forEach((card) =>
-      this._stocks[card.playerId].addCard(this.addStatics(card))
-    );
+    cards.player.forEach((card) => this._stocks[card.playerId].addCard(card));
     cards.visibleDeck.forEach((card) =>
       this._stocks["visibleDeck"].addCard(this.addStatics(card))
     );

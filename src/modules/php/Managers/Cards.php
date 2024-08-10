@@ -6,6 +6,7 @@ use LSU\Helpers\Utils;
 use LSU\Helpers\Collection;
 use LSU\Core\Notifications;
 use LSU\Core\Stats;
+use LSU\Models\Player;
 
 /* Class to manage all the Cards for Col */
 
@@ -52,16 +53,16 @@ class Cards extends \LSU\Helpers\Pieces
         ];
     }
 
-    public static function getBuyableCards()
+    public static function getBuyableCards(Player $player)
     {
-        return static::getInLocation(BOARD);
+        return static::getInLocation(BOARD)->filter(fn($card) => $card->getState() <= $player->getMoney());
     }
 
-    public static function getCuttableCards($pId)
+    public static function getCuttableCards(Player $player)
     {
         return static::getInLocation(PLAYER)->filter(
-            fn ($card) =>
-            $card->isCuttable($pId)
+            fn($card) =>
+            $card->isCuttable($player->getId())
         );
     }
 
@@ -70,18 +71,34 @@ class Cards extends \LSU\Helpers\Pieces
         $cards = self::getInLocationQ(PLAYER)
             ->where('flowered', FLOWERED)
             ->get();
-        return array_diff(ALL_COLORS, $cards->map(fn ($card) => $card->getColor())->toArray());
+        return array_diff(ALL_COLORS, $cards->map(fn($card) => $card->getColor())->toArray());
     }
 
-    public static function getFlowerableCards($pId)
+    public static function getFlowerableCards(Player $player)
     {
         $flowerableColors = static::getFlowerableColors();
-        return static::getInLocationPId(PLAYER, $pId)->filter(fn ($card) => in_array($card->getColor(), $flowerableColors));
+        $possibleFlowers = [];
+        foreach ($player->getPots() as $key => $pot) {
+            $potColor = $pot->getColor();
+            if ($potColor == RAINBOW || in_array($potColor, $flowerableColors)) {
+                $plant = $player->getMatchingPlant($pot);
+                if ($plant) {
+                    $plantColor = $plant->getColor();
+                    if ($plantColor == RAINBOW) {
+                        $possibleFlowers[$plant->getId()] = $flowerableColors;
+                    } else if ($plantColor == $potColor) {
+                        $possibleFlowers[$plant->getId()] = [$plantColor];
+                    }
+                }
+            }
+        }
+        return $possibleFlowers;
     }
 
+    //a card can be cutted only if there is at least one card of this color remaining in the visible deck
     public static function isAvailable($color)
     {
-        return static::getInLocation(VISIBLE_DECK)->filter(fn ($card) => $card->getColor() == $color)->count() > 0;
+        return static::getInLocation(VISIBLE_DECK)->filter(fn($card) => $card->getColor() == $color)->count() > 0;
     }
 
     /* Creation of the Cards */
