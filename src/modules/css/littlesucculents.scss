@@ -184,6 +184,7 @@
     position: absolute;
     opacity: 1;
     z-index: 2;
+    transition: all 0.3s 0.5s;
 
     $placeList: 1 72% 54%, 2 49% 59%, 3 26% 59%, 4 1% 52%, 5 -7% 25%, 6 5% 63%,
       7 69% 67%, 8 76% 36%, 9 65% 21%, 10 22% 69%, 11 77% 8%, 12 11% -3%,
@@ -219,6 +220,10 @@
           @include mix.getBackgroundPosition(2, 3, 3);
         }
       }
+    }
+    &.trashed {
+      top: -2000px;
+      left: 2000px;
     }
   }
 }
@@ -353,8 +358,8 @@
 //for decks or slots
 .selectable {
   box-sizing: border-box;
-  border: 3px green solid;
-  background-color: rgba(30, 221, 39, 0.315);
+  border: 3px blue solid;
+  background-color: rgba(30, 65, 221, 0.315);
   cursor: pointer;
 }
 /*

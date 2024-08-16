@@ -32,3 +32,8 @@
     font-family: var.$default-font;
   }
 }
+
+//canceled logs
+.canceled .roundedbox {
+  text-decoration: line-through;
+}

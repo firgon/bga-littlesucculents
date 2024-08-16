@@ -32,6 +32,7 @@ class Card extends \LSU\Helpers\DB_Model
         'class',
         'name'
     ];
+    protected $log = true;
 
     public function __construct($row, $datas)
     {

@@ -15,6 +15,7 @@ class Globals extends \LSU\Helpers\DB_Manager
   protected static $variables = [
     'turn' => 'int',
     'firstPlayer' => 'int',
+    'lastPlacedCard' => 'int',
     'cheatMode' => 'bool'
     // 'pendingAction' => 'obj',
     // 'calledValue' => 'int',
@@ -54,10 +55,12 @@ class Globals extends \LSU\Helpers\DB_Manager
     $tmp = self::$log;
     self::$log = false;
 
-    foreach (self::DB()
-      ->select(['value', 'name'])
-      ->get(false)
-      as $name => $variable) {
+    foreach (
+      self::DB()
+        ->select(['value', 'name'])
+        ->get(false)
+      as $name => $variable
+    ) {
       if (\array_key_exists($name, self::$variables)) {
         self::$data[$name] = $variable;
       }

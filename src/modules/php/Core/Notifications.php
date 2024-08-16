@@ -13,11 +13,14 @@ class Notifications
   {
     $data = [
       'player' => $player,
-      'n' => $n
+      'n' => $n,
+      'moneyPlant' => $player->getPlant(0),
+      'preserve' => ['moneyPlant']
     ];
     $msg = _('${player_name} pays ${n} to buy a new card');
     static::notifyAll('pay', $msg, $data);
   }
+
   public static function place($card)
   {
     $data = [
@@ -31,9 +34,23 @@ class Notifications
     static::notifyAll('updatePlayers', '', Players::getUiData());
   }
 
+
+
   /*************************
    **** GENERIC METHODS ****
    *************************/
+
+  public static function refreshUi()
+  {
+    $data = Game::get()->getAllDatas();
+    static::notifyAll('refreshUi', '', $data);
+  }
+
+  public static function clearTurn($player, $notifIds)
+  {
+    static::notifyAll('clearTurn', _('${player_name} cancels his turn'), ['player' => $player, 'notifIds' => $notifIds]);
+  }
+
   protected static function notifyAll($name, $msg, $data)
   {
     self::updateArgs($data);
@@ -62,14 +79,6 @@ class Notifications
    **** UPDATE ARGS ****
    *********************/
 
-  private static function addDataCoord(&$data, $x, $y)
-  {
-    $data['x'] = $x;
-    $data['y'] = $y;
-    $data['displayX'] = $x + 1;
-    $data['displayY'] = $y + 1;
-  }
-
   /*
    * Automatically adds some standard field about player and/or card
    */
@@ -85,25 +94,6 @@ class Notifications
       $data['player_name2'] = $data['player2']->getName();
       $data['player_id2'] = $data['player2']->getId();
       unset($data['player2']);
-    }
-
-    if (isset($data['card'])) {
-      $data['value'] = $data['card']->getValue();
-      $data['color'] = $data['card']->getColor();
-      $data['cardId'] = $data['card']->getId();
-      unset($data['card']);
-      if (isset($data['card2'])) {
-        $data['value2'] = $data['card2']->getValue();
-        $data['color2'] = $data['card2']->getColor();
-        $data['cardId2'] = $data['card2']->getId();
-        unset($data['card2']);
-        if (isset($data['card3'])) {
-          $data['value3'] = $data['card3']->getValue();
-          $data['color3'] = $data['card3']->getColor();
-          $data['cardId3'] = $data['card3']->getId();
-          unset($data['card3']);
-        }
-      }
     }
   }
 

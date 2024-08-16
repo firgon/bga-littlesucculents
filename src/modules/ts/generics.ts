@@ -23,6 +23,6 @@ class Generics {
   }
 
   static getCardContainer(card: Card) {
-    return card.location;
+    return card.location == "player" ? card.playerId : card.location;
   }
 }

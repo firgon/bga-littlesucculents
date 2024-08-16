@@ -201,6 +201,22 @@ declare class GameGui implements Game {
   enablePlayerPanel(player_id: number): void;
   disablePlayerPanel(player_id: number): void;
 
+  /**
+   * return the value of a user preference
+   * @param pref_id
+   */
+  getGameUserPreference(pref_id: number): number;
+  /**
+   * Programmatically change a user preference.
+   * @param pref_id
+   * @param value
+   */
+  setGameUserPreference(pref_id: number, value: number);
+  /**
+   * A callback you can define if you want to be notified when a user changes a user preference
+   */
+  onGameUserPreferenceChanged: () => {};
+
   //my boilerplate
   _fakeId: number;
   _counters: { [key: string]: Counter };
@@ -266,13 +282,16 @@ declare class GameGui implements Game {
   startActionTimer(
     buttonId: string,
     time: number,
-    pref: number,
+    pref?: number,
     autoclick?: boolean
   ): void;
   stopActionTimer(): void;
   coloredPlayerName(name: string): string;
   coloredYou(): string;
   fsr(log: string, args: {}): string;
+  _notif_uid_to_log_id: {
+    [notif_uid: string]: number;
+  };
 }
 /**
  * Framework interfaces

@@ -65,19 +65,21 @@ class CardSetting<T extends Card> implements CardManagerSettings<T> {
 class MyCardManager<T extends Card> extends CardManager<T> {
   public game: LittleSucculentsGame;
 
-  // public updateCardInformations(
-  //   card: T,
-  //   settings?: Omit<FlipCardSettings, "updateData">
-  // ): void {
-  //   super.updateCardInformations(card, settings);
-  //   const newPlace = this.game._stocks[Generics.getCardContainer(card)];
-  //   if (!newPlace.contains(card)) newPlace.addCard(card);
+  public updateCardInformations(
+    card: T,
+    settings?: Omit<FlipCardSettings, "updateData">
+  ): void {
+    if (card.type === undefined) this.game.addStatics(card);
+    super.updateCardInformations(card, settings);
+    const newPlace = this.game._stocks[Generics.getCardContainer(card)];
+    debug(newPlace, card);
+    if (newPlace && !newPlace.contains(card)) newPlace.addCard(card);
 
-  //   // this.game.addCustomTooltip(
-  //   //   CardSetting.getElementId(card) + "-front",
-  //   //   this.game.tooltip_tpl(card, "tooltip")
-  //   // );
-  // }
+    // this.game.addCustomTooltip(
+    //   CardSetting.getElementId(card) + "-front",
+    //   this.game.tooltip_tpl(card, "tooltip")
+    // );
+  }
 
   isElementFlipped(card: T) {
     return this.getCardElement(card).dataset.side == "back";

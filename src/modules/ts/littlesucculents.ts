@@ -35,9 +35,13 @@ class LittleSucculentsGame extends GameGui {
 
   constructor() {
     super();
-    this._activeStates = ["play"];
+    this._activeStates = ["play", "confirm"];
     this._notifications = [
       ["updatePlayers", 0],
+      ["moveCard", 500],
+      ["refreshUi", 0],
+      ["clearTurn", 0],
+      ["pay", 200],
       // ['completeOtherHand', 1000, (notif) => notif.args.player_id == this.player_id],
     ];
 
@@ -112,9 +116,15 @@ class LittleSucculentsGame extends GameGui {
 														    
   */
 
-  // onLeavingStateAttack(): void {
-  //   this._diceManager.unActivateAll(false);
-  // }
+  onEnteringStateConfirm(args) {
+    this.addPrimaryActionButton("btn-undo", _("Undo"), () => {
+      this.takeAction({ actionName: "actUndo" });
+    });
+    this.addDangerActionButton("btn-confirm", _("Confirm"), () => {
+      this.takeAction({ actionName: "actConfirm" });
+    });
+    this.startActionTimer("btn-confirm", 8, this.getGameUserPreference(201));
+  }
 
   onEnteringStatePlay(args: {
     buyableCards: { [cardId: number]: Card };
@@ -177,9 +187,9 @@ class LittleSucculentsGame extends GameGui {
       Object.values(args.buyableCards).map((c) => this.addStatics(c))
     );
     this._stocks["board"].onSelectionChange = (selection, lastChange) => {
+      this.clearSelectable();
       if (selection.includes(lastChange)) {
         args.possiblePlaces[lastChange.type].forEach((slotId) => {
-          debug("J'active ", lastChange.type + slotId);
           this.onClick(lastChange.type + slotId, () => {
             this.takeAction({
               actionName: "actBuy",
@@ -188,8 +198,6 @@ class LittleSucculentsGame extends GameGui {
             });
           });
         });
-      } else {
-        this.clearSelectable();
       }
     };
     this.addResetClientStateButton();
@@ -238,6 +246,7 @@ class LittleSucculentsGame extends GameGui {
 
   /**
    * make active all slots where a card can be played
+   * (usefull to hide useless slots)
    */
   activePossibleSlots() {
     document.querySelectorAll(".gamezone-cards").forEach((gamezone) => {
@@ -322,18 +331,46 @@ class LittleSucculentsGame extends GameGui {
 																											 
   */
 
-  // notif_moveDie(n: {
-  //   args: {
-  //     player_id: number;
-  //     player_name: string;
-  //     die: NRDice;
-  //     cardId: number;
-  //     cardsAndDice: TradeArgs;
-  //   };
-  // }): void {
-  //   debug("notif_moveDie", n);
-  //   this.moveDie(n.args.die, n.args.cardId);
-  // }
+  notif_moveCard(n: {
+    args: {
+      card: Card;
+    };
+  }): void {
+    // debug("notif_moveCard", n);
+    this._cardManager.updateCardInformations(n.args.card);
+    this.activePossibleSlots();
+  }
+
+  notif_pay(n: {
+    args: {
+      player: Player;
+      n: number;
+      moneyPlant: Card;
+    };
+  }) {
+    // debug("notif_pay", n);
+    this._cardManager.updateCardInformations(n.args.moneyPlant);
+  }
+
+  notif_refreshUi(n: { args: GameDatas }) {
+    // debug("notif_refresh_Ui", n);
+    this.updateCards(n.args.cards);
+    this.activePossibleSlots();
+    this.updatePlayers(n.args.players);
+  }
+
+  notif_clearTurn(n: {
+    args: {
+      player: Player;
+      notifIds: string[];
+    };
+  }) {
+    // debug("notif_clearTurn", n);
+    n.args.notifIds.forEach((logId) => {
+      const log = "log_" + this._notif_uid_to_log_id[logId];
+      $(log)?.classList.add("canceled");
+    });
+  }
 
   /*
   ██████   ██████    ███████    █████   █████ ██████████  █████████ 

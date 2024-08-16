@@ -2013,7 +2013,7 @@ var Generics = /** @class */ (function () {
             element.append(div);
     };
     Generics.getCardContainer = function (card) {
-        return card.location;
+        return card.location == "player" ? card.playerId : card.location;
     };
     return Generics;
 }());
@@ -2038,8 +2038,7 @@ var Token = /** @class */ (function () {
     };
     Token.adjustTokens = function (card, element) {
         var _a = Token.getAvailablePlaces(card, element), busyPlaces = _a[0], availablePlaces = _a[1];
-        if (card.tokenNb)
-            debug("adjust_Token", card, busyPlaces, availablePlaces);
+        // if (card.tokenNb) debug("adjust_Token", card, busyPlaces, availablePlaces);
         if (busyPlaces.length < card.tokenNb) {
             Token.addTokens(card.tokenNb - busyPlaces.length, element, availablePlaces);
         }
@@ -2051,6 +2050,7 @@ var Token = /** @class */ (function () {
         for (var index = 0; index < nb; index++) {
             var token = Token.createToken(availablePlaces[index].toString());
             elem.append(token);
+            token.classList.remove("trashed");
         }
     };
     Token.removeTokens = function (nb, elem) {
@@ -2068,7 +2068,7 @@ var Token = /** @class */ (function () {
     };
     Token.createToken = function (place) {
         var result = document.createElement("div");
-        result.classList.add("token");
+        result.classList.add("token", "trashed");
         var sides = document.createElement("div");
         sides.classList.add("sides");
         ["front", "back"].forEach(function (side) {
@@ -2139,18 +2139,19 @@ var MyCardManager = /** @class */ (function (_super) {
     function MyCardManager() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    // public updateCardInformations(
-    //   card: T,
-    //   settings?: Omit<FlipCardSettings, "updateData">
-    // ): void {
-    //   super.updateCardInformations(card, settings);
-    //   const newPlace = this.game._stocks[Generics.getCardContainer(card)];
-    //   if (!newPlace.contains(card)) newPlace.addCard(card);
-    //   // this.game.addCustomTooltip(
-    //   //   CardSetting.getElementId(card) + "-front",
-    //   //   this.game.tooltip_tpl(card, "tooltip")
-    //   // );
-    // }
+    MyCardManager.prototype.updateCardInformations = function (card, settings) {
+        if (card.type === undefined)
+            this.game.addStatics(card);
+        _super.prototype.updateCardInformations.call(this, card, settings);
+        var newPlace = this.game._stocks[Generics.getCardContainer(card)];
+        debug(newPlace, card);
+        if (newPlace && !newPlace.contains(card))
+            newPlace.addCard(card);
+        // this.game.addCustomTooltip(
+        //   CardSetting.getElementId(card) + "-front",
+        //   this.game.tooltip_tpl(card, "tooltip")
+        // );
+    };
     MyCardManager.prototype.isElementFlipped = function (card) {
         return this.getCardElement(card).dataset.side == "back";
     };
@@ -2287,9 +2288,13 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     __extends(LittleSucculentsGame, _super);
     function LittleSucculentsGame() {
         var _this = _super.call(this) || this;
-        _this._activeStates = ["play"];
+        _this._activeStates = ["play", "confirm"];
         _this._notifications = [
             ["updatePlayers", 0],
+            ["moveCard", 500],
+            ["refreshUi", 0],
+            ["clearTurn", 0],
+            ["pay", 200],
             // ['completeOtherHand', 1000, (notif) => notif.args.player_id == this.player_id],
         ];
         // Fix mobile viewport (remove CSS zoom)
@@ -2344,9 +2349,16 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     ░░░░░░░░░     ░░░░░    ░░░░░   ░░░░░    ░░░░░    ░░░░░░░░░░  ░░░░░░░░░
                                                               
     */
-    // onLeavingStateAttack(): void {
-    //   this._diceManager.unActivateAll(false);
-    // }
+    LittleSucculentsGame.prototype.onEnteringStateConfirm = function (args) {
+        var _this = this;
+        this.addPrimaryActionButton("btn-undo", _("Undo"), function () {
+            _this.takeAction({ actionName: "actUndo" });
+        });
+        this.addDangerActionButton("btn-confirm", _("Confirm"), function () {
+            _this.takeAction({ actionName: "actConfirm" });
+        });
+        this.startActionTimer("btn-confirm", 8, this.getGameUserPreference(201));
+    };
     LittleSucculentsGame.prototype.onEnteringStatePlay = function (args) {
         var _this = this;
         if (Object.values(args.buyableCards).length > 0) {
@@ -2386,9 +2398,9 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         this._stocks["board"].setSelectionMode("single");
         this._stocks["board"].setSelectableCards(Object.values(args.buyableCards).map(function (c) { return _this.addStatics(c); }));
         this._stocks["board"].onSelectionChange = function (selection, lastChange) {
+            _this.clearSelectable();
             if (selection.includes(lastChange)) {
                 args.possiblePlaces[lastChange.type].forEach(function (slotId) {
-                    debug("J'active ", lastChange.type + slotId);
                     _this.onClick(lastChange.type + slotId, function () {
                         _this.takeAction({
                             actionName: "actBuy",
@@ -2397,9 +2409,6 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
                         });
                     });
                 });
-            }
-            else {
-                _this.clearSelectable();
             }
         };
         this.addResetClientStateButton();
@@ -2442,6 +2451,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     };
     /**
      * make active all slots where a card can be played
+     * (usefull to hide useless slots)
      */
     LittleSucculentsGame.prototype.activePossibleSlots = function () {
         document.querySelectorAll(".gamezone-cards").forEach(function (gamezone) {
@@ -2513,18 +2523,30 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     ░░░░░    ░░░░░    ░░░░░░░       ░░░░░    ░░░░░ ░░░░░        ░░░░░░░░░
                                                                                                                
     */
-    // notif_moveDie(n: {
-    //   args: {
-    //     player_id: number;
-    //     player_name: string;
-    //     die: NRDice;
-    //     cardId: number;
-    //     cardsAndDice: TradeArgs;
-    //   };
-    // }): void {
-    //   debug("notif_moveDie", n);
-    //   this.moveDie(n.args.die, n.args.cardId);
-    // }
+    LittleSucculentsGame.prototype.notif_moveCard = function (n) {
+        // debug("notif_moveCard", n);
+        this._cardManager.updateCardInformations(n.args.card);
+        this.activePossibleSlots();
+    };
+    LittleSucculentsGame.prototype.notif_pay = function (n) {
+        // debug("notif_pay", n);
+        this._cardManager.updateCardInformations(n.args.moneyPlant);
+    };
+    LittleSucculentsGame.prototype.notif_refreshUi = function (n) {
+        // debug("notif_refresh_Ui", n);
+        this.updateCards(n.args.cards);
+        this.activePossibleSlots();
+        this.updatePlayers(n.args.players);
+    };
+    LittleSucculentsGame.prototype.notif_clearTurn = function (n) {
+        var _this = this;
+        // debug("notif_clearTurn", n);
+        n.args.notifIds.forEach(function (logId) {
+            var _a;
+            var log = "log_" + _this._notif_uid_to_log_id[logId];
+            (_a = $(log)) === null || _a === void 0 ? void 0 : _a.classList.add("canceled");
+        });
+    };
     /*
     ██████   ██████    ███████    █████   █████ ██████████  █████████
     ░░██████ ██████   ███░░░░░███ ░░███   ░░███ ░░███░░░░░█ ███░░░░░███

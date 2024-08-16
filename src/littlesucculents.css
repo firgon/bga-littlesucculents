@@ -483,6 +483,10 @@
   font-family: "roboto";
 }
 
+.canceled .roundedbox {
+  text-decoration: line-through;
+}
+
 body > .card, body > .slot, #board-container body > .deck {
   position: absolute;
   left: -9999px;
@@ -1058,6 +1062,7 @@ body > .card, body > .slot, #board-container body > .deck {
   position: absolute;
   opacity: 1;
   z-index: 2;
+  transition: all 0.3s 0.5s;
 }
 .card .token:not(.flower)[data-place-id="1"], #board-container .deck .token:not(.flower)[data-place-id="1"], .slot .token:not(.flower)[data-place-id="1"] {
   left: 72%;
@@ -1159,6 +1164,10 @@ body > .card, body > .slot, #board-container body > .deck {
   background-position-x: 50%;
   background-position-y: 0%;
   background-size: 300%;
+}
+.card .token:not(.flower).trashed, #board-container .deck .token:not(.flower).trashed, .slot .token:not(.flower).trashed {
+  top: -2000px;
+  left: 2000px;
 }
 
 .slot {
@@ -1285,8 +1294,8 @@ body > .card, body > .slot, #board-container body > .deck {
 
 .selectable {
   box-sizing: border-box;
-  border: 3px green solid;
-  background-color: rgba(30, 221, 39, 0.315);
+  border: 3px blue solid;
+  background-color: rgba(30, 65, 221, 0.315);
   cursor: pointer;
 }
 

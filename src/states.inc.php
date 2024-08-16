@@ -73,19 +73,34 @@ $machinestates = [
         "possibleactions" => ['actBuy', 'actGenericAction'],
         "transitions" => [
             CONFIRM => ST_CONFIRM,
+            BUY => ST_MOVE_PLANT,
+            END_TURN => ST_NEXT_PLAYER,
+        ]
+    ],
+
+    ST_MOVE_PLANT => [
+        "name" => "movePlant",
+        "description" => clienttranslate('${actplayer} can move the flower from his basic pot to his new pot'),
+        "descriptionmyturn" => clienttranslate('${you} can move the flower from your basic pot to your new pot'),
+        "type" => ACTIVE_PLAYER,
+        "args" => "argMovePlant",
+        "action" => "stMovePlant",
+        "possibleactions" => ['actMovePlant', 'actGenericAction'],
+        "transitions" => [
+            CONFIRM => ST_CONFIRM,
             END_TURN => ST_NEXT_PLAYER,
         ]
     ],
 
     ST_CONFIRM => [
-        "name" => "play",
+        "name" => "confirm",
         "description" => clienttranslate('${actplayer} must confirm his turn or undo'),
-        "descriptionmyturn" => clienttranslate('${you} must confirm his turn or undo'),
+        "descriptionmyturn" => clienttranslate('${you} must confirm your turn or undo'),
         "type" => ACTIVE_PLAYER,
-        "args" => "argPlay",
-        "action" => "stPlay",
-        "possibleactions" => ['actConfirm', 'actUndo'],
+        // "args" => "argConfirm",
+        "possibleactions" => ['actConfirm', 'actUndo', 'actGenericAction'],
         "transitions" => [
+            UNDO => ST_PLAY,
             END_TURN => ST_NEXT_PLAYER
         ]
     ],

@@ -81,7 +81,7 @@ class Players extends \LSU\Helpers\DB_Manager
       ->getSingle();
   }
 
-  public static function getActive()
+  public static function getActive(): Player
   {
     return self::get();
   }

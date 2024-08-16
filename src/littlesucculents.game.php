@@ -41,6 +41,8 @@ use LSU\Core\Globals;
 use LSU\Core\Preferences;
 use LSU\Core\Stats;
 use LSU\Core\CheatModule;
+use LSU\Helpers\Log;
+
 // use LSU\Helpers\Log;
 
 class LittleSucculents extends Table
@@ -96,7 +98,7 @@ class LittleSucculents extends Table
         $this->activeNextPlayer();
 
         Globals::setupNewGame($players, $options, Players::getActiveId());
-        // Log::enable();
+        Log::enable();
     }
 
     /*

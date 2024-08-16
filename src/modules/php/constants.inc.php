@@ -29,9 +29,13 @@ const STARTER = "starter";
 /*
  * State constants
  */
+
+const BUY = 'buy';
+
 const ST_GAME_SETUP = 1;
 
 const ST_PLAY = 2;
+const ST_MOVE_PLANT = 3;
 
 const ST_CONFIRM = 5;
 
@@ -54,10 +58,10 @@ const OPTION_PLANT_SET_A = 0;
 const OPTION_PLANT_SET_B = 1;
 const OPTION_PLANT_RANDOM_SET = 2;
 
-const PREF_CONFIRM = 101;
-const PREF_CONFIRM_YES = 0;
+const PREF_CONFIRM = 201;
+const PREF_CONFIRM_YES = 2;
 const PREF_CONFIRM_TIMER = 1;
-const PREF_CONFIRM_NO = 2;
+const PREF_CONFIRM_NO = 0;
 /******************
  ****** STATS ******
  ******************/
@@ -94,8 +98,10 @@ const PREF_CONFIRM_NO = 2;
 const GAME = "game";
 const MULTI = "multipleactiveplayer";
 const PRIVATESTATE = "private";
+
 const END_TURN = 'endTurn';
 const END_GAME = 'endGame';
+const UNDO = "undo";
 const ACTIVE_PLAYER = "activeplayer";
 const CONFIRM = 'confirm';
 

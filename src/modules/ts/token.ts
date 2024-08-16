@@ -8,7 +8,7 @@ class Token {
       card,
       element
     );
-    if (card.tokenNb) debug("adjust_Token", card, busyPlaces, availablePlaces);
+    // if (card.tokenNb) debug("adjust_Token", card, busyPlaces, availablePlaces);
     if (busyPlaces.length < card.tokenNb) {
       Token.addTokens(
         card.tokenNb - busyPlaces.length,
@@ -24,6 +24,7 @@ class Token {
     for (let index = 0; index < nb; index++) {
       const token = Token.createToken(availablePlaces[index].toString());
       elem.append(token);
+      token.classList.remove("trashed");
     }
   }
 
@@ -40,7 +41,7 @@ class Token {
 
   static createToken(place: string): HTMLElement {
     const result = document.createElement("div");
-    result.classList.add("token");
+    result.classList.add("token", "trashed");
     const sides = document.createElement("div");
     sides.classList.add("sides");
     ["front", "back"].forEach((side) => {

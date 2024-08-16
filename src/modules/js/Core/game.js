@@ -252,6 +252,7 @@ define([
           }
 
           let timing = this[functionName](args);
+          debug(functionName, args);
           if (timing === undefined) {
             if (notif[1] === undefined) {
               console.error(
@@ -340,7 +341,7 @@ define([
      *  - pref : 0 is disabled (auto-click), 1 if normal timer, 2 if no timer and show normal button
      */
 
-    startActionTimer(buttonId, time, pref, autoclick = false) {
+    startActionTimer(buttonId, time, pref = 1, autoclick = false) {
       var button = $(buttonId);
       var isReadOnly = this.isReadOnly();
       if (button == null || isReadOnly || pref == 2) {
