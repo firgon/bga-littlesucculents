@@ -1054,15 +1054,16 @@ body > .card, body > .slot, #board-container body > .deck {
 }
 .card:hover .token, #board-container .deck:hover .token, .slot:hover .token {
   opacity: 0.2;
-  transition: opacity 0.3s 0.5s;
+  transition: top 1s 0.3s, left 1s 0.3s, opacity 0.3s 0.5s;
+}
+.card .token, #board-container .deck .token, .slot .token {
+  transition: top 1s 0.3s, left 1s 0.3s;
 }
 .card .token:not(.flower), #board-container .deck .token:not(.flower), .slot .token:not(.flower) {
   height: calc(0.2666666667 * var(--scale));
   width: calc(0.2666666667 * var(--scale));
   position: absolute;
-  opacity: 1;
   z-index: 2;
-  transition: all 0.3s 0.5s;
 }
 .card .token:not(.flower)[data-place-id="1"], #board-container .deck .token:not(.flower)[data-place-id="1"], .slot .token:not(.flower)[data-place-id="1"] {
   left: 72%;
@@ -1166,8 +1167,8 @@ body > .card, body > .slot, #board-container body > .deck {
   background-size: 300%;
 }
 .card .token:not(.flower).trashed, #board-container .deck .token:not(.flower).trashed, .slot .token:not(.flower).trashed {
-  top: -2000px;
-  left: 2000px;
+  top: 1500px;
+  left: 1500px;
 }
 
 .slot {
@@ -1434,7 +1435,7 @@ body > .card, body > .slot, #board-container body > .deck {
   font-family: "Bungee", "roboto";
   margin-right: 0.5em;
 }
-.player-infos .counter.water::before {
+.player-infos .counter.water-counter::before {
   background: url(img/cards.jpg);
   background-position-x: 0%;
   background-position-y: 100%;

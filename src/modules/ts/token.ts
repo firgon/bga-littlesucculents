@@ -32,10 +32,11 @@ class Token {
     const tokens = elem.querySelectorAll(".token");
     for (let index = 0; index < nb; index++) {
       const element = tokens[index];
-      element.classList.add("trashed");
-      setTimeout(() => {
-        element.remove();
-      }, 500);
+      gameui.slideToObjectAndDestroy(element, "pagemaintitletext");
+      // element.classList.add("trashed");
+      // setTimeout(() => {
+      //   element.remove();
+      // }, 1000);
     }
   }
 

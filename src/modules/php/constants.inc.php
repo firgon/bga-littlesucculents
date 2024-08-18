@@ -41,7 +41,10 @@ const ST_CONFIRM = 5;
 
 const ST_NEXT_PLAYER = 10;
 
-const ST_GROW = 15;
+const ST_WATER = 15;
+const ST_GROW = 16;
+
+const ST_SEASON_END = 20;
 
 
 

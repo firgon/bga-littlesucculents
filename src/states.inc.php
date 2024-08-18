@@ -105,12 +105,36 @@ $machinestates = [
         ]
     ],
 
+    ST_WATER => [
+        "name" => "water",
+        "description" => clienttranslate('All players must spread their water tokens'),
+        "descriptionmyturn" => clienttranslate('${you} must spread your water tokens'),
+        "type" => MULTI,
+        "args" => "argWater",
+        "possibleactions" => ['actWater', 'actChangeMind', 'actGenericAction'],
+        "transitions" => [
+            END_TURN => ST_GROW
+        ]
+    ],
+
+    ST_GROW => [
+        "name" => "grow",
+        "description" => clienttranslate('All players must choose which succulents will grow'),
+        "descriptionmyturn" => clienttranslate('${you} must choose which succulents will grow'),
+        "type" => MULTI,
+        "args" => "argGrow",
+        "possibleactions" => ['actGrow', 'actChangeMind', 'actGenericAction'],
+        "transitions" => [
+            END_TURN => ST_SEASON_END
+        ]
+    ],
+
     ST_NEXT_PLAYER => [
         'name' => 'nextPlayer',
         'type' => GAME,
         'action' => 'stNextPlayer',
         'transitions' => [
-            'grow' => ST_GROW,
+            'grow' => ST_WATER,
             END_TURN => ST_PLAY
         ],
     ],

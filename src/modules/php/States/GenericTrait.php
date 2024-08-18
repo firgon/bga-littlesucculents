@@ -17,9 +17,9 @@ trait GenericTrait
 
 	public function stNextPlayer()
 	{
-		$activePlayerId = Players::getActiveId();
+		$activePlayer = Players::getActive();
 
-		$nextPlayer = Players::getNextId($activePlayerId);
+		$nextPlayer = Players::getNextId($activePlayer);
 
 		if ($nextPlayer == Globals::getFirstPlayer()) {
 			Game::transition('grow');

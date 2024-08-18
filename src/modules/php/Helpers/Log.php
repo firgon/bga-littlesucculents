@@ -91,7 +91,7 @@ class Log extends \APP_DbObject
             ->get()
             ->first();
 
-        return is_null($log) ? 1 : $log['id'];
+        return is_null($log) ? 0 : $log['id'];
     }
 
     //find the last entry

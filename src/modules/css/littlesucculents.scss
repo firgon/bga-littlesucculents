@@ -176,15 +176,16 @@
   &:hover {
     .token {
       opacity: 0.2;
-      transition: opacity 0.3s 0.5s;
+      transition: top 1s 0.3s, left 1s 0.3s, opacity 0.3s 0.5s;
     }
+  }
+  .token {
+    transition: top 1s 0.3s, left 1s 0.3s;
   }
   .token:not(.flower) {
     @include mix.size(80, 80);
     position: absolute;
-    opacity: 1;
     z-index: 2;
-    transition: all 0.3s 0.5s;
 
     $placeList: 1 72% 54%, 2 49% 59%, 3 26% 59%, 4 1% 52%, 5 -7% 25%, 6 5% 63%,
       7 69% 67%, 8 76% 36%, 9 65% 21%, 10 22% 69%, 11 77% 8%, 12 11% -3%,
@@ -222,8 +223,8 @@
       }
     }
     &.trashed {
-      top: -2000px;
-      left: 2000px;
+      top: 1500px;
+      left: 1500px;
     }
   }
 }
@@ -498,7 +499,7 @@
     font-family: var.$main-font;
     margin-right: 0.5em;
 
-    &.water::before {
+    &.water-counter::before {
       background: url(img/cards.jpg);
       @include mix.getBackgroundPosition(43);
 

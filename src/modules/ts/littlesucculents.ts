@@ -44,6 +44,19 @@ class LittleSucculentsGame extends GameGui {
       ["pay", 200],
       // ['completeOtherHand', 1000, (notif) => notif.args.player_id == this.player_id],
     ];
+    this._tooltips = [
+      { name: "water", hint: _("Deck of Weather Cards") },
+      { name: "waterboard", hint: _("Weather at the end of this turn") },
+      { name: "deckplant", hint: _("Deck of Plant Cards") },
+      { name: "deckpot", hint: _("Deck of Pot Cards") },
+      { name: "firstPlayer", hint: _("First player token") },
+      { name: "money-counter", hint: _("Money of the player"), type: "class" },
+      {
+        name: "water-counter",
+        hint: _("Water can of the player"),
+        type: "class",
+      },
+    ];
 
     // Fix mobile viewport (remove CSS zoom)
     this.default_viewport = "width=800";
@@ -91,6 +104,7 @@ class LittleSucculentsGame extends GameGui {
     this.setupZoomUI();
 
     //add general tooltips
+    this.addTooltips();
 
     // add shortcut and navigation
 
@@ -117,9 +131,7 @@ class LittleSucculentsGame extends GameGui {
   */
 
   onEnteringStateConfirm(args) {
-    this.addPrimaryActionButton("btn-undo", _("Undo"), () => {
-      this.takeAction({ actionName: "actUndo" });
-    });
+    this.addUndoButton();
     this.addDangerActionButton("btn-confirm", _("Confirm"), () => {
       this.takeAction({ actionName: "actConfirm" });
     });
@@ -336,7 +348,6 @@ class LittleSucculentsGame extends GameGui {
       card: Card;
     };
   }): void {
-    // debug("notif_moveCard", n);
     this._cardManager.updateCardInformations(n.args.card);
     this.activePossibleSlots();
   }
@@ -348,12 +359,10 @@ class LittleSucculentsGame extends GameGui {
       moneyPlant: Card;
     };
   }) {
-    // debug("notif_pay", n);
     this._cardManager.updateCardInformations(n.args.moneyPlant);
   }
 
   notif_refreshUi(n: { args: GameDatas }) {
-    // debug("notif_refresh_Ui", n);
     this.updateCards(n.args.cards);
     this.activePossibleSlots();
     this.updatePlayers(n.args.players);
@@ -365,7 +374,6 @@ class LittleSucculentsGame extends GameGui {
       notifIds: string[];
     };
   }) {
-    // debug("notif_clearTurn", n);
     n.args.notifIds.forEach((logId) => {
       const log = "log_" + this._notif_uid_to_log_id[logId];
       $(log)?.classList.add("canceled");
@@ -435,7 +443,7 @@ class LittleSucculentsGame extends GameGui {
       $("waterboard"),
       {}
     );
-    $("waterboard").dataset.label = _("Next weather :");
+    $("waterboard").dataset.label = _("Weather :");
     this._stocks["board"] = new SlotStock(this._cardManager, $("board"), {
       slotsIds: ["pot1", "pot2", "pot3", "plant1", "plant2", "plant3"],
       mapCardToSlot: (card) => {
@@ -480,31 +488,65 @@ class LittleSucculentsGame extends GameGui {
       );
     });
 
-    this.updateCards(gamedatas.cards);
+    [/*"discardplant", "discardpot", */ "water"].forEach((deck) => {
+      if (gamedatas.cards[deck].topCard)
+        this._stocks[deck].addCard(
+          this.addStatics(gamedatas.cards[deck].topCard)
+        );
+    });
+    ["deckplant", "deckpot"].forEach((deck) => {
+      (this._stocks[deck] as Deck<Card>).setCardNumber(gamedatas.cards[deck]);
+    });
+    gamedatas.cards.board.forEach((card) =>
+      this._stocks["board"].addCard(this.addStatics(card))
+    );
+    gamedatas.cards.player.forEach((card) =>
+      this._stocks[card.playerId].addCard(card)
+    );
+    gamedatas.cards.visibleDeck.forEach((card) =>
+      this._stocks["visibleDeck"].addCard(this.addStatics(card))
+    );
+
+    this._stocks["waterboard"].addCard(
+      this.addStatics(gamedatas.cards.waterboard)
+    );
+
+    //display available flowers
+    gamedatas.cards.flowerableColors.forEach((color) => {
+      const elem = document.createElement("div");
+      elem.classList.add("token", "flower", color);
+      document.querySelector(`[data-slot-id='${color}']`).append(elem);
+    });
+
+    //remove slots of each player that are not reachable for now
+    this.activePossibleSlots();
   }
 
   updateCards(cards: GameDatasCards) {
     [/*"discardplant", "discardpot", */ "water"].forEach((deck) => {
       if (cards[deck].topCard)
-        this._stocks[deck].addCard(this.addStatics(cards[deck].topCard));
+        this._cardManager.updateCardInformations(
+          this.addStatics(cards[deck].topCard)
+        );
     });
     ["deckplant", "deckpot"].forEach((deck) => {
       (this._stocks[deck] as Deck<Card>).setCardNumber(cards[deck]);
     });
     cards.board.forEach((card) =>
-      this._stocks["board"].addCard(this.addStatics(card))
+      this._cardManager.updateCardInformations(this.addStatics(card))
     );
-    cards.player.forEach((card) => this._stocks[card.playerId].addCard(card));
+    cards.player.forEach((card) =>
+      this._cardManager.updateCardInformations(this.addStatics(card))
+    );
     cards.visibleDeck.forEach((card) =>
-      this._stocks["visibleDeck"].addCard(this.addStatics(card))
+      this._cardManager.updateCardInformations(this.addStatics(card))
     );
 
-    this._stocks["waterboard"].addCard(this.addStatics(cards.waterboard));
+    this._cardManager.updateCardInformations(this.addStatics(cards.waterboard));
 
     //display available flowers
     cards.flowerableColors.forEach((color) => {
-      const elem = document.createElement("div");
-      elem.classList.add("token", "flower", color);
+      const elem = document.querySelector(".token.flower." + color);
       document.querySelector(`[data-slot-id='${color}']`).append(elem);
     });
 
@@ -575,8 +617,8 @@ class LittleSucculentsGame extends GameGui {
   // semi generic
   tplPlayerPanel(player: Player) {
     return `<div id='succulents-player-infos_${player.id}' class='player-infos'>
-      <div class='money counter' id='money-${player.id}'></div>
-      <div class='water counter' id='water-${player.id}'></div>
+      <div class='money-counter counter' id='money-${player.id}'></div>
+      <div class='water-counter counter' id='water-${player.id}'></div>
       <div class="first-player-holder" id='first-player-${player.id}'>${
       player.isFirst ? '<div id="firstPlayer"></div>' : ""
     }</div>
@@ -599,6 +641,20 @@ class LittleSucculentsGame extends GameGui {
   isSolo() {
     return this.getPlayers().length == 1;
   }
+
+  /*
+                                █████                            
+                               ░░███                             
+    ██████  █████ ████  █████  ███████    ██████  █████████████  
+   ███░░███░░███ ░███  ███░░  ░░░███░    ███░░███░░███░░███░░███ 
+  ░███ ░░░  ░███ ░███ ░░█████   ░███    ░███ ░███ ░███ ░███ ░███ 
+  ░███  ███ ░███ ░███  ░░░░███  ░███ ███░███ ░███ ░███ ░███ ░███ 
+  ░░██████  ░░████████ ██████   ░░█████ ░░██████  █████░███ █████
+   ░░░░░░    ░░░░░░░░ ░░░░░░     ░░░░░   ░░░░░░  ░░░░░ ░░░ ░░░░░ 
+                                                                 
+                                                                 
+                                                                 */
+
   /*
     █████████  ██████████ ██████   █████ ██████████ ███████████   █████   █████████   █████████ 
     ███░░░░░███░░███░░░░░█░░██████ ░░███ ░░███░░░░░█░░███░░░░░███ ░░███   ███░░░░░███ ███░░░░░███
@@ -612,6 +668,36 @@ class LittleSucculentsGame extends GameGui {
 																							 
 																							 
   */
+
+  addTooltips() {
+    this._tooltips.forEach((tooltip: Tooltip) => {
+      if (tooltip.type == "class") {
+        this.addTooltipToClass(
+          tooltip.name,
+          tooltip.hint,
+          tooltip.action ?? ""
+        );
+      } else {
+        this.addTooltip(tooltip.name, tooltip.hint, tooltip.action ?? "");
+      }
+    });
+  }
+
+  addUndoButton(condition = true, callback?: Function) {
+    if (condition) {
+      this.addSecondaryActionButton(
+        "btn-undo",
+        _("Undo"),
+        () => {
+          this.takeAction({
+            actionName: "actUndo",
+          });
+          if (callback) callback();
+        },
+        "restartAction"
+      );
+    }
+  }
 
   addAutomaticCounter(elem: HTMLElement) {
     elem.classList.add("automaticCounter");

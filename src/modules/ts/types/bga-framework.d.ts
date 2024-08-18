@@ -69,6 +69,13 @@ declare class Counter {
   disable(): void; // Sets value to "-"
 }
 
+declare type Tooltip = {
+  name: string;
+  hint: string;
+  action?: string;
+  type?: undefined | "class";
+};
+
 declare class GameGui implements Game {
   page_is_unloading: any;
   game_name: string;
@@ -152,6 +159,12 @@ declare class GameGui implements Game {
     duration?: number,
     delay?: number
   ): Animation;
+  slideToObjectAndDestroy(
+    mobile_obj: string | Element,
+    target_obj: string | Element,
+    duration?: number,
+    delay?: number
+  ): Animation;
 
   displayScoring(
     anchor_id: string,
@@ -220,6 +233,7 @@ declare class GameGui implements Game {
   //my boilerplate
   _fakeId: number;
   _counters: { [key: string]: Counter };
+  _tooltips: Tooltip[];
 
   //boilerplate
   changePageTitle(suffix: string, save: boolean): void;
