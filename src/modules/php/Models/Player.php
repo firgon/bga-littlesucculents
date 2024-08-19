@@ -45,6 +45,16 @@ class Player extends \LSU\Helpers\DB_Model
     return $data;
   }
 
+  public function computeScore()
+  {
+    $score = 0;
+    foreach ($this->getPlants() as $key => $plant) {
+      $score += $plant->getScore();
+    }
+    $this->setScore($score);
+    return $score;
+  }
+
   public function getMoney()
   {
     return $this->getPlant(0)->getTokenNb();
@@ -55,6 +65,11 @@ class Player extends \LSU\Helpers\DB_Model
     return Cards::getInLocationPId(PLAYER, $this->getId(), $state)->filter(fn($card) => $card->isPlant())->first();
   }
 
+  public function getPlants()
+  {
+    return Cards::getInLocationPId(PLAYER, $this->getId())->filter(fn($card) => $card->isPlant());
+  }
+
   public function getPots()
   {
     return Cards::getInLocationPId(PLAYER, $this->getId())->filter(fn($card) => $card->isPot());
@@ -63,6 +78,30 @@ class Player extends \LSU\Helpers\DB_Model
   public function getPot($state)
   {
     return Cards::getInLocationPId(PLAYER, $this->getId(), $state)->filter(fn($card) => $card->isPot())->first();
+  }
+
+  public function hasAsManyPlantEachSide()
+  {
+    $plants = $this->getPlants();
+
+    $plantLeft = $plants->filter(fn($plant) => $plant->getState() < 0);
+    $plantRight = $plants->filter(fn($plant) => $plant->getState() > 0);
+
+    return $plantLeft->count() == $plantRight->count();
+  }
+
+  public function getColorNb()
+  {
+    $validatedColors = [];
+    foreach ($this->getPlants() as $key => $plant) {
+      $color = $plant->getColor();
+      if (in_array($color, ALL_COLORS)) $validatedColors[$color] == true;
+    }
+    foreach ($this->getPots() as $key => $pot) {
+      $color = $pot->getColor();
+      if (in_array($color, ALL_COLORS)) $validatedColors[$color] == true;
+    }
+    return count(array_keys($validatedColors));
   }
 
   public function getPossiblePlaces($type)

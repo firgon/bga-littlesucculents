@@ -158,15 +158,42 @@ class Players extends \LSU\Helpers\DB_Manager
             ░░░░░                                                               
 */
 
-  public static function getMaxNbRewards()
+  public static function scoreMexican($pId)
   {
     $players = static::getAll();
     $max = 0;
+    $nbPlayer = 0;
     foreach ($players as $id => $player) {
-      // echo $player->getScore();
-      // exit();
-      $max = max($max, count($player->getRewards()));
+      $nb = $player->getPlants()->filter(fn($plant) => $plant->getClass() == MEXICAN_FIRECRACKER)->count();
+
+      if ($id == $pId) {
+        $nbPlayer = $nb;
+      }
+
+      if ($nb > $max) {
+        $max = $nb;
+      }
     }
-    return $max;
+    if ($nbPlayer == 0) return 0; //should not happen
+    else if ($nbPlayer == $max) return 5;
+    else return 2;
+  }
+  public static function scoreMermaid($pId)
+  {
+    $players = static::getAll();
+    $nbPlayer = 0;
+    $max = 0;
+    foreach ($players as $id => $player) {
+      $nb = $player->getPlants()->count();
+
+      if ($id == $pId) {
+        $nbPlayer = $nb;
+      }
+
+      if ($nb > $max) {
+        $max = $nb;
+      }
+    }
+    return ($max == $nbPlayer) ? 7 : 0;
   }
 }

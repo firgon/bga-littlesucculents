@@ -36,11 +36,9 @@ require_once 'modules/php/constants.inc.php';
 
 use LSU\Managers\Players;
 use LSU\Managers\Cards;
-use LSU\Managers\Cells;
 use LSU\Core\Globals;
 use LSU\Core\Preferences;
 use LSU\Core\Stats;
-use LSU\Core\CheatModule;
 use LSU\Helpers\Log;
 
 // use LSU\Helpers\Log;
@@ -51,6 +49,7 @@ class LittleSucculents extends Table
     use LSU\States\TurnTrait;
     use LSU\States\GenericTrait;
     use LSU\States\BuyTrait;
+    use LSU\States\GrowTrait;
 
     public static $instance = null;
     function __construct()
@@ -115,7 +114,8 @@ class LittleSucculents extends Table
         $pId = self::getCurrentPId();
         return [
             'players' => Players::getUiData($pId),
-            'cards' => Cards::getUiData()
+            'cards' => Cards::getUiData(),
+            'turn' => 12 - Cards::countInLocation(WATER)
         ];
     }
 
@@ -131,7 +131,7 @@ class LittleSucculents extends Table
     */
     function getGameProgression()
     {
-        return 0;
+        return intval((12 - (Cards::countInLocation(WATER) + 1)) / 12 * 100);
     }
 
     function actChangePreference($pref, $value)

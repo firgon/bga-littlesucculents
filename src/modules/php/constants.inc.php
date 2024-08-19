@@ -26,6 +26,27 @@ const SET_A = "setA";
 const SET_B = "setB";
 const STARTER = "starter";
 
+// PLANT 
+const BABY_TOES = 'BabyToes';
+const SNAKE_PLANT = 'SnakePlant';
+const MEXICAN_FIRECRACKER = 'MexicanFirecracker';
+const STRING_OF_PEARLS = 'StringofPearls';
+const STRING_OF_DOLPHINS = 'StringofDolphins';
+const JELLYBEAN_PLANT = 'JellybeanPlant';
+const CALICO_HEARTS = 'CalicoHearts';
+const BUNNY_EARS = 'BunnyEars';
+const RIBBON_PLANT = 'RibbonPlant';
+const BABY_SUN_ROSE = 'BabySunRose';
+const CORAL_CACTUS = 'CoralCactus';
+const LIVING_STONE = 'LivingStone';
+const RAINBOW_WEST = 'RainbowWest';
+const ALOE_VERA = 'AloeVera';
+const MOON_CACTUS = 'MoonCactus';
+const LEAF_WINDOW = 'LeafWindow';
+const MERMAID_TAIL = 'MermaidTail';
+const PET_ROCK = 'PetRock';
+const MONEY_PLANT = 'MoneyPlant';
+
 /*
  * State constants
  */
