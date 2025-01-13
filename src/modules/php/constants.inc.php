@@ -51,19 +51,23 @@ const MONEY_PLANT = 'MoneyPlant';
  * State constants
  */
 
-const BUY = 'buy';
+const BUY_POT = 'buy';
 
 const ST_GAME_SETUP = 1;
 
 const ST_PLAY = 2;
-const ST_MOVE_PLANT = 3;
+const ST_MOVE_PLANT = 3; //deprecated => automatic
 
 const ST_CONFIRM = 5;
 
 const ST_NEXT_PLAYER = 10;
 
+const ST_AUTOMATIC_WATER = 14;
 const ST_WATER = 15;
 const ST_GROW = 16;
+const ST_BABY_SUN_ROSE = 17;
+const ST_BABY_SUN_ROSE2 = 18;
+const ST_REGISTER_WATER = 19;
 
 const ST_SEASON_END = 20;
 

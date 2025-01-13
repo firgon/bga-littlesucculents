@@ -1,8 +1,8 @@
 class Generics {
-  static addIdDiv(card: { dataId: number }, element: HTMLElement): void {
+  static addIdDiv(card: { id: number }, element: HTMLElement): void {
     let div = document.createElement("div");
     div.classList.add("id_number");
-    if (card.dataId) div.innerText = card.dataId.toString();
+    if (card.id) div.innerText = card.id.toString();
 
     if (element.querySelector(".id_number")) {
       element.replaceChild(div, element.querySelector(".id_number"));

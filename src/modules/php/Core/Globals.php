@@ -16,8 +16,9 @@ class Globals extends \LSU\Helpers\DB_Manager
     'turn' => 'int',
     'firstPlayer' => 'int',
     'lastPlacedCard' => 'int',
-    'cheatMode' => 'bool'
-    // 'pendingAction' => 'obj',
+    'cheatMode' => 'bool',
+    'playerPlans' => 'obj',
+    'babySunRoseByPlayer' => 'obj'
     // 'calledValue' => 'int',
     // 'calledColor' => 'str',
     // 'calledPlayer' => 'int'
@@ -41,8 +42,37 @@ class Globals extends \LSU\Helpers\DB_Manager
   public static function changeFirstPlayer()
   {
     $firstPlayer = static::getFirstPlayer();
-    static::setFirstPlayer(Players::getNextId($firstPlayer));
+    $nextFirstPlayer = Players::getNextId($firstPlayer);
+    static::setFirstPlayer($nextFirstPlayer);
     Notifications::updatePlayers();
+    return $nextFirstPlayer;
+  }
+
+  public static function addPlayerPlan($pId, $cards = null)
+  {
+    // Compute players that still need to select their card
+    // => use that instead of BGA framework feature because in some rare case a player
+    //    might become inactive eventhough the selection failed (seen in Agricola at least already)
+    $playerPlans = static::getPlayerPlans();
+
+    if (is_null($cards)) {
+      unset($playerPlans[$pId]);
+    } else {
+      $playerPlans[$pId] = $cards;
+      Notifications::playerReady($pId);
+    }
+    static::setPlayerPlans($playerPlans);
+    $playerIds = Players::getAll()->filter(fn($player) => !$player->getZombie())->getIds();
+    $ids = array_diff($playerIds, array_keys($playerPlans));
+
+    // At least one player need to make a choice
+    if (!empty($ids)) {
+      Game::get()->gamestate->setPlayersMultiactive($ids, END_TURN, true);
+    }
+    // Everyone is done => go to next state
+    else {
+      Game::get()->gamestate->nextState(END_TURN);
+    }
   }
 
   /*

@@ -82,7 +82,7 @@ declare class GameGui implements Game {
   instantaneousMode: boolean;
   player_id: string;
   interface_min_width: number;
-  gamedatas: any;
+  gamedatas: GameDatas;
   isSpectator: boolean;
   bRealtime: boolean;
   notifqueue: GameNotifQueue;
@@ -95,6 +95,7 @@ declare class GameGui implements Game {
   table_id: number;
   metasiteurl: string;
   stateName: string;
+  currentStateTitle: string;
 
   isCurrentPlayerActive(): boolean;
   getActivePlayerId(): number;
@@ -234,16 +235,18 @@ declare class GameGui implements Game {
   _fakeId: number;
   _counters: { [key: string]: Counter };
   _tooltips: Tooltip[];
+  _animationManager: AnimationManager;
 
   //boilerplate
-  changePageTitle(suffix: string, save: boolean): void;
+  changePageTitle(suffix?: string, save?: boolean): void;
   clientState(name: string, descriptionmyturn: string, args: {}): void;
   clearActionButtons(): void;
   setModeInstataneous(): void;
   unsetModeInstantaneous(): void;
   forEachPlayer(callback: Function): void;
   default_viewport: string;
-  _activeStates: Array<string>;
+
+  _nonActiveStates: Array<string>;
 
   _notifications: any[];
 

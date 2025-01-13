@@ -14,7 +14,7 @@ class Game
   {
     return LittleSucculents::get();
   }
-  
+
   public static function isStudio(): bool
   {
     return static::get()->getBgaEnvironment() == 'studio';
@@ -53,7 +53,7 @@ class Game
   }
 
 
-  public static function transition($transition)
+  public static function transition($transition = END_TURN)
   {
     static::get()->gamestate->nextState($transition);
   }

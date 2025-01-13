@@ -22,6 +22,8 @@ trait GenericTrait
 		$nextPlayer = Players::getNextId($activePlayer);
 
 		if ($nextPlayer == Globals::getFirstPlayer()) {
+			Game::activeAll();
+			Notifications::startWaterPhase();
 			Game::transition('grow');
 		} else {
 			$this->activeNextPlayer();

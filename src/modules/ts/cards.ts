@@ -57,7 +57,7 @@ class CardSetting<T extends Card> implements CardManagerSettings<T> {
     Generics.addIdDiv(card, element);
 
     //generate Tokens
-    Token.adjustTokens(card, element);
+    this.animationManager.game._tokenManager.adjustTokens(card);
   }
   unselectableCardClass?: string;
 }

@@ -39,34 +39,41 @@ trait BuyTrait
 		Notifications::place($card);
 
 		//adjust tokens (loose leaf if there are too many)
+		$card->adjustTokenNb();
 
 		Globals::setLastPlacedCard($cardId);
 
-		$transition = $card->isPot() ? BUY : CONFIRM;
-
-		Game::transition($transition);
-	}
-
-	public function argMovePlant()
-	{
-		$cardId = Globals::getLastPlacedCard();
-		$card = Cards::get($cardId);
-
-		$cardState = $card->getState();
-
-		$plantState = $cardState > 0 ? 1 : -1;
-
-		return [
-			"plant" => Players::getActive()->getPlant($plantState),
-			"place" => $cardState
-		];
-	}
-
-	public function stMovePlant()
-	{
-		if (!$this->getArgs()['plant']) {
-			$transition = Players::getActive()->hasPref(PREF_CONFIRM, PREF_CONFIRM_NO) ? END_TURN : CONFIRM;
-			Game::transition($transition);
+		//if card is a pot => automatically move the plant on the neutral pot on it
+		if ($card->isPot()) {
+			$plantState = $state > 0 ? 1 : -1;
+			$plantToMove = Players::getActive()->getPlant($plantState);
+			$plantToMove->setState($state);
+			Notifications::updateCard($plantToMove);
 		}
+
+		Game::transition(CONFIRM);
 	}
+
+	// public function argMovePlant()
+	// {
+	// 	$cardId = Globals::getLastPlacedCard();
+	// 	$card = Cards::get($cardId);
+
+	// 	$cardState = $card->getState();
+
+	// 	$plantState = $cardState > 0 ? 1 : -1;
+
+	// 	return [
+	// 		"plant" => Players::getActive()->getPlant($plantState),
+	// 		"place" => $cardState
+	// 	];
+	// }
+
+	// public function stMovePlant()
+	// {
+	// 	if (!$this->getArgs()['plant']) {
+	// 		$transition = Players::getActive()->hasPref(PREF_CONFIRM, PREF_CONFIRM_NO) ? END_TURN : CONFIRM;
+	// 		Game::transition($transition);
+	// 	}
+	// }
 }

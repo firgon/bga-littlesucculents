@@ -2,6 +2,8 @@
 
 namespace LSU\Models;
 
+use LSU\Core\Game;
+use LSU\Core\Notifications;
 use LSU\Managers\Cards;
 use LSU\Managers\Players;
 
@@ -42,6 +44,11 @@ class Card extends \LSU\Helpers\DB_Model
         }
     }
 
+    public function getPlayer(): ?Player
+    {
+        return Players::get($this->getPlayerId());
+    }
+
     public function isPlant()
     {
         return $this->getType() == PLANT;
@@ -58,47 +65,86 @@ class Card extends \LSU\Helpers\DB_Model
      */
     public function isCuttable($pId)
     {
-        return $this->getType() == PLANT && $this->getPlayerId() != $pId && Cards::isAvailable($this->getColor());
+        return $this->getType() == PLANT && $this->getPlayerId() != $pId && Cards::isAvailable($this->getColor()) && $this->getTokenNb() > 0;
     }
 
-    public function getLeafLimit()
+    public function getLimit()
     {
         if ($this->isPot()) {
-            return $this->getMaxLeaf();
+            return $this->getMaxWater();
         } else if ($this->getClass() == PET_ROCK) {
             return 0;
         } else {
             if ($this->getLocation() == PLAYER) {
                 $pot = $this->getPlayer()->getPot($this->getState());
                 if ($pot) {
-                    return $pot->getLeafLimit() + (($this->getClass() == STRING_OF_PEARLS) ? 6 : 0);
+                    return $pot->getMaxWater() + (($this->getClass() == STRING_OF_PEARLS) ? 6 : 0);
                 }
             }
-            return 0;
+            return 3;
         }
-    }
-
-    public function getScoreForLeaves(): int
-    {
-
-        if ($this->isPot()) return 0;
-        switch ($this->getClass()) {
-            case MONEY_PLANT:
-            case PET_ROCK:
-                return 0;
-            default:
-                return $this->getTokenNb();
-        }
-    }
-
-    public function getScoreForFlower(): int
-    {
-        return $this->getFlowered() == 1 ? 7 : 0;
     }
 
     public function isAtmax(): bool
     {
-        return $this->getLeafLimit() == $this->getTokenNb();
+        return $this->getLimit() == $this->getTokenNb();
+    }
+
+    public function getAvailableSpace()
+    {
+        return $this->getLimit() - $this->getTokenNb();
+    }
+
+    public function getMatchingCard(): ?Card
+    {
+        $method = $this->isPot() ? "getPlant" : "getPot";
+        return $this->getPlayer()->$method($this->getState());
+    }
+
+    /**
+     * top function to add checks to generic function incTokenNb
+     */
+    public function incToken($n, $fromId = null)
+    {
+        $this->setTokenNb($this->getTokenNb() + $n);
+        if ($this->getTokenNb() < 0) {
+            Game::error('You cannot have less than 0 token on a card', $this);
+        }
+
+        if ($fromId) {
+            Notifications::transfert($fromId, $this, $n);
+        }
+
+        //check if there are not too many tokens
+        $this->adjustTokenNb();
+        return $this->getTokenNb();
+    }
+
+    public function adjustTokenNb()
+    {
+        $n = $this->getTokenNb() - $this->getLimit();
+        if ($n > 0) {
+            $this->incTokenNb(-$n);
+            Notifications::loseToken($this, $n);
+        }
+    }
+
+    public function addWater(int $n): int
+    {
+        if ($this->isPlant()) {
+            Game::error("You can't add water to a plant");
+        }
+        $canAccept = min($this->getAvailableSpace(), $n);
+        $this->incTokenNb($canAccept);
+        Notifications::updateCard($this);
+
+        return $canAccept;
+    }
+
+    public function discard()
+    {
+        $this->setLocation(DISCARD);
+        Notifications::updateCard($this);
     }
 
     public function getScore(): int
@@ -166,5 +212,23 @@ class Card extends \LSU\Helpers\DB_Model
             case STRING_OF_DOLPHINS:
                 return 0;
         }
+    }
+
+    public function getScoreForLeaves(): int
+    {
+
+        if ($this->isPot()) return 0;
+        switch ($this->getClass()) {
+            case MONEY_PLANT:
+            case PET_ROCK:
+                return 0;
+            default:
+                return $this->getTokenNb();
+        }
+    }
+
+    public function getScoreForFlower(): int
+    {
+        return $this->getFlowered() == 1 ? 7 : 0;
     }
 }

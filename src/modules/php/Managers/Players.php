@@ -6,6 +6,7 @@ use LSU\Core\Game;
 use LSU\Core\Globals;
 use LSU\Core\Notifications;
 use LSU\Core\Stats;
+use LSU\Helpers\Collection;
 use LSU\Helpers\Utils;
 use LSU\Models\Player;
 
@@ -65,7 +66,7 @@ class Players extends \LSU\Helpers\DB_Manager
     return (int) Game::get()->getCurrentPId();
   }
 
-  public static function getAll()
+  public static function getAll(): Collection
   {
     return self::DB()->get(false);
   }
@@ -158,6 +159,26 @@ class Players extends \LSU\Helpers\DB_Manager
             ░░░░░                                                               
 */
 
+  /**
+   * return a map with number of babysunrose by player id
+   */
+  public static function getBabySunRoseByPlayer()
+  {
+    $result = [];
+    foreach (static::getAll() as $pId => $player) {
+      $result[$pId] = $player->getPlants()->filter(fn($plant) => $plant->getClass() == BABY_SUN_ROSE)->getIds();
+    }
+    return $result;
+  }
+
+  public static function getWaterPossiblePlaces()
+  {
+    $data = [];
+    foreach (static::getAll() as $pId => $player) {
+      $data[$pId] = $player->getWaterPossiblePlaces();
+    }
+    return $data;
+  }
   public static function scoreMexican($pId)
   {
     $players = static::getAll();

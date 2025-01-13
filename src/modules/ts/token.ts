@@ -1,72 +1,123 @@
 class Token {
+  static idGen = 0;
+
+  constructor(public gameui: LittleSucculentsGame) {}
+
   static countTokens(elem: HTMLElement) {
     return elem.querySelectorAll(".token").length;
   }
 
-  static adjustTokens(card: Card, element: HTMLElement) {
-    const [busyPlaces, availablePlaces] = Token.getAvailablePlaces(
+  moveTokenOnCard(token: HTMLElement, card: Card) {
+    this.gameui.attachElementWithSlide(
+      token,
+      this.gameui._cardManager.getCardElement(card)
+    );
+  }
+
+  adjustTokens(card: Card, from: HTMLElement = null) {
+    debug("adjust Token", card);
+
+    const element = this.gameui._cardManager.getCardElement(card);
+    if (!element) return; //for fake case no need
+
+    const [busyPlaces, availablePlaces] = this.getAvailablePlaces(
       card,
       element
     );
-    // if (card.tokenNb) debug("adjust_Token", card, busyPlaces, availablePlaces);
-    if (busyPlaces.length < card.tokenNb) {
-      Token.addTokens(
-        card.tokenNb - busyPlaces.length,
-        element,
-        availablePlaces
+    const tokensOnCard = Math.max(0, card.tokenNb ?? 0);
+
+    if (busyPlaces.length < tokensOnCard) {
+      debug(
+        `There are ${
+          busyPlaces.length
+        } tokens on this element, it should have ${tokensOnCard}, i add ${
+          card.tokenNb - busyPlaces.length
+        } elems`
       );
-    } else {
-      Token.removeTokens(Math.abs(card.tokenNb - busyPlaces.length), element);
+      this.addTokens(
+        card.tokenNb - busyPlaces.length,
+        card,
+        availablePlaces,
+        from
+      );
+    } else if (busyPlaces.length > tokensOnCard) {
+      debug(
+        `There are ${
+          busyPlaces.length
+        } tokens on this element, it should have ${tokensOnCard}, i remove ${
+          busyPlaces.length - card.tokenNb
+        } elems`
+      );
+      this.removeTokens(Math.abs(tokensOnCard - busyPlaces.length), element);
     }
   }
 
-  static addTokens(nb: number, elem: HTMLElement, availablePlaces: number[]) {
+  addTokens(
+    nb: number,
+    card: Card,
+    availablePlaces: number[],
+    container: HTMLElement
+  ) {
+    debug("addTokens", nb, card, availablePlaces);
     for (let index = 0; index < nb; index++) {
-      const token = Token.createToken(availablePlaces[index].toString());
-      elem.append(token);
-      token.classList.remove("trashed");
+      if (container) {
+        const token = this.createToken(container, availablePlaces[index]);
+        this.moveTokenOnCard(token, card);
+      } else {
+        const token = this.createToken(
+          this.gameui._cardManager.getCardElement(card),
+          availablePlaces[index]
+        );
+        token.dataset.placeId = availablePlaces[index].toString();
+      }
     }
   }
 
-  static removeTokens(nb: number, elem: HTMLElement) {
+  removeTokens(nb: number, elem: HTMLElement) {
+    debug("removeTOkens", nb, elem);
     const tokens = elem.querySelectorAll(".token");
+    // debug("j'ai trouvé ces tokens :", tokens);
     for (let index = 0; index < nb; index++) {
       const element = tokens[index];
       gameui.slideToObjectAndDestroy(element, "pagemaintitletext");
-      // element.classList.add("trashed");
-      // setTimeout(() => {
-      //   element.remove();
-      // }, 1000);
     }
   }
 
-  static createToken(place: string): HTMLElement {
+  createToken(initialContainer: HTMLElement, placeId: number): HTMLElement {
     const result = document.createElement("div");
-    result.classList.add("token", "trashed");
+    result.id = "token-" + Token.idGen++;
+    result.classList.add("token");
     const sides = document.createElement("div");
     sides.classList.add("sides");
+
+    const rotate = Math.random() * 60 - 30;
+    // sides.style.transform = `rotate(${rotate}deg)`;
+
     ["front", "back"].forEach((side) => {
       const sideElem = document.createElement("div");
       sideElem.classList.add(side);
       sideElem.classList.add("side");
       sides.append(sideElem);
     });
-    const rotate = Math.random() * 90 - 45;
-    result.style.transform = `rotate(${rotate}deg)`;
     result.append(sides);
-    result.dataset.placeId = place;
+    result.dataset.placeId = placeId.toString();
+    initialContainer.append(result);
     return result;
   }
 
-  static getAvailablePlaces(
+  getAvailablePlaces(
     card: Card,
-    element: HTMLElement
+    cardElement: HTMLElement
   ): [number[], number[]] {
+    if (card.tokenNb < 0) {
+      debug("ERROR with tokenNb", card);
+      return;
+    }
     const places = Array.from(
       new Array((card.tokenNb ?? 0) + 2),
       (x, i) => i + 1
     );
-    const busyPlaces = Array.from(element.querySelectorAll(".token")).map(
+    const busyPlaces = Array.from(cardElement.querySelectorAll(".token")).map(
       (elem) => +(elem as HTMLElement).dataset.placeId
     );
 
@@ -79,6 +130,7 @@ class Token {
       return newArr;
     };
 
+    debug("busyPlaces", cardElement, busyPlaces);
     return [
       busyPlaces,
       getShuffledArr(places.filter((x) => !busyPlaces.includes(x))),

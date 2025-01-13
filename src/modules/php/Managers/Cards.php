@@ -6,6 +6,7 @@ use LSU\Helpers\Utils;
 use LSU\Helpers\Collection;
 use LSU\Core\Notifications;
 use LSU\Core\Stats;
+use LSU\Models\Card;
 use LSU\Models\Player;
 
 /* Class to manage all the Cards for Col */
@@ -33,7 +34,7 @@ class Cards extends \LSU\Helpers\Pieces
         return [
             DECK_POT => static::countInLocation(DECK_POT),
             DECK_PLANT => static::countInLocation(DECK_PLANT),
-            BOARD => static::getInLocation(BOARD)->toArray(),
+            BOARD => static::getCardOnBoard()->toArray(),
             PLAYER => static::getInLocation(PLAYER)->toArray(),
             DISCARD . POT => [
                 'n' => static::countInLocation(DISCARD . POT),
@@ -53,9 +54,22 @@ class Cards extends \LSU\Helpers\Pieces
         ];
     }
 
+    /**
+     * Provide the water value of the current weather
+     */
+    public static function getCurrentWeather(): int
+    {
+        return Cards::getInLocation(WATER . BOARD)->first()->getMaxWater();
+    }
+
     public static function getBuyableCards(Player $player)
     {
-        return static::getInLocation(BOARD)->filter(fn($card) => $card->getState() <= $player->getMoney());
+        return static::getCardOnBoard()->filter(fn($card) => $card->getState() <= $player->getMoney());
+    }
+
+    public static function getCardOnBoard()
+    {
+        return static::getInLocation(POT . BOARD)->merge(static::getInLocation(PLANT . BOARD));
     }
 
     public static function getCuttableCards(Player $player)
@@ -99,6 +113,11 @@ class Cards extends \LSU\Helpers\Pieces
     public static function isAvailable($color)
     {
         return static::getInLocation(VISIBLE_DECK)->filter(fn($card) => $card->getColor() == $color)->count() > 0;
+    }
+
+    public static function getCuttedCard($color): ?Card
+    {
+        return static::getInLocation(VISIBLE_DECK)->filter(fn($card) => $card->getColor() == $color)->first();
     }
 
     /* Creation of the Cards */
@@ -175,11 +194,11 @@ class Cards extends \LSU\Helpers\Pieces
         for ($i = 1; $i <= $nbCardsOnBoard; $i++) {
             $plant = static::getTopOf(DECK_PLANT);
             $plant->setTokenNb(1);
-            $plant->setLocation(BOARD);
+            $plant->setLocation(PLANT . BOARD);
             $plant->setState($i);
             $pot = static::getTopOf(DECK_POT);
             $pot->setTokenNb(1);
-            $pot->setLocation(BOARD);
+            $pot->setLocation(POT . BOARD);
             $pot->setState($i);
         }
 

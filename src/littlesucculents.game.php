@@ -37,6 +37,7 @@ require_once 'modules/php/constants.inc.php';
 use LSU\Managers\Players;
 use LSU\Managers\Cards;
 use LSU\Core\Globals;
+use LSU\Core\Notifications;
 use LSU\Core\Preferences;
 use LSU\Core\Stats;
 use LSU\Helpers\Log;
@@ -50,6 +51,8 @@ class LittleSucculents extends Table
     use LSU\States\GenericTrait;
     use LSU\States\BuyTrait;
     use LSU\States\GrowTrait;
+    use LSU\States\CutTrait;
+    use \LSU\States\BabySunRoseTrait;
 
     public static $instance = null;
     function __construct()
@@ -98,6 +101,7 @@ class LittleSucculents extends Table
 
         Globals::setupNewGame($players, $options, Players::getActiveId());
         Log::enable();
+        Notifications::startActionPhase();
     }
 
     /*

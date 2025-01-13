@@ -62,9 +62,7 @@ class Pieces extends DB_Manager
      * Overwritable function to add base filter to any query
      * => useful if two kind of "stuff" cohabitates
      */
-    protected static function addBaseFilter(&$query)
-    {
-    }
+    protected static function addBaseFilter(&$query) {}
 
     /****
      * Return the basic select query fetching basic fields and custom fields
@@ -293,7 +291,7 @@ class Pieces extends DB_Manager
             ->whereIn(static::$prefix . 'id', $ids)
             ->get(false);
         if (count($result) != count($ids) && $raiseExceptionIfNotEnough) {
-            // throw new \feException(print_r(\debug_print_backtrace()));
+            throw new \feException(print_r(\debug_print_backtrace()));
             throw new \feException(
                 'Class Pieces: getMany, some pieces have not been found !' .
                     json_encode($ids)
@@ -569,7 +567,7 @@ class Pieces extends DB_Manager
         $pId,
         $state = 0,
         $deckReform = true
-    ){
+    ) {
         $pieces = static::pickForLocation(
             $nbr,
             $fromLocation,
@@ -588,7 +586,7 @@ class Pieces extends DB_Manager
         $pId,
         $state,
         $deckReform
-    ){
+    ) {
         $piece = static::pickOneForLocation(
             $fromLocation,
             $toLocation,

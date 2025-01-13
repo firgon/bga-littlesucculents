@@ -47,11 +47,18 @@ class Player extends \LSU\Helpers\DB_Model
 
   public function computeScore()
   {
+    $registeredScore = $this->getScore();
     $score = 0;
-    foreach ($this->getPlants() as $key => $plant) {
-      $score += $plant->getScore();
+    $scoreDetail = [];
+    foreach ($this->getPlants() as $plantId => $plant) {
+      $plantScore = $plant->getScore();
+      $scoreDetail[$plantId] = $plantScore;
+      $score += $plantScore;
     }
     $this->setScore($score);
+    if ($registeredScore != $score) {
+      Notifications::newScore($this, $scoreDetail);
+    }
     return $score;
   }
 
@@ -102,6 +109,16 @@ class Player extends \LSU\Helpers\DB_Model
       if (in_array($color, ALL_COLORS)) $validatedColors[$color] == true;
     }
     return count(array_keys($validatedColors));
+  }
+
+  public function getWaterPossiblePlaces()
+  {
+    $result = [];
+    $pots = $this->getPots();
+    foreach ($pots as $cardId => $pot) {
+      $result[$cardId] = $pot->getAvailableSpace();
+    }
+    return $result;
   }
 
   public function getPossiblePlaces($type)

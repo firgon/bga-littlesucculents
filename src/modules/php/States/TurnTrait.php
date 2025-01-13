@@ -52,4 +52,48 @@ trait TurnTrait
 		Log::checkpoint();
 		Game::transition(END_TURN);
 	}
+
+	public function stSeasonEnd()
+	{
+		$nbCardsOnBoard = Players::count() == 2 ? 2 : 3;
+		foreach ([PLANT, POT] as $cardType) {
+			$cards = Cards::getInLocationOrdered($cardType . BOARD);
+			$index = 1;
+			foreach ($cards as $cardId => $card) {
+				//add one token to each card still in the market
+				$card->incTokenNb(1);
+				Notifications::updateCard($card);
+				//discard if any had more than limit
+				if ($card->getLimit() < $card->getTokenNb()) {
+					$card->discard();
+					Notifications::updateCard($card);
+				}
+				//slide cards
+				if ($index != $card->getState()) {
+					$card->setState($index);
+					Notifications::updateCard($card);
+				}
+				$index++;
+			}
+			//fill gaps
+			for ($i = $index; $i <= $nbCardsOnBoard; $i++) {
+				$newCard = Cards::getTopOf("deck" . $cardType);
+				$newCard->setLocation($cardType . BOARD);
+				$newCard->setState($i);
+				Notifications::updateCard($newCard);
+			}
+		}
+		//move next weather card
+		$newWeather = Cards::pickOneForLocation(WATER, WATER . BOARD);
+		Notifications::updateCard($card);
+
+		//move ladybug
+		$nextPlayerId = Globals::changeFirstPlayer();
+		Players::changeActive($nextPlayerId);
+
+		//update turn and open Action phase
+		Notifications::startActionPhase();
+
+		Game::transition();
+	}
 }

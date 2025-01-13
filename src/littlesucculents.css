@@ -731,6 +731,19 @@ body > .card, body > .slot, #board-container body > .deck {
   display: none;
 }
 
+#generalactions {
+  display: inline-flex;
+}
+
+#droplets {
+  display: inline-flex;
+}
+#droplets .token {
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
+}
+
 #visibleDeck .slot {
   height: calc(1.6666666667 * var(--scale));
   width: calc(1 * var(--scale));
@@ -739,7 +752,7 @@ body > .card, body > .slot, #board-container body > .deck {
 .token.flower {
   height: calc(0.5 * var(--scale));
   width: calc(0.5 * var(--scale));
-  background-image: url(img/tokens.png);
+  background-image: url(img/tokens2.png);
   box-shadow: 0 2px black;
   border-radius: 100%;
   border: 1px solid black;
@@ -1049,126 +1062,134 @@ body > .card, body > .slot, #board-container body > .deck {
   right: 0;
   font-size: calc(0.2 * var(--scale));
 }
-.card.pot .token .sides, #board-container .pot.deck .token .sides, .pot.slot .token .sides {
-  transform: rotateY(180deg);
-}
-.card:hover .token, #board-container .deck:hover .token, .slot:hover .token {
-  opacity: 0.2;
-  transition: top 1s 0.3s, left 1s 0.3s, opacity 0.3s 0.5s;
+.card.plant .token .sides, #board-container .plant.deck .token .sides, .plant.slot .token .sides {
+  transform: rotateY(0deg);
 }
 .card .token, #board-container .deck .token, .slot .token {
   transition: top 1s 0.3s, left 1s 0.3s;
 }
-.card .token:not(.flower), #board-container .deck .token:not(.flower), .slot .token:not(.flower) {
+
+.token:not(.flower) {
   height: calc(0.2666666667 * var(--scale));
   width: calc(0.2666666667 * var(--scale));
   position: absolute;
   z-index: 2;
+  border-radius: 100%;
 }
-.card .token:not(.flower)[data-place-id="1"], #board-container .deck .token:not(.flower)[data-place-id="1"], .slot .token:not(.flower)[data-place-id="1"] {
+.token:not(.flower)[data-place-id="1"] {
   left: 72%;
   top: 54%;
 }
-.card .token:not(.flower)[data-place-id="2"], #board-container .deck .token:not(.flower)[data-place-id="2"], .slot .token:not(.flower)[data-place-id="2"] {
+.token:not(.flower)[data-place-id="2"] {
   left: 49%;
   top: 59%;
 }
-.card .token:not(.flower)[data-place-id="3"], #board-container .deck .token:not(.flower)[data-place-id="3"], .slot .token:not(.flower)[data-place-id="3"] {
+.token:not(.flower)[data-place-id="3"] {
   left: 26%;
   top: 59%;
 }
-.card .token:not(.flower)[data-place-id="4"], #board-container .deck .token:not(.flower)[data-place-id="4"], .slot .token:not(.flower)[data-place-id="4"] {
+.token:not(.flower)[data-place-id="4"] {
   left: 1%;
   top: 52%;
 }
-.card .token:not(.flower)[data-place-id="5"], #board-container .deck .token:not(.flower)[data-place-id="5"], .slot .token:not(.flower)[data-place-id="5"] {
+.token:not(.flower)[data-place-id="5"] {
   left: -7%;
   top: 25%;
 }
-.card .token:not(.flower)[data-place-id="6"], #board-container .deck .token:not(.flower)[data-place-id="6"], .slot .token:not(.flower)[data-place-id="6"] {
+.token:not(.flower)[data-place-id="6"] {
   left: 5%;
   top: 63%;
 }
-.card .token:not(.flower)[data-place-id="7"], #board-container .deck .token:not(.flower)[data-place-id="7"], .slot .token:not(.flower)[data-place-id="7"] {
+.token:not(.flower)[data-place-id="7"] {
   left: 69%;
   top: 67%;
 }
-.card .token:not(.flower)[data-place-id="8"], #board-container .deck .token:not(.flower)[data-place-id="8"], .slot .token:not(.flower)[data-place-id="8"] {
+.token:not(.flower)[data-place-id="8"] {
   left: 76%;
   top: 36%;
 }
-.card .token:not(.flower)[data-place-id="9"], #board-container .deck .token:not(.flower)[data-place-id="9"], .slot .token:not(.flower)[data-place-id="9"] {
+.token:not(.flower)[data-place-id="9"] {
   left: 65%;
   top: 21%;
 }
-.card .token:not(.flower)[data-place-id="10"], #board-container .deck .token:not(.flower)[data-place-id="10"], .slot .token:not(.flower)[data-place-id="10"] {
+.token:not(.flower)[data-place-id="10"] {
   left: 22%;
   top: 69%;
 }
-.card .token:not(.flower)[data-place-id="11"], #board-container .deck .token:not(.flower)[data-place-id="11"], .slot .token:not(.flower)[data-place-id="11"] {
+.token:not(.flower)[data-place-id="11"] {
   left: 77%;
   top: 8%;
 }
-.card .token:not(.flower)[data-place-id="12"], #board-container .deck .token:not(.flower)[data-place-id="12"], .slot .token:not(.flower)[data-place-id="12"] {
+.token:not(.flower)[data-place-id="12"] {
   left: 11%;
   top: -3%;
 }
-.card .token:not(.flower)[data-place-id="13"], #board-container .deck .token:not(.flower)[data-place-id="13"], .slot .token:not(.flower)[data-place-id="13"] {
+.token:not(.flower)[data-place-id="13"] {
   left: 1%;
   top: 10%;
 }
-.card .token:not(.flower)[data-place-id="14"], #board-container .deck .token:not(.flower)[data-place-id="14"], .slot .token:not(.flower)[data-place-id="14"] {
+.token:not(.flower)[data-place-id="14"] {
   left: 63%;
   top: -5%;
 }
-.card .token:not(.flower)[data-place-id="15"], #board-container .deck .token:not(.flower)[data-place-id="15"], .slot .token:not(.flower)[data-place-id="15"] {
+.token:not(.flower)[data-place-id="15"] {
   left: 0%;
   top: 80%;
 }
-.card .token:not(.flower)[data-place-id="16"], #board-container .deck .token:not(.flower)[data-place-id="16"], .slot .token:not(.flower)[data-place-id="16"] {
+.token:not(.flower)[data-place-id="16"] {
   left: 20%;
   top: 80%;
 }
-.card .token:not(.flower)[data-place-id="17"], #board-container .deck .token:not(.flower)[data-place-id="17"], .slot .token:not(.flower)[data-place-id="17"] {
+.token:not(.flower)[data-place-id="17"] {
   left: 54%;
   top: 77%;
 }
-.card .token:not(.flower)[data-place-id="18"], #board-container .deck .token:not(.flower)[data-place-id="18"], .slot .token:not(.flower)[data-place-id="18"] {
+.token:not(.flower)[data-place-id="18"] {
   left: 75%;
   top: 81%;
 }
-.card .token:not(.flower) .sides, #board-container .deck .token:not(.flower) .sides, .slot .token:not(.flower) .sides {
+.token:not(.flower) .sides {
+  transform: rotateY(180deg);
+  transition: transform 1s 0.3s;
   box-sizing: border-box;
   transform-style: preserve-3d;
-  transition: transform 0.7s;
   height: 100%;
   box-shadow: calc(0 * var(--scale)) calc(0.0166666667 * var(--scale)) black;
   border-radius: 100%;
   border: 1px solid black;
 }
-.card .token:not(.flower) .sides .side, #board-container .deck .token:not(.flower) .sides .side, .slot .token:not(.flower) .sides .side {
+.token:not(.flower) .sides .side {
   position: absolute;
   width: 100%;
   height: 100%;
   backface-visibility: hidden;
   transform-style: preserve-3d;
+  border-radius: 100%;
 }
-.card .token:not(.flower) .sides .side.front, #board-container .deck .token:not(.flower) .sides .side.front, .slot .token:not(.flower) .sides .side.front {
-  background-image: url(img/tokens.png);
+.token:not(.flower) .sides .side.front {
+  background-image: url(img/tokens2.png);
+  background-color: white;
   background-position-x: 0%;
   background-position-y: 0%;
   background-size: 300%;
 }
-.card .token:not(.flower) .sides .side.back, #board-container .deck .token:not(.flower) .sides .side.back, .slot .token:not(.flower) .sides .side.back {
+.token:not(.flower) .sides .side.back {
   transform: rotateY(180deg);
-  background-image: url(img/tokens.png);
+  background-image: url(img/tokens2.png);
+  background-color: white;
   background-position-x: 50%;
   background-position-y: 0%;
   background-size: 300%;
 }
-.card .token:not(.flower).trashed, #board-container .deck .token:not(.flower).trashed, .slot .token:not(.flower).trashed {
+.token:not(.flower).trashed {
   top: 1500px;
   left: 1500px;
+}
+.token:not(.flower).selectable .sides .side.front, .token:not(.flower).selectable .sides .side.back {
+  background-color: rgb(158, 250, 163);
+}
+.token:not(.flower).selected .sides .side.front, .token:not(.flower).selected .sides .side.back {
+  background-color: rgb(131, 151, 241);
 }
 
 .slot {
@@ -1293,11 +1314,22 @@ body > .card, body > .slot, #board-container body > .deck {
   border: 3px green solid;
 }
 
-.selectable {
+.selectable:not(.token) {
   box-sizing: border-box;
   border: 3px blue solid;
   background-color: rgba(30, 65, 221, 0.315);
   cursor: pointer;
+}
+
+.unselectable {
+  cursor: not-allowed;
+}
+
+.notif_startAction .roundedbox,
+.notif_startWater .roundedbox {
+  font-family: "Bungee", "roboto";
+  border: 2px rgb(119, 119, 119) solid;
+  text-align: center;
 }
 
 /*
@@ -1311,6 +1343,10 @@ body > .card, body > .slot, #board-container body > .deck {
   ░░░░░░░░░   ░░░░░░  ░░░░ ░░░░░  ░░░░░░  ░░░░░     ░░░░░  ░░░░░░  
 
 */
+.animate-on-transforms {
+  transition: all 0.5s 0.5s;
+}
+
 .inline-icon {
   display: inline-block;
   line-height: normal;
@@ -1419,7 +1455,7 @@ body > .card, body > .slot, #board-container body > .deck {
 .player-infos #firstPlayer {
   width: 40px;
   height: 40px;
-  background-image: url(img/tokens.png);
+  background-image: url(img/tokens2.png);
   box-shadow: 0 2px black;
   border-radius: 100%;
   border: 1px solid black;

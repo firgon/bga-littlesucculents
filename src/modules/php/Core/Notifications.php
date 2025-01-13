@@ -9,6 +9,56 @@ use LSU\Core\Globals;
 
 class Notifications
 {
+  public static function startActionPhase()
+  {
+    static::notifyAll('startAction', _('Actions phase'), ['turn' => 12 - Cards::countInLocation(WATER), 'preserve' => ['turn']]);
+  }
+
+  public static function startWaterPhase()
+  {
+    static::notifyAll('startWater', _('Season growth phase'), ['water' => Cards::getCurrentWeather(), 'preserve' => ['water']]);
+  }
+
+  public static function transfert($fromCard, $toCard, $n)
+  {
+    $data = [
+      "from" => $fromCard,
+      "to" => $toCard,
+      "n" => $n
+    ];
+    static::notifyAll('transfert', '', $data);
+  }
+
+  public static function loseToken($card, $n)
+  {
+    $translatableTokenType = [
+      PLANT => _('leaf'),
+      POT => _('water droplet')
+    ];
+    $translatableCardType = [
+      PLANT => _('plant'),
+      POT => _('pot')
+    ];
+    $data = [
+      'card' => $card,
+      'n' => $n,
+      'cardType' => $translatableCardType[$card->getType()],
+      'player' => Players::get($card->getPlayerId()),
+      'tokenName' => $translatableTokenType[$card->getType()],
+      'i18n' => ['tokenName', 'cardType']
+    ];
+    static::notifyAll('updateCard', _('${player_name} adjusts tokens number on his ${cardType} and loses ${n} ${tokenName}'), $data);
+  }
+
+  public static function newScore($player, $scoreDetail)
+  {
+    $data = [
+      'player' => $player,
+      'scoreDetail' => $scoreDetail
+    ];
+    static::notifyAll('newScore', '', $data);
+  }
+
   public static function pay($player, $n)
   {
     $data = [
@@ -27,6 +77,21 @@ class Notifications
       'card' => $card,
     ];
     static::notifyAll('moveCard', '', $data);
+  }
+
+  public static function playerReady($pId)
+  {
+    $msg = _('${player_name} is ready');
+    $data = ['player' => Players::get($pId)];
+    static::notifyAll('playerReady', $msg, $data);
+  }
+
+  public static function updateCard($card)
+  {
+    $data = [
+      'card' => $card,
+    ];
+    static::notifyAll('updateCard', '', $data);
   }
 
   public static function updatePlayers()

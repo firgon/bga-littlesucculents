@@ -11,7 +11,7 @@ interface Player {
   id: string;
   is_ai: string;
   name: string;
-  score: string;
+  score: number;
   zombie: number;
 
   water: number;

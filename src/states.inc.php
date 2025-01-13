@@ -70,27 +70,26 @@ $machinestates = [
         "type" => ACTIVE_PLAYER,
         "args" => "argPlay",
         "action" => "stPlay",
-        "possibleactions" => ['actBuy', 'actGenericAction'],
+        "possibleactions" => ['actBuy', 'actCut', 'actGenericAction'],
         "transitions" => [
             CONFIRM => ST_CONFIRM,
-            BUY => ST_MOVE_PLANT,
             END_TURN => ST_NEXT_PLAYER,
         ]
     ],
 
-    ST_MOVE_PLANT => [
-        "name" => "movePlant",
-        "description" => clienttranslate('${actplayer} can move the flower from his basic pot to his new pot'),
-        "descriptionmyturn" => clienttranslate('${you} can move the flower from your basic pot to your new pot'),
-        "type" => ACTIVE_PLAYER,
-        "args" => "argMovePlant",
-        "action" => "stMovePlant",
-        "possibleactions" => ['actMovePlant', 'actGenericAction'],
-        "transitions" => [
-            CONFIRM => ST_CONFIRM,
-            END_TURN => ST_NEXT_PLAYER,
-        ]
-    ],
+    // ST_MOVE_PLANT => [
+    //     "name" => "movePlant",
+    //     "description" => clienttranslate('${actplayer} can move the flower from his basic pot to his new pot'),
+    //     "descriptionmyturn" => clienttranslate('${you} can move the flower from your basic pot to your new pot'),
+    //     "type" => ACTIVE_PLAYER,
+    //     "args" => "argMovePlant",
+    //     "action" => "stMovePlant",
+    //     "possibleactions" => ['actMovePlant', 'actGenericAction'],
+    //     "transitions" => [
+    //         CONFIRM => ST_CONFIRM,
+    //         END_TURN => ST_NEXT_PLAYER,
+    //     ]
+    // ],
 
     ST_CONFIRM => [
         "name" => "confirm",
@@ -105,6 +104,16 @@ $machinestates = [
         ]
     ],
 
+    ST_AUTOMATIC_WATER => [
+        "name" => "automaticWater",
+        "description" => clienttranslate('Water Phase'),
+        "type" => GAME,
+        "action" => "stAutomaticWater",
+        "transitions" => [
+            END_TURN => ST_WATER
+        ]
+    ],
+
     ST_WATER => [
         "name" => "water",
         "description" => clienttranslate('All players must spread their water tokens'),
@@ -113,20 +122,67 @@ $machinestates = [
         "args" => "argWater",
         "possibleactions" => ['actWater', 'actChangeMind', 'actGenericAction'],
         "transitions" => [
+            END_TURN => ST_REGISTER_WATER
+        ]
+    ],
+
+    ST_REGISTER_WATER => [
+        "name" => "registerWater",
+        "description" => clienttranslate('Water Phase'),
+        "type" => GAME,
+        "action" => "stRegisterWater",
+        "transitions" => [
+            END_TURN => ST_BABY_SUN_ROSE
+        ]
+    ],
+
+    //TODO
+    ST_BABY_SUN_ROSE => [
+        "name" => "babySunRose",
+        "description" => clienttranslate('All players with Baby Sun Rose can move a leaf on them'),
+        "descriptionmyturn" => clienttranslate('${you} can move a leaf on your Baby Sun Rose'),
+        "type" => MULTI,
+        "action" => "stBabySunRose",
+        "args" => "argBabySunRose",
+        "possibleactions" => ['actBabySunRose', 'actGenericAction'],
+        "transitions" => [
             END_TURN => ST_GROW
         ]
     ],
 
     ST_GROW => [
         "name" => "grow",
-        "description" => clienttranslate('All players must choose which succulents will grow'),
-        "descriptionmyturn" => clienttranslate('${you} must choose which succulents will grow'),
+        "description" => clienttranslate('Growing phase'),
+        "type" => GAME,
+        "action" => "stGrow",
+        "transitions" => [
+            END_TURN => ST_BABY_SUN_ROSE2
+        ]
+    ],
+
+    //TODO
+    ST_BABY_SUN_ROSE2 => [
+        "name" => "babySunRose",
+        "description" => clienttranslate('All players with Baby Sun Rose can move a leaf on them'),
+        "descriptionmyturn" => clienttranslate('${you} can move a leaf on your Baby Sun Rose'),
         "type" => MULTI,
-        "args" => "argGrow",
-        "possibleactions" => ['actGrow', 'actChangeMind', 'actGenericAction'],
+        "action" => "stBabySunRose",
+        "args" => "argBabySunRose",
+        "possibleactions" => ['actBabySunRose', 'actGenericAction'],
         "transitions" => [
             END_TURN => ST_SEASON_END
         ]
+    ],
+
+    ST_SEASON_END => [
+        "name" => "seasonEnd",
+        "description" => clienttranslate('Season End'),
+        "type" => GAME,
+        "action" => "stSeasonEnd",
+        "transitions" => [
+            END_TURN => ST_PLAY
+        ]
+
     ],
 
     ST_NEXT_PLAYER => [
@@ -134,7 +190,7 @@ $machinestates = [
         'type' => GAME,
         'action' => 'stNextPlayer',
         'transitions' => [
-            'grow' => ST_WATER,
+            'grow' => ST_AUTOMATIC_WATER,
             END_TURN => ST_PLAY
         ],
     ],

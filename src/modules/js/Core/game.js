@@ -18,7 +18,7 @@ define([
      */
     constructor() {
       this._notifications = [];
-      this._activeStates = [];
+      this._nonActiveStates = [];
       this._connections = [];
       this._selectableNodes = [];
       this._activeStatus = null;
@@ -157,18 +157,22 @@ define([
      *  - mixed args : additional information
      */
     onEnteringState(stateName, args) {
-      debug("Entering state: " + stateName, args);
       this.stateName = stateName; //modified
+      this.currentStateTitle = args.descriptionmyturn;
       if (this.isFastMode()) return;
       if (
-        this._activeStates.includes(stateName) &&
+        !this._nonActiveStates.includes(stateName) &&
         !this.isCurrentPlayerActive()
       )
         return;
 
+      debug("Entering state: " + stateName, args);
+
       //modify page title
-      if (args.args && args.args.suffix != "") {
+      if (args.args && args.args.suffix && args.args.suffix != "") {
         this.changePageTitle(args.args.suffix);
+        this.currentStateTitle =
+          args["descriptionmyturn" + args.args.suffix] ?? "";
       }
 
       // Call appropriate method
@@ -190,6 +194,7 @@ define([
       debug("Leaving state: " + stateName);
       if (this.isFastMode()) return;
       this.clearPossible();
+      this.resetDecks();
 
       // Call appropriate method
       var methodName =
@@ -221,6 +226,7 @@ define([
      * Check change of activity
      */
     onUpdateActionButtons(stateName, args) {
+      if (this.isSpectator) return;
       let status = this.isCurrentPlayerActive();
       if (status != this._activeStatus) {
         debug("Update activity: " + stateName, status);
@@ -231,7 +237,6 @@ define([
           "onUpdateActivity" +
           stateName.charAt(0).toUpperCase() +
           stateName.slice(1);
-        debug(methodName);
         if (this[methodName] !== undefined) this[methodName](args, status);
       }
     },
@@ -251,8 +256,8 @@ define([
             $("pagemaintitletext").innerHTML = msg;
           }
 
-          let timing = this[functionName](args);
           debug(functionName, args);
+          let timing = this[functionName](args);
           if (timing === undefined) {
             if (notif[1] === undefined) {
               console.error(
@@ -1020,105 +1025,6 @@ define([
       };
       o.setValue(defaultValue);
       return o;
-    },
-
-    /****************
-     ***** UTILS *****
-     ****************/
-    forEachPlayer(callback) {
-      Object.values(this.gamedatas.players).forEach(callback);
-    },
-
-    getArgs() {
-      return this.gamedatas.gamestate.args;
-    },
-
-    clientState(name, descriptionmyturn, args) {
-      args.you = this.coloredYou();
-      this.setClientState(name, {
-        descriptionmyturn,
-        args,
-      });
-    },
-
-    strReplace(str, subst) {
-      return dojo.string.substitute(str, subst);
-    },
-
-    addCancelStateBtn(text = null) {
-      if (text == null) {
-        text = _("Cancel");
-      }
-
-      this.addSecondaryActionButton("btnCancel", text, () =>
-        this.clearClientState()
-      );
-    },
-
-    clearClientState() {
-      //this.clearPossible();
-      this.restoreServerGameState();
-    },
-
-    translate(t) {
-      if (typeof t === "object") {
-        return this.format_string_recursive(t.log, t.args);
-      } else {
-        return _(t);
-      }
-    },
-
-    fsr(log, args) {
-      return this.format_string_recursive(log, args);
-    },
-
-    onSelectN(elements, n, callback) {
-      let selectedElements = [];
-      let updateStatus = () => {
-        if ($("btnConfirmChoice")) $("btnConfirmChoice").remove();
-        if (selectedElements.length == n) {
-          this.addPrimaryActionButton("btnConfirmChoice", _("Confirm"), () => {
-            if (callback(selectedElements)) {
-              selectedElements = [];
-              updateStatus();
-            }
-          });
-        }
-
-        if ($("btnCancelChoice")) $("btnCancelChoice").remove();
-        if (selectedElements > 0) {
-          this.addSecondaryActionButton("btnCancelChoice", _("Cancel"), () => {
-            selectedElements = [];
-            updateStatus();
-          });
-        }
-
-        Object.keys(elements).forEach((id) => {
-          let elt = elements[id];
-          let selected = selectedElements.includes(id);
-          elt.classList.toggle("selected", selected);
-          elt.classList.toggle(
-            "selectable",
-            selected || selectedElements.length < n
-          );
-        });
-      };
-
-      Object.keys(elements).forEach((id) => {
-        let elt = elements[id];
-
-        this.onClick(elt, () => {
-          let index = selectedElements.findIndex((t) => t == id);
-
-          if (index === -1) {
-            if (selectedElements.length >= n) return;
-            selectedElements.push(id);
-          } else {
-            selectedElements.splice(index, 1);
-          }
-          updateStatus();
-        });
-      });
     },
   });
 });
