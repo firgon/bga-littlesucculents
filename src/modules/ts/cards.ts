@@ -72,7 +72,7 @@ class MyCardManager<T extends Card> extends CardManager<T> {
     if (card.type === undefined) this.game.addStatics(card);
     super.updateCardInformations(card, settings);
     const newPlace = this.game._stocks[Generics.getCardContainer(card)];
-    // debug(newPlace, card);
+    debug("updateCardInformations", newPlace, card);
     if (newPlace && !newPlace.contains(card)) newPlace.addCard(card);
 
     // this.game.addCustomTooltip(

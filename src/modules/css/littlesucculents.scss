@@ -49,6 +49,7 @@
 @use "imports/mixins.scss" as mix;
 @use "imports/variables.scss" as var;
 @use "imports/generics.scss";
+@use "imports/turnCounter.scss";
 @use "../../../node_modules/bga-cards/src/bga-cards.scss";
 
 %shadow {

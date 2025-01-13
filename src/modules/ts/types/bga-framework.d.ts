@@ -236,6 +236,7 @@ declare class GameGui implements Game {
   _counters: { [key: string]: Counter };
   _tooltips: Tooltip[];
   _animationManager: AnimationManager;
+  _turnCounter: TurnCounter;
 
   //boilerplate
   changePageTitle(suffix?: string, save?: boolean): void;

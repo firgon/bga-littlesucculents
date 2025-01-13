@@ -487,6 +487,16 @@
   text-decoration: line-through;
 }
 
+#LSU_turnCounter {
+  position: relative;
+  float: left;
+  border: 2px solid black;
+  font-size: smaller;
+  padding: 0 15px;
+  border-radius: 3px;
+  font-family: "Bungee", "roboto";
+}
+
 body > .card, body > .slot, #board-container body > .deck {
   position: absolute;
   left: -9999px;

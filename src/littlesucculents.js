@@ -2030,6 +2030,24 @@ define([
 ], function (dojo, declare) {
     return declare("bgagame.littlesucculents", [customgame.game, littlesucculents.cheatModule, littlesucculents.zoomUI], new LittleSucculentsGame());
 });
+var TurnCounter = /** @class */ (function () {
+    function TurnCounter(value, prefix, suffix) {
+        if (prefix === void 0) { prefix = ""; }
+        if (suffix === void 0) { suffix = ""; }
+        this.value = value;
+        this.prefix = prefix;
+        this.suffix = suffix;
+        dojo.place("<div id='LSU_turnCounter'>".concat(this.getFullString(), "</div>"), "synchronous_notif_icon", "before");
+    }
+    TurnCounter.prototype.toValue = function (newValue) {
+        this.value = newValue;
+        $("LSU_turnCounter").innerText = this.getFullString();
+    };
+    TurnCounter.prototype.getFullString = function () {
+        return this.prefix + this.value + this.suffix;
+    };
+    return TurnCounter;
+}());
 var Token = /** @class */ (function () {
     function Token(gameui) {
         this.gameui = gameui;
@@ -2101,6 +2119,10 @@ var Token = /** @class */ (function () {
     };
     Token.prototype.getAvailablePlaces = function (card, cardElement) {
         var _a;
+        if (card.tokenNb < 0) {
+            debug("ERROR with tokenNb", card);
+            return;
+        }
         var places = Array.from(new Array(((_a = card.tokenNb) !== null && _a !== void 0 ? _a : 0) + 2), function (x, i) { return i + 1; });
         var busyPlaces = Array.from(cardElement.querySelectorAll(".token")).map(function (elem) { return +elem.dataset.placeId; });
         var getShuffledArr = function (arr) {
@@ -2162,7 +2184,7 @@ var MyCardManager = /** @class */ (function (_super) {
             this.game.addStatics(card);
         _super.prototype.updateCardInformations.call(this, card, settings);
         var newPlace = this.game._stocks[Generics.getCardContainer(card)];
-        // debug(newPlace, card);
+        debug("updateCardInformations", newPlace, card);
         if (newPlace && !newPlace.contains(card))
             newPlace.addCard(card);
         // this.game.addCustomTooltip(
@@ -2361,6 +2383,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         this.inherited(arguments);
         // Create a new div for tokens before buttons in maintitlebar
         dojo.place("<div id='droplets'></div>", $("generalactions"), "before");
+        this._turnCounter = new TurnCounter(gamedatas.turn, _("Season: "), "/12");
         if (isDebug) {
             $("ebd-body").classList.add("debug");
         }
@@ -2832,6 +2855,9 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             var log = "log_" + _this._notif_uid_to_log_id[logId];
             (_a = $(log)) === null || _a === void 0 ? void 0 : _a.classList.add("canceled");
         });
+    };
+    LittleSucculentsGame.prototype.notif_startAction = function (n) {
+        this._turnCounter.toValue(n.args.turn);
     };
     /*
     ███████████ ██████████ ██████   ██████ ███████████  █████         █████████   ███████████ ██████████  █████████

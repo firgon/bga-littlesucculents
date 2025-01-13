@@ -111,6 +111,8 @@ class LittleSucculentsGame extends GameGui {
     // Create a new div for tokens before buttons in maintitlebar
     dojo.place("<div id='droplets'></div>", $("generalactions"), "before");
 
+    this._turnCounter = new TurnCounter(gamedatas.turn, _("Season: "), "/12");
+
     if (isDebug) {
       $("ebd-body").classList.add("debug");
     }
@@ -716,6 +718,14 @@ class LittleSucculentsGame extends GameGui {
       const log = "log_" + this._notif_uid_to_log_id[logId];
       $(log)?.classList.add("canceled");
     });
+  }
+
+  notif_startAction(n: {
+    args: {
+      turn: number;
+    };
+  }) {
+    this._turnCounter.toValue(n.args.turn);
   }
 
   /*

@@ -48,4 +48,5 @@ interface GameDatas {
   // Add here variables you set up in getAllDatas
   cheatModule: boolean;
   cards: GameDatasCards;
+  turn: number;
 }
