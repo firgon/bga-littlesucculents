@@ -38,7 +38,6 @@ use LSU\Managers\Players;
 use LSU\Managers\Cards;
 use LSU\Core\Globals;
 use LSU\Core\Notifications;
-use LSU\Core\Preferences;
 use LSU\Core\Stats;
 use LSU\Helpers\Log;
 
@@ -53,6 +52,7 @@ class LittleSucculents extends Table
     use LSU\States\GrowTrait;
     use LSU\States\CutTrait;
     use \LSU\States\BabySunRoseTrait;
+    use LSU\States\FlowerTrait;
 
     public static $instance = null;
     function __construct()
@@ -136,11 +136,6 @@ class LittleSucculents extends Table
     function getGameProgression()
     {
         return intval((12 - (Cards::countInLocation(WATER) + 1)) / 12 * 100);
-    }
-
-    function actChangePreference($pref, $value)
-    {
-        Preferences::set($this->getCurrentPId(), $pref, $value);
     }
     //////////////////////////////////////////////////////////////////////////////
     //////////// Utility functions

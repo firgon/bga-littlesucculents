@@ -85,28 +85,37 @@ class Cards extends \LSU\Helpers\Pieces
         $cards = self::getInLocationQ(PLAYER)
             ->where('flowered', FLOWERED)
             ->get();
-        return array_diff(ALL_COLORS, $cards->map(fn($card) => $card->getColor())->toArray());
+        return array_values(array_diff(ALL_COLORS, $cards->map(fn($card) => $card->getColor())->toArray()));
     }
 
     public static function getFlowerableCards(Player $player)
     {
         $flowerableColors = static::getFlowerableColors();
-        $possibleFlowers = [];
+        $possiblePlants = [];
+        $possibleColors = [];
         foreach ($player->getPots() as $key => $pot) {
             $potColor = $pot->getColor();
+            //pot must be one color or rainbow
             if ($potColor == RAINBOW || in_array($potColor, $flowerableColors)) {
                 $plant = $player->getMatchingPlant($pot);
                 if ($plant) {
                     $plantColor = $plant->getColor();
+                    //plantColor must be rainbow
                     if ($plantColor == RAINBOW) {
-                        $possibleFlowers[$plant->getId()] = $flowerableColors;
-                    } else if ($plantColor == $potColor) {
-                        $possibleFlowers[$plant->getId()] = [$plantColor];
+                        $possibleColors[$plant->getId()] = $potColor == RAINBOW ? $flowerableColors : [$potColor];
+                        $possiblePlants[$plant->getId()] = $plant;
+                        //or plantColor must be the same than pot (or one color if pot was rainbow)
+                    } else if ($plantColor == $potColor || ($potColor == RAINBOW && in_array($plantColor, $flowerableColors))) {
+                        $possibleColors[$plant->getId()] = [$plantColor];
+                        $possiblePlants[$plant->getId()] = $plant;
                     }
                 }
             }
         }
-        return $possibleFlowers;
+        return [
+            'possiblePlants' => $possiblePlants,
+            'possibleColors' => $possibleColors,
+        ];
     }
 
     //a card can be cutted only if there is at least one card of this color remaining in the visible deck

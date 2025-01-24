@@ -40,7 +40,10 @@ trait TurnTrait
 		];
 	}
 
-	public function stPlay() {}
+	public function stPlay()
+	{
+		Log::checkpoint();
+	}
 
 	public function actUndo($pId, $args, $stateArgs)
 	{
@@ -80,12 +83,12 @@ trait TurnTrait
 				$newCard = Cards::getTopOf("deck" . $cardType);
 				$newCard->setLocation($cardType . BOARD);
 				$newCard->setState($i);
-				Notifications::updateCard($newCard);
+				Notifications::drawCard($newCard);
 			}
 		}
 		//move next weather card
 		$newWeather = Cards::pickOneForLocation(WATER, WATER . BOARD);
-		Notifications::updateCard($card);
+		Notifications::updateCard($newWeather);
 
 		//move ladybug
 		$nextPlayerId = Globals::changeFirstPlayer();
@@ -93,6 +96,7 @@ trait TurnTrait
 
 		//update turn and open Action phase
 		Notifications::startActionPhase();
+		Log::checkpoint();
 
 		Game::transition();
 	}

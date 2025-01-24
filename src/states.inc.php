@@ -70,10 +70,11 @@ $machinestates = [
         "type" => ACTIVE_PLAYER,
         "args" => "argPlay",
         "action" => "stPlay",
-        "possibleactions" => ['actBuy', 'actCut', 'actGenericAction'],
+        "possibleactions" => ['actBuy', 'actCut', 'actFlower', 'actChooseTend', 'actGenericAction'],
         "transitions" => [
             CONFIRM => ST_CONFIRM,
             END_TURN => ST_NEXT_PLAYER,
+            'chooseTend' => ST_GROW
         ]
     ],
 
@@ -126,6 +127,19 @@ $machinestates = [
         ]
     ],
 
+    ST_WATER_SOLO => [
+        "name" => "waterSolo",
+        "description" => clienttranslate('${actplayer} must spread their water tokens'),
+        "descriptionmyturn" => clienttranslate('${you} must spread your water tokens'),
+        "type" => ACTIVE_PLAYER,
+        "args" => "argWater",
+        "possibleactions" => ['actWaterSolo', 'actUndo', 'actGenericAction'],
+        "transitions" => [
+            END_TURN => ST_GROW,
+            UNDO => ST_PLAY
+        ]
+    ],
+
     ST_REGISTER_WATER => [
         "name" => "registerWater",
         "description" => clienttranslate('Water Phase'),
@@ -157,6 +171,16 @@ $machinestates = [
         "action" => "stGrow",
         "transitions" => [
             END_TURN => ST_BABY_SUN_ROSE2
+        ]
+    ],
+
+    ST_GROW_SOLO => [
+        "name" => "growSolo",
+        "description" => clienttranslate('Growing phase'),
+        "type" => GAME,
+        "action" => "stGrowSolo",
+        "transitions" => [
+            END_TURN => ST_CONFIRM
         ]
     ],
 

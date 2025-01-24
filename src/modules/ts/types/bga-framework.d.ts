@@ -251,7 +251,6 @@ declare class GameGui implements Game {
 
   _notifications: any[];
 
-  setupPlayers(gamedatas: GameDatas): void;
   setupZoomUI: Function;
   cheatModuleSetup: Function;
   adaptWidth(): void;
@@ -287,7 +286,11 @@ declare class GameGui implements Game {
   getArgs(): any;
 
   addCustomTooltip(id: string, html: string, delay?: number): void;
-  onClick(node: string, callback: Function, temporary?: boolean): void;
+  onClick(
+    node: string | Element,
+    callback: Function,
+    temporary?: boolean
+  ): void;
   clearSelectable(): void;
   clearPossible(): void;
   clearClientState(): void;

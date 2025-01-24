@@ -1,11 +1,11 @@
 @use "variables.scss" as var;
 
 #LSU_turnCounter {
-  position: relative;
+  position: absolute;
   float: left;
   border: 2px solid black;
-  font-size: smaller;
+  font-size: 75%;
   padding: 0 15px;
   border-radius: 3px;
-  font-family: "Bungee", "roboto";
+  font-family: var.$main-font, "roboto";
 }

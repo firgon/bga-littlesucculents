@@ -147,9 +147,9 @@ class Card extends \LSU\Helpers\DB_Model
         Notifications::updateCard($this);
     }
 
-    public function getScore(): int
+    public function getScore(): array
     {
-        return $this->getScoreForFlower() + $this->getScoreForLeaves() + $this->getScoreForPlant();
+        return [$this->getScoreForFlower(), $this->getScoreForLeaves(), $this->getScoreForPlant()];
     }
 
     public function getScoreForPlant(): int
@@ -198,7 +198,7 @@ class Card extends \LSU\Helpers\DB_Model
                 return $moneyPlant->isAtmax() ? 7 : 0;
                 break;
             case MERMAID_TAIL:
-                return Players::scoreMermaid($this->getId());
+                return Players::scoreMermaid($this->getPlayerId());
                 break;
             case PET_ROCK:
                 return 5;
@@ -214,6 +214,46 @@ class Card extends \LSU\Helpers\DB_Model
         }
     }
 
+    public function getName(): string
+    {
+        if ($this->isPot()) {
+            return match ($this->getColor()) {
+                YELLOW => _('yellow pot'),
+                GREEN => _('green pot'),
+                BLUE => _('blue pot'),
+                RED => _('red pot'),
+                PINK => _('pink pot'),
+                ORANGE => _('orange pot'),
+                GREY => _('grey pot'),
+                RAINBOW => _('rainbow pot'),
+                default => _('pot')
+            };
+        } else {
+            return match ($this->getClass()) {
+                BABY_TOES => _('BabyToes'),
+                SNAKE_PLANT => _('Snake Plant'),
+                MEXICAN_FIRECRACKER => _('Mexican Firecracker'),
+                STRING_OF_PEARLS => _('String of Pearls'),
+                STRING_OF_DOLPHINS => _('String of Dolphins'),
+                JELLYBEAN_PLANT => _('Jellybean Plant'),
+                CALICO_HEARTS => _('Calico Hearts'),
+                BUNNY_EARS => _('Bunny Ears'),
+                RIBBON_PLANT => _('Ribbon Plant'),
+                BABY_SUN_ROSE => _('Baby Sun Rose'),
+                CORAL_CACTUS => _('Coral Cactus'),
+                LIVING_STONE => _('Living Stone'),
+                RAINBOW_WEST => _('Rainbow West'),
+                ALOE_VERA => _('Aloe Vera'),
+                MOON_CACTUS => _('Moon Cactus'),
+                LEAF_WINDOW => _('Leaf Window'),
+                MERMAID_TAIL => _('Mermaid Tail'),
+                PET_ROCK => _('Pet Rock'),
+                MONEY_PLANT => _('Money Plant'),
+                default => _('plant')
+            };
+        }
+    }
+
     public function getScoreForLeaves(): int
     {
 
@@ -223,7 +263,7 @@ class Card extends \LSU\Helpers\DB_Model
             case PET_ROCK:
                 return 0;
             default:
-                return $this->getTokenNb();
+                return $this->getTokenNb() ?? 0;
         }
     }
 

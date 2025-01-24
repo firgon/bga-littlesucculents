@@ -19,6 +19,14 @@ class Notifications
     static::notifyAll('startWater', _('Season growth phase'), ['water' => Cards::getCurrentWeather(), 'preserve' => ['water']]);
   }
 
+  public static function drawCard($card)
+  {
+    $data = [
+      'card' => $card
+    ];
+    static::notifyAll('drawCard', '', $data);
+  }
+
   public static function transfert($fromCard, $toCard, $n)
   {
     $data = [
@@ -59,15 +67,16 @@ class Notifications
     static::notifyAll('newScore', '', $data);
   }
 
-  public static function pay($player, $n)
+  public static function pay($player, $n, $card)
   {
     $data = [
       'player' => $player,
       'n' => $n,
+      'card' => $card,
       'moneyPlant' => $player->getPlant(0),
       'preserve' => ['moneyPlant']
     ];
-    $msg = _('${player_name} pays ${n} to buy a new card');
+    $msg = _('${player_name} pays ${n} to buy a new ${cardName} card ${cardLog}');
     static::notifyAll('pay', $msg, $data);
   }
 
@@ -81,7 +90,7 @@ class Notifications
 
   public static function playerReady($pId)
   {
-    $msg = _('${player_name} is ready');
+    $msg = _('${player_name} waters his plants');
     $data = ['player' => Players::get($pId)];
     static::notifyAll('playerReady', $msg, $data);
   }
@@ -152,13 +161,16 @@ class Notifications
     if (isset($data['player'])) {
       $data['player_name'] = $data['player']->getName();
       $data['player_id'] = $data['player']->getId();
-      unset($data['player']);
     }
 
     if (isset($data['player2'])) {
       $data['player_name2'] = $data['player2']->getName();
       $data['player_id2'] = $data['player2']->getId();
-      unset($data['player2']);
+    }
+    if (isset($data['card'])) {
+      $data['cardName'] = $data['card']->getName();
+      $data['i18n'][] = 'cardName';
+      $data['cardLog'] = '';
     }
   }
 

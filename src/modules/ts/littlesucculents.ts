@@ -32,6 +32,7 @@ class LittleSucculentsGame extends GameGui {
   public _cardManager: MyCardManager<Card>;
   public _tokenManager: Token;
   public possiblePlaces: { [cardId: number]: number };
+  public _playerManager: Players;
 
   constructor() {
     super();
@@ -45,6 +46,9 @@ class LittleSucculentsGame extends GameGui {
       ["pay", 200],
       ["updateCard", 500],
       ["transfert", 500],
+      ["drawCard", 500],
+      ["startAction", 0],
+      ["newScore", 0],
       // ['completeOtherHand', 1000, (notif) => notif.args.player_id == this.player_id],
     ];
 
@@ -81,9 +85,10 @@ class LittleSucculentsGame extends GameGui {
     this.gamedatas = gamedatas;
 
     this._tokenManager = new Token(this);
+    this._playerManager = new Players(this);
 
     // Setting up player boards
-    this.setupPlayers(gamedatas);
+    this._playerManager.setupPlayers(gamedatas);
 
     this.setupCards(gamedatas);
 
@@ -142,7 +147,10 @@ class LittleSucculentsGame extends GameGui {
   onEnteringStatePlay(args: {
     buyableCards: { [cardId: number]: Card };
     cuttableCards: { [cardId: number]: Card };
-    flowerableCards: { [cardId: number]: string[] };
+    flowerableCards: {
+      possibleColors: { [cardId: number]: string[] };
+      possiblePlants: { [cardId: number]: Card[] };
+    };
     possiblePlaces: { plant: number[]; pot: number[] };
   }) {
     //buy action
@@ -177,17 +185,13 @@ class LittleSucculentsGame extends GameGui {
         this.clientState(
           "clientFlower",
           _("${you} can choose a plant to flower"),
-          {
-            flowerableCards: args.flowerableCards,
-          }
+          args.flowerableCards
         );
       });
     }
     //tend action
     this.addActionButton("btn-tend", _("Tend"), () => {
-      this.clientState("clientTend", _("${you} can "), {
-        flowerableCards: args.flowerableCards,
-      });
+      this.takeAction({ actionName: "actChooseTend" });
     });
   }
 
@@ -202,7 +206,7 @@ class LittleSucculentsGame extends GameGui {
   }
 
   onEnteringStateWater(args: {
-    water: number;
+    water: { [playerId: number]: number };
     possiblePlaces: {
       [playerId: number]: { [cardId: number]: number };
     };
@@ -229,10 +233,13 @@ class LittleSucculentsGame extends GameGui {
       }
     );
 
-    const remainingDroplets = Math.min(args.water, remainingSpace);
+    const remainingDroplets = Math.min(
+      args.water[this.player_id],
+      remainingSpace
+    );
 
     //prepare tokens
-    for (let index = 0; index < args.water; index++) {
+    for (let index = 0; index < args.water[this.player_id]; index++) {
       const element = this._tokenManager.createToken($("waterboard"), 0);
       this.attachElementWithSlide(element, $("droplets"));
 
@@ -285,7 +292,7 @@ class LittleSucculentsGame extends GameGui {
 
     this.addResetButton();
 
-    for (let index = 0; index < args.water; index++) {
+    for (let index = 0; index < args.water[this.player_id]; index++) {
       // use playerPlans to premove token
       if (
         args.playerPlans[this.player_id] &&
@@ -355,6 +362,51 @@ class LittleSucculentsGame extends GameGui {
     this.addResetClientStateButton();
   }
 
+  onEnteringStateClientFlower(args: {
+    possibleColors: { [cardId: number]: string[] };
+    possiblePlants: { [cardId: number]: Card };
+  }) {
+    this._stocks[this.player_id].setSelectionMode("single");
+    this._stocks[this.player_id].setSelectableCards(
+      Object.values(args.possiblePlants).map((c) => this.addStatics(c))
+    );
+    this._stocks[this.player_id].onSelectionChange = (
+      selection,
+      lastChange
+    ) => {
+      this.clearSelectable();
+      if (selection.includes(lastChange)) {
+        const possibleColors = args.possibleColors[lastChange.id];
+        if (possibleColors.length == 1) {
+          this.takeAction({
+            actionName: "actFlower",
+            plantId: lastChange.id,
+            color: possibleColors[0],
+          });
+        } else {
+          possibleColors.forEach((color) => {
+            const flower = this.getFlowerElem(color);
+            if (!flower) {
+              debug("Houston we have a pb with choosing a flower " + color);
+            } else {
+              this.onClick($(flower), () => {
+                this.takeAction({
+                  actionName: "actFlower",
+                  plantId: lastChange.id,
+                  color: color,
+                });
+              });
+            }
+          });
+        }
+
+        this.displayTitle(_("${you} must choose one flower color"));
+      } else {
+        this.displayTitle(this.currentStateTitle);
+      }
+    };
+  }
+
   //
   //
   // █████████████    ██████  █████ █████  ██████   █████
@@ -375,6 +427,7 @@ class LittleSucculentsGame extends GameGui {
   // }
 
   attachElementWithSlide(element: HTMLElement, toElement: HTMLElement) {
+    debug("attachElementWithSlide", element, toElement);
     // move an element to a destination element and attach it.
     this._animationManager.attachWithAnimation(
       new BgaSlideAnimation({ element }),
@@ -504,13 +557,10 @@ class LittleSucculentsGame extends GameGui {
 	░░░░░░░░      ░░░░░    ░░░░░ ░░░░░░░░░░░  ░░░░░░░░░  
   */
 
-  // getDiceSum(dice?: NRDice[]): number {
-  //   const selectedDice = dice ?? this._diceManager.getAllSelectedDice();
-  //   return selectedDice.reduce(
-  //     (previousValue, currentValue) => currentValue.face + previousValue,
-  //     0
-  //   );
-  // }
+  getFlowerElem(color: string) {
+    // debug(".token .flower ." + color);
+    return document.querySelector(".token.flower." + color) as HTMLElement;
+  }
 
   addStatics(c: Card): Card {
     Object.assign(c, CARDS_DATA[c.dataId]);
@@ -666,7 +716,7 @@ class LittleSucculentsGame extends GameGui {
   }
 
   notif_updatePlayers(n: { args: { [playerId: number]: Player } }) {
-    this.updatePlayers(n.args);
+    this._playerManager.updatePlayers(n.args);
   }
 
   notif_pay(n: {
@@ -702,10 +752,17 @@ class LittleSucculentsGame extends GameGui {
     });
   }
 
+  notif_drawCard(n: { args: { card: Card } }) {
+    const from = n.args.card.location == "plantboard" ? "deckplant" : "deckpot";
+    this._stocks[from]
+      .addCard(n.args.card)
+      .then(() => this._stocks["board"].addCard(n.args.card));
+  }
+
   notif_refreshUi(n: { args: GameDatas }) {
     this.updateCards(n.args.cards);
     this.activePossibleSlots();
-    this.updatePlayers(n.args.players);
+    this._playerManager.updatePlayers(n.args.players);
   }
 
   notif_clearTurn(n: {
@@ -728,6 +785,16 @@ class LittleSucculentsGame extends GameGui {
     this._turnCounter.toValue(n.args.turn);
   }
 
+  notif_newScore(n: {
+    args: {
+      player: Player;
+      scoreDetail: any;
+    };
+  }) {
+    this._playerManager.updateScore(n.args.player);
+    //TODO display detailled score for each plant on tooltip
+  }
+
   /*
   ███████████ ██████████ ██████   ██████ ███████████  █████         █████████   ███████████ ██████████  █████████ 
   ░█░░░███░░░█░░███░░░░░█░░██████ ██████ ░░███░░░░░███░░███         ███░░░░░███ ░█░░░███░░░█░░███░░░░░█ ███░░░░░███
@@ -741,6 +808,30 @@ class LittleSucculentsGame extends GameGui {
 																											   
 																											   
 	  */
+
+  board_tpl(player: Player) {
+    return `<div id='gamezone-${player.id}' class='succulents-gamezone' style='border-color:#${player.color}'>
+      <div class='player-board-name' style='background-color:#${player.color}'>
+        ${player.name}
+      </div>
+      <div id='gamezone-cards-${player.id}' class='gamezone-cards'>
+        
+      </div>
+      
+    </div>`;
+  }
+
+  // semi generic
+  tplPlayerPanel(player: Player) {
+    return `<div id='succulents-player-infos_${player.id}' class='player-infos'>
+          <div class='money-counter counter' id='money-${player.id}'></div>
+          <div id='watercan-${player.id}'></div>
+          <div class='water-counter counter' id='water-${player.id}'></div>
+          <div class="first-player-holder" id='first-player-${player.id}'>${
+      player.isFirst ? '<div id="firstPlayer"></div>' : ""
+    }</div>
+        </div>`;
+  }
 
   setupCards(gamedatas: GameDatas) {
     [/*"discardplant", "discardpot",*/ "water"].forEach((deck) => {
@@ -787,6 +878,10 @@ class LittleSucculentsGame extends GameGui {
     colors.forEach((color) => {
       const elem = document.querySelector(`[data-slot-id='${color}']`);
       this.addAutomaticCounter(elem as HTMLElement);
+      //create flower token
+      const flowerElem = document.createElement("div");
+      flowerElem.classList.add("token", "flower", color);
+      document.querySelector(`[data-slot-id='${color}']`).append(flowerElem);
     });
 
     let slotIds = [];
@@ -832,13 +927,6 @@ class LittleSucculentsGame extends GameGui {
       this.addStatics(gamedatas.cards.waterboard)
     );
 
-    //display available flowers
-    gamedatas.cards.flowerableColors.forEach((color) => {
-      const elem = document.createElement("div");
-      elem.classList.add("token", "flower", color);
-      document.querySelector(`[data-slot-id='${color}']`).append(elem);
-    });
-
     //remove slots of each player that are not reachable for now
     this.activePossibleSlots();
   }
@@ -873,104 +961,6 @@ class LittleSucculentsGame extends GameGui {
 
     //remove slots of each player that are not reachable for now
     this.activePossibleSlots();
-  }
-
-  //           ████
-  //          ░░███
-  // ████████  ░███   ██████   █████ ████  ██████  ████████   █████
-  //░░███░░███ ░███  ░░░░░███ ░░███ ░███  ███░░███░░███░░███ ███░░
-  // ░███ ░███ ░███   ███████  ░███ ░███ ░███████  ░███ ░░░ ░░█████
-  // ░███ ░███ ░███  ███░░███  ░███ ░███ ░███░░░   ░███      ░░░░███
-  // ░███████  █████░░████████ ░░███████ ░░██████  █████     ██████
-  // ░███░░░  ░░░░░  ░░░░░░░░   ░░░░░███  ░░░░░░  ░░░░░     ░░░░░░
-  // ░███                       ███ ░███
-  // █████                     ░░██████
-  //░░░░░                       ░░░░░░
-  setupPlayers(gamedatas: GameDatas) {
-    for (const playerId in gamedatas.players) {
-      const player = gamedatas.players[playerId];
-
-      this.place("tplPlayerPanel", player, "overall_player_board_" + playerId);
-
-      this._counters["water-" + playerId] = this.createCounter(
-        "water-" + playerId,
-        player.water
-      );
-
-      this._counters["money-" + playerId] = this.createCounter(
-        "money-" + playerId,
-        player.money
-      );
-
-      this.place("board_tpl", player, "table");
-    }
-
-    //add general tooltips
-    this.myUpdatePlayerOrdering("gamezone", "table");
-  }
-
-  /**
-   * Update player Panel (firstPlayer token, scores...)
-   * @param players
-   */
-  updatePlayers(players: { [playerId: number]: Player }) {
-    for (const playerId in players) {
-      const player = players[playerId];
-
-      if (player.isFirst) {
-        this.attachElementWithSlide(
-          $("firstPlayer"),
-          $(`first-player-${player.id}`)
-        );
-      }
-
-      this._counters["water-" + playerId].toValue(player.water);
-
-      this._counters["money-" + playerId].toValue(player.money);
-
-      this.scoreCtrl[playerId].toValue(player.score);
-    }
-  }
-
-  board_tpl(player: Player) {
-    return `<div id='gamezone-${player.id}' class='succulents-gamezone' style='border-color:#${player.color}'>
-  <div class='player-board-name' style='background-color:#${player.color}'>
-    ${player.name}
-  </div>
-  <div id='gamezone-cards-${player.id}' class='gamezone-cards'>
-    
-  </div>
-  
-</div>`;
-  }
-
-  // semi generic
-  tplPlayerPanel(player: Player) {
-    return `<div id='succulents-player-infos_${player.id}' class='player-infos'>
-      <div class='money-counter counter' id='money-${player.id}'></div>
-      <div id='watercan-${player.id}'></div>
-      <div class='water-counter counter' id='water-${player.id}'></div>
-      <div class="first-player-holder" id='first-player-${player.id}'>${
-      player.isFirst ? '<div id="firstPlayer"></div>' : ""
-    }</div>
-    </div>`;
-  }
-
-  getPlayers() {
-    return Object.values(this.gamedatas.players);
-  }
-
-  getColoredName(pId: number) {
-    let name = this.gamedatas.players[pId].name;
-    return this.coloredPlayerName(name);
-  }
-
-  getPlayerColor(pId: number) {
-    return this.gamedatas.players[pId].color;
-  }
-
-  isSolo() {
-    return this.getPlayers().length == 1;
   }
 
   /*
@@ -1121,14 +1111,6 @@ class LittleSucculentsGame extends GameGui {
         });
         if (callback) callback();
       });
-    }
-  }
-
-  //place each player board in good order.
-  myUpdatePlayerOrdering(elementName: string, container: string): void {
-    for (let i in this.gamedatas.playerorder) {
-      const playerId = this.gamedatas.playerorder[i];
-      dojo.place(elementName + "-" + playerId, container, "last");
     }
   }
 

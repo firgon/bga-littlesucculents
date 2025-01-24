@@ -33,9 +33,11 @@ trait CutTrait
 		$cutCard->incToken(-1);
 		$pot = $cutCard->getMatchingCard();
 		$pot->incToken(1, $cutCard);
-		Notifications::message(_('${player_name} cuts a plant on ${player_name2}\'s display'), [
+		Notifications::message(_('${player_name} cuts a ${cardName} card on ${player_name2}\'s display ${cardLog}'), [
 			'player' => $player,
-			'player2' => $cutCard->getPlayer()
+			'player2' => $cutCard->getPlayer(),
+			'card' => $cutCard,
+
 		]);
 
 
@@ -46,6 +48,7 @@ trait CutTrait
 		$card->setState($state);
 		$card->setPlayerId($pId);
 		Notifications::place($card);
+		Players::computeScore();
 
 		Game::transition(CONFIRM);
 	}

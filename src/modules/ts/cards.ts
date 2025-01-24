@@ -3,7 +3,8 @@ interface Card {
   location:
     | "player"
     | "visibleDeck"
-    | "board"
+    | "plantboard"
+    | "potboard"
     | "deckPlant"
     | "deckPot"
     | "water"
@@ -20,6 +21,7 @@ interface Card {
   maxLeaf?: number;
   hint?: string;
   name?: string;
+  flowered: boolean;
 
   tokenList?: [];
 }
@@ -73,7 +75,7 @@ class MyCardManager<T extends Card> extends CardManager<T> {
     super.updateCardInformations(card, settings);
     const newPlace = this.game._stocks[Generics.getCardContainer(card)];
     debug("updateCardInformations", newPlace, card);
-    if (newPlace && !newPlace.contains(card)) newPlace.addCard(card);
+    if (newPlace) newPlace.addCard(card);
 
     // this.game.addCustomTooltip(
     //   CardSetting.getElementId(card) + "-front",

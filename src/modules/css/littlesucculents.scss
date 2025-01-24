@@ -109,6 +109,9 @@
   border-radius: 100%;
   border: 1px solid black;
   z-index: 2;
+  position: absolute;
+  left: 25%;
+  bottom: mix.addScale(-75);
   &.blue {
     @include mix.getBackgroundPosition(4, 3, 3);
   }

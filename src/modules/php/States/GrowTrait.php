@@ -17,8 +17,9 @@ trait GrowTrait
 {
 	public function argWater()
 	{
+
 		return [
-			'water' => Cards::getCurrentWeather(),
+			'water' => Players::getAll()->map(fn($player) => Cards::getCurrentWeather() + $player->getWater()),
 			'possiblePlaces' => Players::getWaterPossiblePlaces(),
 			'playerPlans' => Globals::getPlayerPlans()
 		];
@@ -103,7 +104,7 @@ trait GrowTrait
 			$pots = $player->getPots();
 			foreach ($pots as $potId => $pot) {
 				$plant = $pot->getMatchingCard();
-				if ($pot->isAtmax() && $plant) {
+				if ($pot->isAtmax() && $plant && !$plant->getFlowered()) {
 					//lose tokens on pot
 					$n = $pot->getTokenNb();
 
@@ -115,5 +116,10 @@ trait GrowTrait
 			}
 		}
 		Game::transition(END_TURN);
+	}
+
+	public function actChooseTend()
+	{
+		Game::transition('chooseTend');
 	}
 }

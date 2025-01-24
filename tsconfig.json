@@ -36,6 +36,7 @@
       
       "src/modules/ts/define.ts",
       "src/modules/ts/turnCounter.ts",
+      "src/modules/ts/players.ts",
         "src/modules/ts/token.ts",
         "src/modules/ts/cards.ts",
         // "src/modules/ts/dice.ts",

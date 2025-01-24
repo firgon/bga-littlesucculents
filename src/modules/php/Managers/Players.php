@@ -217,4 +217,11 @@ class Players extends \LSU\Helpers\DB_Manager
     }
     return ($max == $nbPlayer) ? 7 : 0;
   }
+
+  public static function computeScore()
+  {
+    foreach (static::getAll() as $key => $player) {
+      $player->computeScore();
+    }
+  }
 }

@@ -487,14 +487,19 @@
   text-decoration: line-through;
 }
 
+/* Hide the "You may note something for next time..." popup that would appear. */
+#turnBasedNotesIncent {
+  display: none;
+}
+
 #LSU_turnCounter {
-  position: relative;
+  position: absolute;
   float: left;
   border: 2px solid black;
-  font-size: smaller;
+  font-size: 75%;
   padding: 0 15px;
   border-radius: 3px;
-  font-family: "Bungee", "roboto";
+  font-family: "Bungee", "roboto", "roboto";
 }
 
 body > .card, body > .slot, #board-container body > .deck {
@@ -767,6 +772,9 @@ body > .card, body > .slot, #board-container body > .deck {
   border-radius: 100%;
   border: 1px solid black;
   z-index: 2;
+  position: absolute;
+  left: 25%;
+  bottom: calc(-0.25 * var(--scale));
 }
 .token.flower.blue {
   background-position-x: 0%;

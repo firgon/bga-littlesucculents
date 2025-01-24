@@ -37,3 +37,7 @@
 .canceled .roundedbox {
   text-decoration: line-through;
 }
+/* Hide the "You may note something for next time..." popup that would appear. */
+#turnBasedNotesIncent {
+  display: none;
+}

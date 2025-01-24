@@ -20,6 +20,16 @@ class Token {
     const element = this.gameui._cardManager.getCardElement(card);
     if (!element) return; //for fake case no need
 
+    //flower
+    if (card.flowered) {
+      const flowerElem = this.gameui.getFlowerElem(card.color);
+      if (!flowerElem) {
+        debug("No flower detected", card.color);
+      }
+      debug("je bouge", flowerElem, element);
+      this.gameui.attachElementWithSlide(flowerElem, element);
+    }
+
     const [busyPlaces, availablePlaces] = this.getAvailablePlaces(
       card,
       element
@@ -27,13 +37,13 @@ class Token {
     const tokensOnCard = Math.max(0, card.tokenNb ?? 0);
 
     if (busyPlaces.length < tokensOnCard) {
-      debug(
-        `There are ${
-          busyPlaces.length
-        } tokens on this element, it should have ${tokensOnCard}, i add ${
-          card.tokenNb - busyPlaces.length
-        } elems`
-      );
+      // debug(
+      //   `There are ${
+      //     busyPlaces.length
+      //   } tokens on this element, it should have ${tokensOnCard}, i add ${
+      //     card.tokenNb - busyPlaces.length
+      //   } elems`
+      // );
       this.addTokens(
         card.tokenNb - busyPlaces.length,
         card,
@@ -117,9 +127,9 @@ class Token {
       new Array((card.tokenNb ?? 0) + 2),
       (x, i) => i + 1
     );
-    const busyPlaces = Array.from(cardElement.querySelectorAll(".token")).map(
-      (elem) => +(elem as HTMLElement).dataset.placeId
-    );
+    const busyPlaces = Array.from(
+      cardElement.querySelectorAll(".token:not(.flower)")
+    ).map((elem) => +(elem as HTMLElement).dataset.placeId);
 
     const getShuffledArr = (arr: number[]) => {
       const newArr = arr.slice();

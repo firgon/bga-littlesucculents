@@ -31,24 +31,26 @@ trait BuyTrait
 
 		//player pay (loose leaf on money plant)
 		$player->pay($card->getState());
+		Notifications::pay($player, $card->getState(), $card);
 
 		//move card
 		$card->setLocation(PLAYER);
 		$card->setState($state);
 		$card->setPlayerId($pId);
 		Notifications::place($card);
+		Players::computeScore();
 
 		//adjust tokens (loose leaf if there are too many)
 		$card->adjustTokenNb();
-
-		Globals::setLastPlacedCard($cardId);
 
 		//if card is a pot => automatically move the plant on the neutral pot on it
 		if ($card->isPot()) {
 			$plantState = $state > 0 ? 1 : -1;
 			$plantToMove = Players::getActive()->getPlant($plantState);
-			$plantToMove->setState($state);
-			Notifications::updateCard($plantToMove);
+			if ($plantToMove) {
+				$plantToMove->setState($state);
+				Notifications::updateCard($plantToMove);
+			}
 		}
 
 		Game::transition(CONFIRM);

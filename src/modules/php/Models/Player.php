@@ -6,7 +6,6 @@ use LSU\Core\Game;
 use LSU\Core\Globals;
 use LSU\Core\Notifications;
 use LSU\Core\Stats;
-use LSU\Core\Preferences;
 use LSU\Managers\Players;
 use LSU\Managers\Cards;
 use LSU\Managers\Cells;
@@ -53,7 +52,7 @@ class Player extends \LSU\Helpers\DB_Model
     foreach ($this->getPlants() as $plantId => $plant) {
       $plantScore = $plant->getScore();
       $scoreDetail[$plantId] = $plantScore;
-      $score += $plantScore;
+      $score += array_sum($plantScore);
     }
     $this->setScore($score);
     if ($registeredScore != $score) {
@@ -157,7 +156,6 @@ class Player extends \LSU\Helpers\DB_Model
     if ($remaining < 0) {
       Game::error('You should not be able to pay more than money you have');
     }
-    Notifications::pay($this, $n);
   }
 
   /*
