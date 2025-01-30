@@ -74,23 +74,62 @@ $machinestates = [
         "transitions" => [
             CONFIRM => ST_CONFIRM,
             END_TURN => ST_NEXT_PLAYER,
-            'chooseTend' => ST_GROW
+            'chooseTend' => ST_TEND
         ]
     ],
 
-    // ST_MOVE_PLANT => [
-    //     "name" => "movePlant",
-    //     "description" => clienttranslate('${actplayer} can move the flower from his basic pot to his new pot'),
-    //     "descriptionmyturn" => clienttranslate('${you} can move the flower from your basic pot to your new pot'),
-    //     "type" => ACTIVE_PLAYER,
-    //     "args" => "argMovePlant",
-    //     "action" => "stMovePlant",
-    //     "possibleactions" => ['actMovePlant', 'actGenericAction'],
-    //     "transitions" => [
-    //         CONFIRM => ST_CONFIRM,
-    //         END_TURN => ST_NEXT_PLAYER,
-    //     ]
-    // ],
+    ST_TEND => [
+        "name" => "tend",
+        "description" => clienttranslate('${actplayer} can move and water flower'),
+        "descriptionmyturn" => clienttranslate('${you} must choose your first action'),
+        "type" => ACTIVE_PLAYER,
+        "args" => "argTend",
+        "action" => "stTend",
+        "possibleactions" => ['actChooseAction', 'actUndo', 'actGenericAction'],
+        "transitions" => [
+            "move" => ST_MOVE,
+            "water" => ST_WATER_SOLO,
+            UNDO => ST_PLAY,
+            CONFIRM => ST_CONFIRM,
+        ]
+    ],
+
+    ST_MOVE => [
+        "name" => "move",
+        "description" => clienttranslate('${actplayer} can move or swap two flowers'),
+        "descriptionmyturn" => clienttranslate('${you} can move or swap two flowers'),
+        "type" => ACTIVE_PLAYER,
+        "args" => "argMove",
+        "action" => "stMove",
+        "possibleactions" => ['actMovePlants', 'actUndo', 'actPass', 'actGenericAction'],
+        "transitions" => [
+            UNDO => ST_PLAY,
+            END_TURN => ST_TEND,
+        ]
+    ],
+
+    ST_WATER_SOLO => [
+        "name" => "waterSolo",
+        "description" => clienttranslate('${actplayer} must spread their water tokens'),
+        "descriptionmyturn" => clienttranslate('${you} must spread your water tokens'),
+        "type" => ACTIVE_PLAYER,
+        "args" => "argWaterSolo",
+        "possibleactions" => ['actWaterSolo', 'actUndo', 'actGenericAction'],
+        "transitions" => [
+            END_TURN => ST_GROW_SOLO,
+            UNDO => ST_PLAY
+        ]
+    ],
+
+    ST_GROW_SOLO => [
+        "name" => "growSolo",
+        "description" => clienttranslate('Growing phase'),
+        "type" => GAME,
+        "action" => "stGrowSolo",
+        "transitions" => [
+            END_TURN => ST_TEND
+        ]
+    ],
 
     ST_CONFIRM => [
         "name" => "confirm",
@@ -127,19 +166,6 @@ $machinestates = [
         ]
     ],
 
-    ST_WATER_SOLO => [
-        "name" => "waterSolo",
-        "description" => clienttranslate('${actplayer} must spread their water tokens'),
-        "descriptionmyturn" => clienttranslate('${you} must spread your water tokens'),
-        "type" => ACTIVE_PLAYER,
-        "args" => "argWater",
-        "possibleactions" => ['actWaterSolo', 'actUndo', 'actGenericAction'],
-        "transitions" => [
-            END_TURN => ST_GROW,
-            UNDO => ST_PLAY
-        ]
-    ],
-
     ST_REGISTER_WATER => [
         "name" => "registerWater",
         "description" => clienttranslate('Water Phase'),
@@ -171,16 +197,6 @@ $machinestates = [
         "action" => "stGrow",
         "transitions" => [
             END_TURN => ST_BABY_SUN_ROSE2
-        ]
-    ],
-
-    ST_GROW_SOLO => [
-        "name" => "growSolo",
-        "description" => clienttranslate('Growing phase'),
-        "type" => GAME,
-        "action" => "stGrowSolo",
-        "transitions" => [
-            END_TURN => ST_CONFIRM
         ]
     ],
 

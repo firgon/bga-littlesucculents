@@ -53,6 +53,7 @@ class LittleSucculents extends Table
     use LSU\States\CutTrait;
     use \LSU\States\BabySunRoseTrait;
     use LSU\States\FlowerTrait;
+    use LSU\States\TendTrait;
 
     public static $instance = null;
     function __construct()

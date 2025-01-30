@@ -71,6 +71,8 @@ const ST_REGISTER_WATER = 19;
 
 const ST_SEASON_END = 20;
 
+const ST_TEND = 23;
+const ST_MOVE = 24;
 const ST_WATER_SOLO = 25;
 const ST_GROW_SOLO = 26;
 

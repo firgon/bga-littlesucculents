@@ -42,6 +42,11 @@ class Collection extends \ArrayObject
         return new Collection(array_map($func, $this->toAssoc()));
     }
 
+    public function arrayMap($func)
+    {
+        return array_map($func, $this->toArray());
+    }
+
     public function merge($arr)
     {
         return new Collection($this->toAssoc() + $arr->toAssoc());

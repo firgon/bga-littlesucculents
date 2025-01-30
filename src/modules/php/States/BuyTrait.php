@@ -48,34 +48,10 @@ trait BuyTrait
 			$plantState = $state > 0 ? 1 : -1;
 			$plantToMove = Players::getActive()->getPlant($plantState);
 			if ($plantToMove) {
-				$plantToMove->setState($state);
-				Notifications::updateCard($plantToMove);
+				$plantToMove->move($state);
 			}
 		}
 
 		Game::transition(CONFIRM);
 	}
-
-	// public function argMovePlant()
-	// {
-	// 	$cardId = Globals::getLastPlacedCard();
-	// 	$card = Cards::get($cardId);
-
-	// 	$cardState = $card->getState();
-
-	// 	$plantState = $cardState > 0 ? 1 : -1;
-
-	// 	return [
-	// 		"plant" => Players::getActive()->getPlant($plantState),
-	// 		"place" => $cardState
-	// 	];
-	// }
-
-	// public function stMovePlant()
-	// {
-	// 	if (!$this->getArgs()['plant']) {
-	// 		$transition = Players::getActive()->hasPref(PREF_CONFIRM, PREF_CONFIRM_NO) ? END_TURN : CONFIRM;
-	// 		Game::transition($transition);
-	// 	}
-	// }
 }

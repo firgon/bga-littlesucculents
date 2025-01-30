@@ -4,6 +4,7 @@ namespace LSU\Models;
 
 use LSU\Core\Game;
 use LSU\Core\Notifications;
+use LSU\Helpers\Utils;
 use LSU\Managers\Cards;
 use LSU\Managers\Players;
 
@@ -76,9 +77,9 @@ class Card extends \LSU\Helpers\DB_Model
             return 0;
         } else {
             if ($this->getLocation() == PLAYER) {
-                $pot = $this->getPlayer()->getPot($this->getState());
+                $pot = $this->getMatchingCard();
                 if ($pot) {
-                    return $pot->getMaxWater() + (($this->getClass() == STRING_OF_PEARLS) ? 6 : 0);
+                    return $pot->getMaxLeaf() + (($this->getClass() == STRING_OF_PEARLS) ? 6 : 0);
                 }
             }
             return 3;
@@ -104,15 +105,18 @@ class Card extends \LSU\Helpers\DB_Model
     /**
      * top function to add checks to generic function incTokenNb
      */
-    public function incToken($n, $fromId = null)
+    public function incToken($n, $from = null)
     {
-        $this->setTokenNb($this->getTokenNb() + $n);
+        $this->incTokenNb($n);
         if ($this->getTokenNb() < 0) {
             Game::error('You cannot have less than 0 token on a card', $this);
         }
 
-        if ($fromId) {
-            Notifications::transfert($fromId, $this, $n);
+        if ($from) {
+            $from->incTokenNb(-$n);
+            Notifications::transfert($from, $this, $n);
+        } else {
+            Notifications::updateCard($this);
         }
 
         //check if there are not too many tokens
@@ -122,11 +126,20 @@ class Card extends \LSU\Helpers\DB_Model
 
     public function adjustTokenNb()
     {
+
         $n = $this->getTokenNb() - $this->getLimit();
         if ($n > 0) {
+            Utils::die($this->getLimit());
             $this->incTokenNb(-$n);
             Notifications::loseToken($this, $n);
         }
+    }
+
+    public function move($state)
+    {
+        $this->setState($state);
+        Notifications::updateCard($this);
+        $this->adjustTokenNb();
     }
 
     public function addWater(int $n): int
@@ -139,6 +152,19 @@ class Card extends \LSU\Helpers\DB_Model
         Notifications::updateCard($this);
 
         return $canAccept;
+    }
+
+    public function grow($matchingPot)
+    {
+        //lose tokens on pot
+        $n = $matchingPot->getTokenNb();
+
+        //give equal tokens on plant
+        $this->incToken($n, $matchingPot);
+
+        if ($this->getClass() == STRING_OF_DOLPHINS) {
+            $this->incToken(2);
+        }
     }
 
     public function discard()

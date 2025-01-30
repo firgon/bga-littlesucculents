@@ -8,10 +8,23 @@ class Token {
   }
 
   moveTokenOnCard(token: HTMLElement, card: Card) {
-    this.gameui.attachElementWithSlide(
-      token,
-      this.gameui._cardManager.getCardElement(card)
+    //add statics if needed
+    if (card.type === undefined) this.gameui.addStatics(card);
+
+    const cardElement = this.gameui._cardManager.getCardElement(card);
+
+    const [busyPlaces, availablePlaces] = this.getAvailablePlaces(
+      card,
+      cardElement
     );
+
+    //change token place if busy
+    if (busyPlaces.includes(+token.dataset.placeId)) {
+      debug("I change token placeId");
+      token.dataset.placeId = availablePlaces[0].toString();
+    }
+
+    this.gameui.attachElementWithSlide(token, cardElement);
   }
 
   adjustTokens(card: Card, from: HTMLElement = null) {
@@ -26,7 +39,6 @@ class Token {
       if (!flowerElem) {
         debug("No flower detected", card.color);
       }
-      debug("je bouge", flowerElem, element);
       this.gameui.attachElementWithSlide(flowerElem, element);
     }
 
@@ -51,13 +63,13 @@ class Token {
         from
       );
     } else if (busyPlaces.length > tokensOnCard) {
-      debug(
-        `There are ${
-          busyPlaces.length
-        } tokens on this element, it should have ${tokensOnCard}, i remove ${
-          busyPlaces.length - card.tokenNb
-        } elems`
-      );
+      // debug(
+      //   `There are ${
+      //     busyPlaces.length
+      //   } tokens on this element, it should have ${tokensOnCard}, i remove ${
+      //     busyPlaces.length - card.tokenNb
+      //   } elems`
+      // );
       this.removeTokens(Math.abs(tokensOnCard - busyPlaces.length), element);
     }
   }

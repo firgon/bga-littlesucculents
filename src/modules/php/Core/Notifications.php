@@ -40,8 +40,8 @@ class Notifications
   public static function loseToken($card, $n)
   {
     $translatableTokenType = [
-      PLANT => _('leaf'),
-      POT => _('water droplet')
+      PLANT => _('leaf token(s)'),
+      POT => _('water droplet(s)')
     ];
     $translatableCardType = [
       PLANT => _('plant'),
@@ -101,6 +101,17 @@ class Notifications
       'card' => $card,
     ];
     static::notifyAll('updateCard', '', $data);
+  }
+
+  public static function updateDeck($deck)
+  {
+    $data = [
+      $deck => [
+        'n' => Cards::countInLocation($deck),
+        'topCard' => Cards::getTopOf($deck)
+      ],
+    ];
+    static::notifyAll('updateDeck', '', $data);
   }
 
   public static function updatePlayers()

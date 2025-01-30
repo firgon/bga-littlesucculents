@@ -88,6 +88,8 @@ trait TurnTrait
 		}
 		//move next weather card
 		$newWeather = Cards::pickOneForLocation(WATER, WATER . BOARD);
+		//display new water on top of deck
+		Notifications::updateDeck(WATER);
 		Notifications::updateCard($newWeather);
 
 		//move ladybug

@@ -17,9 +17,18 @@ trait GrowTrait
 {
 	public function argWater()
 	{
-
 		return [
 			'water' => Players::getAll()->map(fn($player) => Cards::getCurrentWeather() + $player->getWater()),
+			'possiblePlaces' => Players::getWaterPossiblePlaces(),
+			'playerPlans' => Globals::getPlayerPlans()
+		];
+	}
+
+	public function argWaterSolo()
+	{
+		$player = Players::getActive();
+		return [
+			'water' => [$player->getId() => 2 + $player->getWater()],
 			'possiblePlaces' => Players::getWaterPossiblePlaces(),
 			'playerPlans' => Globals::getPlayerPlans()
 		];
@@ -46,7 +55,7 @@ trait GrowTrait
 	{
 		$cards = $args['cardIds'];
 		$possiblePlaces = $stateArgs['possiblePlaces'][$pId];
-		$water = $stateArgs['water'];
+		$water = $stateArgs['water'][$pId];
 
 		if ($water < count($cards)) {
 			Game::error("You can\'t place more than $water water droplets", count($cards));
@@ -98,28 +107,44 @@ trait GrowTrait
 		Game::transition();
 	}
 
+
+	public function actWaterSolo($pId, $args, $stateArgs)
+	{
+		$cards = $args['cardIds'];
+		$possiblePlaces = $stateArgs['possiblePlaces'][$pId];
+		$water = $stateArgs['water'][$pId] ?? 0;
+
+		if ($water < count($cards)) {
+			Game::error("You can\'t place more than $water water droplets", count($cards));
+		}
+		for ($i = 0; $i < $water; $i++) {
+			if (isset($cards[$i])) {
+				$possiblePlaces[$cards[$i]]--;
+				if ($possiblePlaces[$cards[$i]] < 0) {
+					Game::error("You can't place so many water droplets on this card", $cards[$i]);
+				}
+			}
+		}
+
+		foreach ($cards as $cardId) {
+			$card = Cards::get($cardId);
+			$card->addWater(1);
+		}
+		Game::transition();
+	}
+
 	public function stGrow()
 	{
 		foreach (Players::getAll() as $pId => $player) {
-			$pots = $player->getPots();
-			foreach ($pots as $potId => $pot) {
-				$plant = $pot->getMatchingCard();
-				if ($pot->isAtmax() && $plant && !$plant->getFlowered()) {
-					//lose tokens on pot
-					$n = $pot->getTokenNb();
-
-					$pot->incToken(-$n);
-
-					//give equal tokens on plant
-					$plant->incToken($n, $pot);
-				}
-			}
+			$player->grow();
 		}
 		Game::transition(END_TURN);
 	}
 
-	public function actChooseTend()
+	public function stGrowSolo()
 	{
-		Game::transition('chooseTend');
+		Players::getActive()->grow();
+
+		Game::transition(END_TURN);
 	}
 }

@@ -45,6 +45,7 @@ class LittleSucculentsGame extends GameGui {
       ["playerReady", 0],
       ["pay", 200],
       ["updateCard", 500],
+      ["updateDeck", 0],
       ["transfert", 500],
       ["drawCard", 500],
       ["startAction", 0],
@@ -144,6 +145,45 @@ class LittleSucculentsGame extends GameGui {
     this.startActionTimer("btn-confirm", 8, this.getGameUserPreference(201));
   }
 
+  onEnteringStateMove(args: {
+    plants: { [cardId: number]: Card };
+    possibleEmptyPlaces: number[];
+    possiblePlaces: number[];
+    moves?: { [cardId: number]: number };
+  }) {
+    this._stocks[this.player_id].setSelectionMode("single");
+    this._stocks[this.player_id].setSelectableCards(
+      Object.values(args.plants)
+        //exclude already moved cards
+        .filter(
+          (c) =>
+            !args.moves || !Object.keys(args.moves).includes(c.id.toString())
+        )
+        .map((c) => this.addStatics(c))
+    );
+    this._stocks[this.player_id].onSelectionChange = (
+      selection,
+      lastChange
+    ) => {
+      if (selection.includes(lastChange)) {
+        this.clientState(
+          "clientChooseDestination",
+          _("Choose where to move this plant"),
+          {
+            stateArgs: args,
+            cardId: lastChange.id,
+          }
+        );
+      }
+    };
+    this.addActionButton("btn-pass", _("I don't need"), () => {
+      this.takeAction({
+        actionName: "actPass",
+      });
+    });
+    this.addUndoButton();
+  }
+
   onEnteringStatePlay(args: {
     buyableCards: { [cardId: number]: Card };
     cuttableCards: { [cardId: number]: Card };
@@ -195,6 +235,22 @@ class LittleSucculentsGame extends GameGui {
     });
   }
 
+  onEnteringStateTend(args: { possibleTendActions: string[] }) {
+    const translatableStrings = {
+      move: _("Move"),
+      water: _("Water"),
+    };
+    args.possibleTendActions.forEach((action) => {
+      this.addActionButton("btn-" + action, translatableStrings[action], () =>
+        this.takeAction({
+          actionName: "actChooseAction",
+          action: action,
+        })
+      );
+    });
+    this.addUndoButton();
+  }
+
   onUpdateActivityWater(args) {
     debug("update water", args);
     this.addResetButton();
@@ -203,6 +259,15 @@ class LittleSucculentsGame extends GameGui {
   onLeavingStateWater(args) {
     debug("leaving water", args);
     if (!this.isSpectator) $("watercan-" + this.player_id).replaceChildren();
+  }
+
+  onLeavingStateWaterSolo(args) {
+    this.onLeavingStateWater(args);
+  }
+
+  onEnteringStateWaterSolo(args) {
+    this.onEnteringStateWater(args);
+    this.addUndoButton();
   }
 
   onEnteringStateWater(args: {
@@ -214,7 +279,7 @@ class LittleSucculentsGame extends GameGui {
       [playerId: number]: number[];
     };
   }) {
-    if (this.isSpectator) return;
+    if (!this.isCurrentPlayerActive()) return;
 
     this.possiblePlaces = args.possiblePlaces[this.player_id];
     let remainingSpace = 0;
@@ -265,7 +330,7 @@ class LittleSucculentsGame extends GameGui {
     //prepare buttons
     const takeAction = () => {
       this.takeAction({
-        actionName: "actWater",
+        actionName: this.stateName == "water" ? "actWater" : "actWaterSolo",
         cardIds: Object.values(JSON.parse($("btn-water").dataset.moves)),
       });
 
@@ -327,6 +392,105 @@ class LittleSucculentsGame extends GameGui {
       }
     };
     this.addResetClientStateButton();
+  }
+
+  onEnteringStateClientChooseDestination(args: {
+    stateArgs: {
+      plants: { [cardId: number]: Card };
+      possibleEmptyPlaces: number[];
+      possiblePlaces: number[];
+      moves?: { [cardId: number]: number };
+    };
+    cardId: number;
+  }) {
+    this.addCancelStateBtn();
+
+    //select active CardId
+    $("plant_" + args.cardId).classList.add("selected");
+    this.onClick("plant_" + args.cardId, () => {
+      this.clearClientState();
+    });
+
+    //empty spaces
+    args.stateArgs.possibleEmptyPlaces.forEach((emptySpace) => {
+      //if empty space is already a destination, forget it
+      if (
+        args.stateArgs.moves &&
+        Object.values(args.stateArgs.moves).includes(emptySpace)
+      ) {
+        return;
+      } else {
+        this.onClick("plant" + emptySpace, () => {
+          if (!args.stateArgs.moves) {
+            args.stateArgs.moves = {};
+          }
+          args.stateArgs.moves[args.cardId] = emptySpace;
+
+          const moveNb = Object.keys(args.stateArgs.moves).length;
+          if (
+            moveNb == 2 ||
+            moveNb == Object.keys(args.stateArgs.plants).length
+          ) {
+            //if it's second move or there is only one plant to move
+            this.takeAction({
+              actionName: "actMovePlants",
+              moves: args.stateArgs.moves,
+            });
+          } else {
+            this.onEnteringStateMove(args.stateArgs);
+          }
+        });
+      }
+    });
+
+    //space with cards (only for first move)
+    if (!args.stateArgs.moves) {
+      args.stateArgs.possiblePlaces.forEach((notEmptySpace) => {
+        //if there is already a move forget it
+        this.onClick("plant" + notEmptySpace, () => {
+          args.stateArgs.moves = {};
+          args.stateArgs.moves[args.cardId] = notEmptySpace;
+
+          const options = [_("Switch"), _("Move")];
+          this.multipleChoiceDialog(
+            _(
+              "Would you like to switch both cards or just move the first one here ?"
+            ),
+            options,
+            (choice) => {
+              switch (choice) {
+                case 0:
+                  return;
+                case 1:
+                  //switch both cards
+                  args.stateArgs.moves[
+                    this.getPlantIdOnSpaceId(notEmptySpace)
+                  ] = Object.values(args.stateArgs.plants).find(
+                    (c) => c.id == args.cardId
+                  ).state;
+                  this.takeAction({
+                    actionName: "actMovePlants",
+                    moves: args.stateArgs.moves,
+                  });
+                  return;
+                case 2:
+                  //move
+                  this.clientState(
+                    "clientChooseDestination",
+                    _("Choose where to move this plant"),
+                    {
+                      stateArgs: args,
+                      cardId: this.getPlantIdOnSpaceId(notEmptySpace),
+                    }
+                  );
+                  return;
+              }
+              return;
+            }
+          );
+        });
+      });
+    }
   }
 
   onEnteringStateClientCut(args: {
@@ -567,6 +731,11 @@ class LittleSucculentsGame extends GameGui {
     return c;
   }
 
+  getPlantIdOnSpaceId(spaceId): number {
+    const elemId = $("plant" + spaceId).querySelector(".card.plant").id;
+    return +elemId.split("_")[1];
+  }
+
   /**
    * make active all slots where a card can be played
    * (usefull to hide useless slots)
@@ -715,6 +884,10 @@ class LittleSucculentsGame extends GameGui {
     this._cardManager.updateCardInformations(n.args.card);
   }
 
+  notif_updateDeck(n: { args: Partial<GameDatasCards> }) {
+    this.updateCards(n.args);
+  }
+
   notif_updatePlayers(n: { args: { [playerId: number]: Player } }) {
     this._playerManager.updatePlayers(n.args);
   }
@@ -762,6 +935,7 @@ class LittleSucculentsGame extends GameGui {
   notif_refreshUi(n: { args: GameDatas }) {
     this.updateCards(n.args.cards);
     this.activePossibleSlots();
+    $("droplets").replaceChildren();
     this._playerManager.updatePlayers(n.args.players);
   }
 
@@ -931,33 +1105,39 @@ class LittleSucculentsGame extends GameGui {
     this.activePossibleSlots();
   }
 
-  updateCards(cards: GameDatasCards) {
+  updateCards(cards: Partial<GameDatasCards>) {
     [/*"discardplant", "discardpot", */ "water"].forEach((deck) => {
-      if (cards[deck].topCard)
+      if (cards[deck]?.topCard)
         this._cardManager.updateCardInformations(
           this.addStatics(cards[deck].topCard)
         );
     });
     ["deckplant", "deckpot"].forEach((deck) => {
-      (this._stocks[deck] as Deck<Card>).setCardNumber(cards[deck]);
+      if (cards[deck] !== undefined) {
+        (this._stocks[deck] as Deck<Card>).setCardNumber(cards[deck]);
+      }
     });
-    cards.board.forEach((card) =>
-      this._cardManager.updateCardInformations(this.addStatics(card))
-    );
-    cards.player.forEach((card) =>
-      this._cardManager.updateCardInformations(this.addStatics(card))
-    );
-    cards.visibleDeck.forEach((card) =>
-      this._cardManager.updateCardInformations(this.addStatics(card))
-    );
-
-    this._cardManager.updateCardInformations(this.addStatics(cards.waterboard));
-
-    //display available flowers
-    cards.flowerableColors.forEach((color) => {
-      const elem = document.querySelector(".token.flower." + color);
-      document.querySelector(`[data-slot-id='${color}']`).append(elem);
+    ["board", "player", "visibleDeck"].forEach((deck) => {
+      if (cards[deck]) {
+        cards[deck].forEach((card) =>
+          this._cardManager.updateCardInformations(this.addStatics(card))
+        );
+      }
     });
+
+    if (cards.waterboard) {
+      this._cardManager.updateCardInformations(
+        this.addStatics(cards.waterboard)
+      );
+    }
+
+    if (cards.flowerableColors) {
+      //display available flowers
+      cards.flowerableColors.forEach((color) => {
+        const elem = document.querySelector(".token.flower." + color);
+        document.querySelector(`[data-slot-id='${color}']`).append(elem);
+      });
+    }
 
     //remove slots of each player that are not reachable for now
     this.activePossibleSlots();

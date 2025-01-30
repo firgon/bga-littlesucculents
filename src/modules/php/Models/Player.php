@@ -71,9 +71,9 @@ class Player extends \LSU\Helpers\DB_Model
     return Cards::getInLocationPId(PLAYER, $this->getId(), $state)->filter(fn($card) => $card->isPlant())->first();
   }
 
-  public function getPlants()
+  public function getPlants($bIncludingMoney = true)
   {
-    return Cards::getInLocationPId(PLAYER, $this->getId())->filter(fn($card) => $card->isPlant());
+    return Cards::getInLocationPId(PLAYER, $this->getId())->filter(fn($card) => $card->isPlant() && ($bIncludingMoney || $card->getState() != 0));
   }
 
   public function getPots()
@@ -84,6 +84,18 @@ class Player extends \LSU\Helpers\DB_Model
   public function getPot($state)
   {
     return Cards::getInLocationPId(PLAYER, $this->getId(), $state)->filter(fn($card) => $card->isPot())->first();
+  }
+
+  //check each pot to see if it must grow or not
+  public function grow()
+  {
+    $pots = $this->getPots();
+    foreach ($pots as $potId => $pot) {
+      $plant = $pot->getMatchingCard();
+      if ($pot->isAtmax() && $plant && !$plant->getFlowered()) {
+        $plant->grow($pot);
+      }
+    }
   }
 
   public function hasAsManyPlantEachSide()
@@ -120,6 +132,7 @@ class Player extends \LSU\Helpers\DB_Model
     return $result;
   }
 
+  //get available place for a plant or for a pot
   public function getPossiblePlaces($type)
   {
     $min = 0;
