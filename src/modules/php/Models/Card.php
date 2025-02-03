@@ -66,24 +66,27 @@ class Card extends \LSU\Helpers\DB_Model
      */
     public function isCuttable($pId)
     {
-        return $this->getType() == PLANT && $this->getPlayerId() != $pId && Cards::isAvailable($this->getColor()) && $this->getTokenNb() > 0;
+        return $this->getType() == PLANT
+            && $this->getPlayerId() != $pId
+            && Cards::isAvailable($this->getColor())
+            && $this->getTokenNb() > 0
+            && !$this->isFlowered();
     }
 
     public function getLimit()
     {
         if ($this->isPot()) {
             return $this->getMaxWater();
-        } else if ($this->getClass() == PET_ROCK) {
-            return 0;
-        } else {
-            if ($this->getLocation() == PLAYER) {
-                $pot = $this->getMatchingCard();
-                if ($pot) {
-                    return $pot->getMaxLeaf() + (($this->getClass() == STRING_OF_PEARLS) ? 6 : 0);
-                }
+        } else if ($this->getLocation() == PLAYER) {
+            if ($this->getClass() == PET_ROCK) {
+                return 0;
             }
-            return 3;
+            $pot = $this->getMatchingCard();
+            if ($pot) {
+                return $pot->getMaxLeaf() + (($this->getClass() == STRING_OF_PEARLS) ? 6 : 0);
+            }
         }
+        return 3;
     }
 
     public function isAtmax(): bool
@@ -126,10 +129,8 @@ class Card extends \LSU\Helpers\DB_Model
 
     public function adjustTokenNb()
     {
-
         $n = $this->getTokenNb() - $this->getLimit();
         if ($n > 0) {
-            Utils::die($this->getLimit());
             $this->incTokenNb(-$n);
             Notifications::loseToken($this, $n);
         }

@@ -28,7 +28,7 @@ var isDebug =
 var debug = isDebug ? console.info.bind(window.console) : function () {};
 
 class LittleSucculentsGame extends GameGui {
-  public _stocks: { [stockId: string]: Deck<Card> | SlotStock<Card> };
+  public _stocks: { [stockId: string]: CardStock<Card> };
   public _cardManager: MyCardManager<Card>;
   public _tokenManager: Token;
   public possiblePlaces: { [cardId: number]: number };
@@ -118,6 +118,7 @@ class LittleSucculentsGame extends GameGui {
     dojo.place("<div id='droplets'></div>", $("generalactions"), "before");
 
     this._turnCounter = new TurnCounter(gamedatas.turn, _("Season: "), "/12");
+    if (gamedatas.turn == 12) this.displayCaution();
 
     if (isDebug) {
       $("ebd-body").classList.add("debug");
@@ -146,14 +147,13 @@ class LittleSucculentsGame extends GameGui {
   }
 
   onEnteringStateMove(args: {
-    plants: { [cardId: number]: Card };
+    plants: Card[];
     possibleEmptyPlaces: number[];
-    possiblePlaces: number[];
     moves?: { [cardId: number]: number };
   }) {
     this._stocks[this.player_id].setSelectionMode("single");
     this._stocks[this.player_id].setSelectableCards(
-      Object.values(args.plants)
+      args.plants
         //exclude already moved cards
         .filter(
           (c) =>
@@ -220,7 +220,7 @@ class LittleSucculentsGame extends GameGui {
       });
     }
     //flower action
-    if (Object.values(args.flowerableCards).length > 0) {
+    if (Object.values(args.flowerableCards.possibleColors).length > 0) {
       this.addActionButton("btn-flower", _("Flower a plant"), () => {
         this.clientState(
           "clientFlower",
@@ -279,7 +279,7 @@ class LittleSucculentsGame extends GameGui {
       [playerId: number]: number[];
     };
   }) {
-    if (!this.isCurrentPlayerActive()) return;
+    if (this.isSpectator) return;
 
     this.possiblePlaces = args.possiblePlaces[this.player_id];
     let remainingSpace = 0;
@@ -357,15 +357,15 @@ class LittleSucculentsGame extends GameGui {
 
     this.addResetButton();
 
-    for (let index = 0; index < args.water[this.player_id]; index++) {
-      // use playerPlans to premove token
-      if (
-        args.playerPlans[this.player_id] &&
-        args.playerPlans[this.player_id][index]
-      ) {
-        debug("plan done");
-        this.planMoveToken(args.playerPlans[this.player_id][index]);
+    if (args.playerPlans[this.player_id]) {
+      for (let index = 0; index < args.water[this.player_id]; index++) {
+        // use playerPlans to premove token
+        if (args.playerPlans[this.player_id][index]) {
+          debug("plan done");
+          this.planMoveToken(args.playerPlans[this.player_id][index]);
+        }
       }
+      this.replaceUnusedDropletIntoCan();
     }
   }
 
@@ -396,14 +396,14 @@ class LittleSucculentsGame extends GameGui {
 
   onEnteringStateClientChooseDestination(args: {
     stateArgs: {
-      plants: { [cardId: number]: Card };
+      plants: Card[];
       possibleEmptyPlaces: number[];
       possiblePlaces: number[];
       moves?: { [cardId: number]: number };
     };
     cardId: number;
   }) {
-    this.addCancelStateBtn();
+    this.addResetClientStateButton();
 
     //select active CardId
     $("plant_" + args.cardId).classList.add("selected");
@@ -426,46 +426,36 @@ class LittleSucculentsGame extends GameGui {
           }
           args.stateArgs.moves[args.cardId] = emptySpace;
 
-          const moveNb = Object.keys(args.stateArgs.moves).length;
-          if (
-            moveNb == 2 ||
-            moveNb == Object.keys(args.stateArgs.plants).length
-          ) {
-            //if it's second move or there is only one plant to move
-            this.takeAction({
-              actionName: "actMovePlants",
-              moves: args.stateArgs.moves,
-            });
-          } else {
-            this.onEnteringStateMove(args.stateArgs);
-          }
+          this.takeAction({
+            actionName: "actMovePlants",
+            moves: args.stateArgs.moves,
+          });
         });
       }
     });
 
     //space with cards (only for first move)
     if (!args.stateArgs.moves) {
-      args.stateArgs.possiblePlaces.forEach((notEmptySpace) => {
-        //if there is already a move forget it
-        this.onClick("plant" + notEmptySpace, () => {
-          args.stateArgs.moves = {};
-          args.stateArgs.moves[args.cardId] = notEmptySpace;
+      args.stateArgs.plants.forEach((plant) => {
+        //do not move on itself
+        if (plant.id == args.cardId) return;
 
-          const options = [_("Switch"), _("Move")];
+        this.onClick("plant_" + plant.id, () => {
+          args.stateArgs.moves = {};
+          args.stateArgs.moves[args.cardId] = plant.state;
+
+          const options = [_("Swap"), _("Move")];
           this.multipleChoiceDialog(
             _(
-              "Would you like to switch both cards or just move the first one here ?"
+              "Would you like to swap both cards or just move the first one here ?"
             ),
             options,
             (choice) => {
-              switch (choice) {
+              switch (+choice) {
                 case 0:
-                  return;
-                case 1:
-                  //switch both cards
-                  args.stateArgs.moves[
-                    this.getPlantIdOnSpaceId(notEmptySpace)
-                  ] = Object.values(args.stateArgs.plants).find(
+                  debug(choice);
+                  //swap both cards
+                  args.stateArgs.moves[plant.id] = args.stateArgs.plants.find(
                     (c) => c.id == args.cardId
                   ).state;
                   this.takeAction({
@@ -473,14 +463,14 @@ class LittleSucculentsGame extends GameGui {
                     moves: args.stateArgs.moves,
                   });
                   return;
-                case 2:
+                case 1:
                   //move
                   this.clientState(
                     "clientChooseDestination",
                     _("Choose where to move this plant"),
                     {
                       stateArgs: args,
-                      cardId: this.getPlantIdOnSpaceId(notEmptySpace),
+                      cardId: plant.id,
                     }
                   );
                   return;
@@ -886,6 +876,10 @@ class LittleSucculentsGame extends GameGui {
 
   notif_updateDeck(n: { args: Partial<GameDatasCards> }) {
     this.updateCards(n.args);
+    // (this._stocks["water"] as Deck<Card>).addCard(
+    //   this.addStatics(n.args.water.topCard)
+    // );
+    // (this._stocks["water"] as Deck<Card>).setCardNumber(n.args.water.n);
   }
 
   notif_updatePlayers(n: { args: { [playerId: number]: Player } }) {
@@ -916,6 +910,8 @@ class LittleSucculentsGame extends GameGui {
 
     for (let index = 0; index < n.args.n; index++) {
       const element = fromElem.querySelector(".token") as HTMLElement;
+      if (!element)
+        debug("problem in notif transfert", index, fromElem, n.args.to);
 
       this._tokenManager.moveTokenOnCard(element, n.args.to);
     }
@@ -927,9 +923,9 @@ class LittleSucculentsGame extends GameGui {
 
   notif_drawCard(n: { args: { card: Card } }) {
     const from = n.args.card.location == "plantboard" ? "deckplant" : "deckpot";
-    this._stocks[from]
-      .addCard(n.args.card)
-      .then(() => this._stocks["board"].addCard(n.args.card));
+    this._stocks["board"].addCard(n.args.card, {
+      fromStock: this._stocks[from],
+    });
   }
 
   notif_refreshUi(n: { args: GameDatas }) {
@@ -957,6 +953,9 @@ class LittleSucculentsGame extends GameGui {
     };
   }) {
     this._turnCounter.toValue(n.args.turn);
+    if (n.args.turn == 12) {
+      this.displayCaution();
+    }
   }
 
   notif_newScore(n: {
@@ -1012,8 +1011,9 @@ class LittleSucculentsGame extends GameGui {
       this._stocks[deck] = new Deck(this._cardManager, $(deck), {
         counter: { show: true, hideWhenEmpty: true },
         autoUpdateCardNumber: false,
-        autoRemovePreviousCards: true,
-        topCard: this.addStatics(gamedatas.cards[deck].topCard),
+        topCard: gamedatas.cards[deck].topCard
+          ? this.addStatics(gamedatas.cards[deck].topCard)
+          : undefined,
         cardNumber: gamedatas.cards[deck].n,
       });
     });
@@ -1078,39 +1078,21 @@ class LittleSucculentsGame extends GameGui {
       );
     });
 
-    [/*"discardplant", "discardpot", */ "water"].forEach((deck) => {
-      if (gamedatas.cards[deck].topCard)
-        this._stocks[deck].addCard(
-          this.addStatics(gamedatas.cards[deck].topCard)
-        );
-    });
-    ["deckplant", "deckpot"].forEach((deck) => {
-      (this._stocks[deck] as Deck<Card>).setCardNumber(gamedatas.cards[deck]);
-    });
-    gamedatas.cards.board.forEach((card) =>
-      this._stocks["board"].addCard(this.addStatics(card))
-    );
-    gamedatas.cards.player.forEach((card) =>
-      this._stocks[card.playerId].addCard(card)
-    );
-    gamedatas.cards.visibleDeck.forEach((card) =>
-      this._stocks["visibleDeck"].addCard(this.addStatics(card))
-    );
+    //discard
+    this._stocks["discard"] = new VoidStock(this._cardManager, $("discard"));
 
-    this._stocks["waterboard"].addCard(
-      this.addStatics(gamedatas.cards.waterboard)
-    );
-
-    //remove slots of each player that are not reachable for now
-    this.activePossibleSlots();
+    this.updateCards(gamedatas.cards);
   }
 
   updateCards(cards: Partial<GameDatasCards>) {
     [/*"discardplant", "discardpot", */ "water"].forEach((deck) => {
       if (cards[deck]?.topCard)
-        this._cardManager.updateCardInformations(
+        (this._stocks[deck] as Deck<Card>).addCard(
           this.addStatics(cards[deck].topCard)
         );
+      if (cards[deck]?.n) {
+        (this._stocks[deck] as Deck<Card>).setCardNumber(cards[deck].n);
+      }
     });
     ["deckplant", "deckpot"].forEach((deck) => {
       if (cards[deck] !== undefined) {
@@ -1126,9 +1108,7 @@ class LittleSucculentsGame extends GameGui {
     });
 
     if (cards.waterboard) {
-      this._cardManager.updateCardInformations(
-        this.addStatics(cards.waterboard)
-      );
+      this._stocks["waterboard"].addCard(this.addStatics(cards.waterboard));
     }
 
     if (cards.flowerableColors) {
@@ -1276,11 +1256,16 @@ class LittleSucculentsGame extends GameGui {
   }
 
   //reset the client state (and perform some extra actions if needed)
-  addResetClientStateButton(callback?: Function) {
-    this.addSecondaryActionButton("btn-cancel", _("Cancel"), () => {
-      this.restoreServerGameState();
-      if (callback) callback();
-    });
+  addResetClientStateButton(callback?: Function, customLabel = undefined) {
+    this.addSecondaryActionButton(
+      "btn-cancel",
+      customLabel ?? _("Cancel"),
+      () => {
+        if (callback) callback();
+        else this.clearPossible();
+        this.restoreServerGameState();
+      }
+    );
   }
 
   addPassButton(condition = true, callback?: Function, actionName = "actDeny") {
@@ -1303,15 +1288,15 @@ class LittleSucculentsGame extends GameGui {
     this.displayTitle(this.currentStateTitle);
   }
 
-  displayCaution() {
-    let text = _("Caution: this is the last turn !");
+  displayCaution(text?: string, bErasePrevious = true) {
+    text = text ?? _("Caution: this is the last turn !");
     dojo.place(
-      '<div id="NRD_message">' + text + "</div>",
-      "NRD_caution",
-      "first"
+      '<div id="LSU_message">' + text + "</div>",
+      "LSU_caution",
+      bErasePrevious ? "only" : "first"
     );
-    dojo.connect($("NRD_caution"), "onclick", this, () => {
-      dojo.destroy("NRD_message");
+    dojo.connect($("LSU_caution"), "onclick", this, () => {
+      dojo.destroy("LSU_message");
     });
   }
 
@@ -1450,18 +1435,8 @@ class LittleSucculentsGame extends GameGui {
     return dojo.string.substitute(str, subst);
   }
 
-  addCancelStateBtn(text = null) {
-    if (text == null) {
-      text = _("Cancel");
-    }
-
-    this.addSecondaryActionButton("btnCancel", text, () =>
-      this.clearClientState()
-    );
-  }
-
   clearClientState() {
-    //this.clearPossible();
+    this.clearPossible();
     this.restoreServerGameState();
   }
 

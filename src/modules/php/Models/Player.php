@@ -98,6 +98,14 @@ class Player extends \LSU\Helpers\DB_Model
     }
   }
 
+  public function hasFreePot(): bool
+  {
+    foreach ($this->getPots() as $key => $pot) {
+      if (!$this->getMatchingPlant($pot)) return true;
+    }
+    return false;
+  }
+
   public function hasAsManyPlantEachSide()
   {
     $plants = $this->getPlants();
@@ -113,11 +121,11 @@ class Player extends \LSU\Helpers\DB_Model
     $validatedColors = [];
     foreach ($this->getPlants() as $key => $plant) {
       $color = $plant->getColor();
-      if (in_array($color, ALL_COLORS)) $validatedColors[$color] == true;
+      if (in_array($color, ALL_COLORS)) $validatedColors[$color] = true;
     }
     foreach ($this->getPots() as $key => $pot) {
       $color = $pot->getColor();
-      if (in_array($color, ALL_COLORS)) $validatedColors[$color] == true;
+      if (in_array($color, ALL_COLORS)) $validatedColors[$color] = true;
     }
     return count(array_keys($validatedColors));
   }
@@ -127,6 +135,8 @@ class Player extends \LSU\Helpers\DB_Model
     $result = [];
     $pots = $this->getPots();
     foreach ($pots as $cardId => $pot) {
+      $plant = $this->getMatchingPlant($pot);
+      if ($plant && $plant->isFlowered()) continue;
       $result[$cardId] = $pot->getAvailableSpace();
     }
     return $result;

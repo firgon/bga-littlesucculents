@@ -74,10 +74,10 @@ class Cards extends \LSU\Helpers\Pieces
 
     public static function getCuttableCards(Player $player)
     {
-        return static::getInLocation(PLAYER)->filter(
+        return $player->hasFreePot() ? static::getInLocation(PLAYER)->filter(
             fn($card) =>
             $card->isCuttable($player->getId())
-        );
+        ) : [];
     }
 
     public static function getFlowerableColors()

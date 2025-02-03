@@ -31,6 +31,17 @@
     z-index: 1;
     font-family: var.$default-font;
   }
+  &[data-nb="0"]::before {
+    display: none;
+  }
+}
+//discard out of screen
+.discard-offscreen {
+  position: absolute !important;
+  right: 110%;
+  bottom: 110%;
+  width: 100px;
+  height: 100px;
 }
 
 //canceled logs

@@ -482,6 +482,17 @@
   z-index: 1;
   font-family: "roboto";
 }
+.automaticCounter[data-nb="0"]::before {
+  display: none;
+}
+
+.discard-offscreen {
+  position: absolute !important;
+  right: 110%;
+  bottom: 110%;
+  width: 100px;
+  height: 100px;
+}
 
 .canceled .roundedbox {
   text-decoration: line-through;
@@ -805,6 +816,20 @@ body > .card, body > .slot, #board-container body > .deck {
   background-position-x: 100%;
   background-position-y: 100%;
   background-size: 300%;
+}
+
+#deckplant::before,
+#deckpot::before,
+#water::before {
+  border-radius: calc(0.0666666667 * var(--scale));
+  content: "";
+  top: 2.5%;
+  right: 2.5%;
+  bottom: 2.5%;
+  left: 2.5%;
+  position: absolute;
+  background-image: url(img/cards.jpg);
+  filter: grayscale(1);
 }
 
 .card, #board-container .deck, .slot {
@@ -1267,9 +1292,30 @@ body > .card, body > .slot, #board-container body > .deck {
 #board-container #board .slot[data-slot-id=pot3] {
   left: 84.2%;
 }
+#board-container #water::before {
+  background-position-x: 16.6666666667%;
+  background-position-y: 100%;
+  background-size: 700%;
+}
+#board-container #water .card .back, #board-container #water .slot .back, #board-container #water .deck .back {
+  filter: grayscale(1);
+  background-position-x: 16.6666666667%;
+  background-position-y: 100%;
+  background-size: 700%;
+}
+#board-container #deckplant::before {
+  background-position-x: 83.3333333333%;
+  background-position-y: 33.3333333333%;
+  background-size: 700%;
+}
 #board-container #deckplant .card .back, #board-container #deckplant .slot .back, #board-container #deckplant .deck .back {
   background-position-x: 83.3333333333%;
   background-position-y: 33.3333333333%;
+  background-size: 700%;
+}
+#board-container #deckpot::before {
+  background-position-x: 100%;
+  background-position-y: 83.3333333333%;
   background-size: 700%;
 }
 #board-container #deckpot .card .back, #board-container #deckpot .slot .back, #board-container #deckpot .deck .back {

@@ -8,6 +8,10 @@ class Token {
   }
 
   moveTokenOnCard(token: HTMLElement, card: Card) {
+    if (!token) {
+      debug("Problem in moveTokenOnCard", token, card);
+      return;
+    }
     //add statics if needed
     if (card.type === undefined) this.gameui.addStatics(card);
 
@@ -28,7 +32,7 @@ class Token {
   }
 
   adjustTokens(card: Card, from: HTMLElement = null) {
-    debug("adjust Token", card);
+    // debug("adjust Token", card);
 
     const element = this.gameui._cardManager.getCardElement(card);
     if (!element) return; //for fake case no need
@@ -80,7 +84,7 @@ class Token {
     availablePlaces: number[],
     container: HTMLElement
   ) {
-    debug("addTokens", nb, card, availablePlaces);
+    // debug("addTokens", nb, card, availablePlaces);
     for (let index = 0; index < nb; index++) {
       if (container) {
         const token = this.createToken(container, availablePlaces[index]);
@@ -136,7 +140,7 @@ class Token {
       return;
     }
     const places = Array.from(
-      new Array((card.tokenNb ?? 0) + 2),
+      new Array((card.tokenNb ?? 0) + 4),
       (x, i) => i + 1
     );
     const busyPlaces = Array.from(
@@ -152,7 +156,7 @@ class Token {
       return newArr;
     };
 
-    debug("busyPlaces", cardElement, busyPlaces);
+    // debug("busyPlaces", cardElement, busyPlaces);
     return [
       busyPlaces,
       getShuffledArr(places.filter((x) => !busyPlaces.includes(x))),

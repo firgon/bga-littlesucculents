@@ -2119,6 +2119,10 @@ var Token = /** @class */ (function () {
         return elem.querySelectorAll(".token").length;
     };
     Token.prototype.moveTokenOnCard = function (token, card) {
+        if (!token) {
+            debug("Problem in moveTokenOnCard", token, card);
+            return;
+        }
         //add statics if needed
         if (card.type === undefined)
             this.gameui.addStatics(card);
@@ -2132,9 +2136,9 @@ var Token = /** @class */ (function () {
         this.gameui.attachElementWithSlide(token, cardElement);
     };
     Token.prototype.adjustTokens = function (card, from) {
+        // debug("adjust Token", card);
         var _a;
         if (from === void 0) { from = null; }
-        debug("adjust Token", card);
         var element = this.gameui._cardManager.getCardElement(card);
         if (!element)
             return; //for fake case no need
@@ -2170,7 +2174,7 @@ var Token = /** @class */ (function () {
         }
     };
     Token.prototype.addTokens = function (nb, card, availablePlaces, container) {
-        debug("addTokens", nb, card, availablePlaces);
+        // debug("addTokens", nb, card, availablePlaces);
         for (var index = 0; index < nb; index++) {
             if (container) {
                 var token = this.createToken(container, availablePlaces[index]);
@@ -2216,7 +2220,7 @@ var Token = /** @class */ (function () {
             debug("ERROR with tokenNb", card);
             return;
         }
-        var places = Array.from(new Array(((_a = card.tokenNb) !== null && _a !== void 0 ? _a : 0) + 2), function (x, i) { return i + 1; });
+        var places = Array.from(new Array(((_a = card.tokenNb) !== null && _a !== void 0 ? _a : 0) + 4), function (x, i) { return i + 1; });
         var busyPlaces = Array.from(cardElement.querySelectorAll(".token:not(.flower)")).map(function (elem) { return +elem.dataset.placeId; });
         var getShuffledArr = function (arr) {
             var _a;
@@ -2227,7 +2231,7 @@ var Token = /** @class */ (function () {
             }
             return newArr;
         };
-        debug("busyPlaces", cardElement, busyPlaces);
+        // debug("busyPlaces", cardElement, busyPlaces);
         return [
             busyPlaces,
             getShuffledArr(places.filter(function (x) { return !busyPlaces.includes(x); })),
@@ -2277,8 +2281,8 @@ var MyCardManager = /** @class */ (function (_super) {
             this.game.addStatics(card);
         _super.prototype.updateCardInformations.call(this, card, settings);
         var newPlace = this.game._stocks[Generics.getCardContainer(card)];
-        debug("updateCardInformations", newPlace, card);
-        if (newPlace)
+        // debug("updateCardInformations", newPlace, card);
+        if (newPlace && (!newPlace.contains(card) || newPlace instanceof SlotStock))
             newPlace.addCard(card);
         // this.game.addCustomTooltip(
         //   CardSetting.getElementId(card) + "-front",
@@ -2482,6 +2486,8 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         // Create a new div for tokens before buttons in maintitlebar
         dojo.place("<div id='droplets'></div>", $("generalactions"), "before");
         this._turnCounter = new TurnCounter(gamedatas.turn, _("Season: "), "/12");
+        if (gamedatas.turn == 12)
+            this.displayCaution();
         if (isDebug) {
             $("ebd-body").classList.add("debug");
         }
@@ -2509,7 +2515,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     LittleSucculentsGame.prototype.onEnteringStateMove = function (args) {
         var _this = this;
         this._stocks[this.player_id].setSelectionMode("single");
-        this._stocks[this.player_id].setSelectableCards(Object.values(args.plants)
+        this._stocks[this.player_id].setSelectableCards(args.plants
             //exclude already moved cards
             .filter(function (c) {
             return !args.moves || !Object.keys(args.moves).includes(c.id.toString());
@@ -2551,7 +2557,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             });
         }
         //flower action
-        if (Object.values(args.flowerableCards).length > 0) {
+        if (Object.values(args.flowerableCards.possibleColors).length > 0) {
             this.addActionButton("btn-flower", _("Flower a plant"), function () {
                 _this.clientState("clientFlower", _("${you} can choose a plant to flower"), args.flowerableCards);
             });
@@ -2595,7 +2601,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     };
     LittleSucculentsGame.prototype.onEnteringStateWater = function (args) {
         var _this = this;
-        if (!this.isCurrentPlayerActive())
+        if (this.isSpectator)
             return;
         this.possiblePlaces = args.possiblePlaces[this.player_id];
         var remainingSpace = 0;
@@ -2662,13 +2668,15 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             ? "inline-block"
             : "none";
         this.addResetButton();
-        for (var index = 0; index < args.water[this.player_id]; index++) {
-            // use playerPlans to premove token
-            if (args.playerPlans[this.player_id] &&
-                args.playerPlans[this.player_id][index]) {
-                debug("plan done");
-                this.planMoveToken(args.playerPlans[this.player_id][index]);
+        if (args.playerPlans[this.player_id]) {
+            for (var index = 0; index < args.water[this.player_id]; index++) {
+                // use playerPlans to premove token
+                if (args.playerPlans[this.player_id][index]) {
+                    debug("plan done");
+                    this.planMoveToken(args.playerPlans[this.player_id][index]);
+                }
             }
+            this.replaceUnusedDropletIntoCan();
         }
     };
     LittleSucculentsGame.prototype.onEnteringStateClientBuy = function (args) {
@@ -2693,7 +2701,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     };
     LittleSucculentsGame.prototype.onEnteringStateClientChooseDestination = function (args) {
         var _this = this;
-        this.addCancelStateBtn();
+        this.addResetClientStateButton();
         //select active CardId
         $("plant_" + args.cardId).classList.add("selected");
         this.onClick("plant_" + args.cardId, function () {
@@ -2712,46 +2720,39 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
                         args.stateArgs.moves = {};
                     }
                     args.stateArgs.moves[args.cardId] = emptySpace;
-                    var moveNb = Object.keys(args.stateArgs.moves).length;
-                    if (moveNb == 2 ||
-                        moveNb == Object.keys(args.stateArgs.plants).length) {
-                        //if it's second move or there is only one plant to move
-                        _this.takeAction({
-                            actionName: "actMovePlants",
-                            moves: args.stateArgs.moves,
-                        });
-                    }
-                    else {
-                        _this.onEnteringStateMove(args.stateArgs);
-                    }
+                    _this.takeAction({
+                        actionName: "actMovePlants",
+                        moves: args.stateArgs.moves,
+                    });
                 });
             }
         });
         //space with cards (only for first move)
         if (!args.stateArgs.moves) {
-            args.stateArgs.possiblePlaces.forEach(function (notEmptySpace) {
-                //if there is already a move forget it
-                _this.onClick("plant" + notEmptySpace, function () {
+            args.stateArgs.plants.forEach(function (plant) {
+                //do not move on itself
+                if (plant.id == args.cardId)
+                    return;
+                _this.onClick("plant_" + plant.id, function () {
                     args.stateArgs.moves = {};
-                    args.stateArgs.moves[args.cardId] = notEmptySpace;
-                    var options = [_("Switch"), _("Move")];
-                    _this.multipleChoiceDialog(_("Would you like to switch both cards or just move the first one here ?"), options, function (choice) {
-                        switch (choice) {
+                    args.stateArgs.moves[args.cardId] = plant.state;
+                    var options = [_("Swap"), _("Move")];
+                    _this.multipleChoiceDialog(_("Would you like to swap both cards or just move the first one here ?"), options, function (choice) {
+                        switch (+choice) {
                             case 0:
-                                return;
-                            case 1:
-                                //switch both cards
-                                args.stateArgs.moves[_this.getPlantIdOnSpaceId(notEmptySpace)] = Object.values(args.stateArgs.plants).find(function (c) { return c.id == args.cardId; }).state;
+                                debug(choice);
+                                //swap both cards
+                                args.stateArgs.moves[plant.id] = args.stateArgs.plants.find(function (c) { return c.id == args.cardId; }).state;
                                 _this.takeAction({
                                     actionName: "actMovePlants",
                                     moves: args.stateArgs.moves,
                                 });
                                 return;
-                            case 2:
+                            case 1:
                                 //move
                                 _this.clientState("clientChooseDestination", _("Choose where to move this plant"), {
                                     stateArgs: args,
-                                    cardId: _this.getPlantIdOnSpaceId(notEmptySpace),
+                                    cardId: plant.id,
                                 });
                                 return;
                         }
@@ -3078,6 +3079,10 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     };
     LittleSucculentsGame.prototype.notif_updateDeck = function (n) {
         this.updateCards(n.args);
+        // (this._stocks["water"] as Deck<Card>).addCard(
+        //   this.addStatics(n.args.water.topCard)
+        // );
+        // (this._stocks["water"] as Deck<Card>).setCardNumber(n.args.water.n);
     };
     LittleSucculentsGame.prototype.notif_updatePlayers = function (n) {
         this._playerManager.updatePlayers(n.args);
@@ -3091,6 +3096,8 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         var fromElem = this._cardManager.getCardElement(this.addStatics(n.args.from));
         for (var index = 0; index < n.args.n; index++) {
             var element = fromElem.querySelector(".token");
+            if (!element)
+                debug("problem in notif transfert", index, fromElem, n.args.to);
             this._tokenManager.moveTokenOnCard(element, n.args.to);
         }
         this.wait(1000).then(function () {
@@ -3099,11 +3106,10 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         });
     };
     LittleSucculentsGame.prototype.notif_drawCard = function (n) {
-        var _this = this;
         var from = n.args.card.location == "plantboard" ? "deckplant" : "deckpot";
-        this._stocks[from]
-            .addCard(n.args.card)
-            .then(function () { return _this._stocks["board"].addCard(n.args.card); });
+        this._stocks["board"].addCard(n.args.card, {
+            fromStock: this._stocks[from],
+        });
     };
     LittleSucculentsGame.prototype.notif_refreshUi = function (n) {
         this.updateCards(n.args.cards);
@@ -3121,6 +3127,9 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     };
     LittleSucculentsGame.prototype.notif_startAction = function (n) {
         this._turnCounter.toValue(n.args.turn);
+        if (n.args.turn == 12) {
+            this.displayCaution();
+        }
     };
     LittleSucculentsGame.prototype.notif_newScore = function (n) {
         this._playerManager.updateScore(n.args.player);
@@ -3152,8 +3161,9 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             _this._stocks[deck] = new Deck(_this._cardManager, $(deck), {
                 counter: { show: true, hideWhenEmpty: true },
                 autoUpdateCardNumber: false,
-                autoRemovePreviousCards: true,
-                topCard: _this.addStatics(gamedatas.cards[deck].topCard),
+                topCard: gamedatas.cards[deck].topCard
+                    ? _this.addStatics(gamedatas.cards[deck].topCard)
+                    : undefined,
                 cardNumber: gamedatas.cards[deck].n,
             });
         });
@@ -3204,32 +3214,19 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
                 wrap: "wrap",
             });
         });
-        [/*"discardplant", "discardpot", */ "water"].forEach(function (deck) {
-            if (gamedatas.cards[deck].topCard)
-                _this._stocks[deck].addCard(_this.addStatics(gamedatas.cards[deck].topCard));
-        });
-        ["deckplant", "deckpot"].forEach(function (deck) {
-            _this._stocks[deck].setCardNumber(gamedatas.cards[deck]);
-        });
-        gamedatas.cards.board.forEach(function (card) {
-            return _this._stocks["board"].addCard(_this.addStatics(card));
-        });
-        gamedatas.cards.player.forEach(function (card) {
-            return _this._stocks[card.playerId].addCard(card);
-        });
-        gamedatas.cards.visibleDeck.forEach(function (card) {
-            return _this._stocks["visibleDeck"].addCard(_this.addStatics(card));
-        });
-        this._stocks["waterboard"].addCard(this.addStatics(gamedatas.cards.waterboard));
-        //remove slots of each player that are not reachable for now
-        this.activePossibleSlots();
+        //discard
+        this._stocks["discard"] = new VoidStock(this._cardManager, $("discard"));
+        this.updateCards(gamedatas.cards);
     };
     LittleSucculentsGame.prototype.updateCards = function (cards) {
         var _this = this;
         [/*"discardplant", "discardpot", */ "water"].forEach(function (deck) {
-            var _a;
+            var _a, _b;
             if ((_a = cards[deck]) === null || _a === void 0 ? void 0 : _a.topCard)
-                _this._cardManager.updateCardInformations(_this.addStatics(cards[deck].topCard));
+                _this._stocks[deck].addCard(_this.addStatics(cards[deck].topCard));
+            if ((_b = cards[deck]) === null || _b === void 0 ? void 0 : _b.n) {
+                _this._stocks[deck].setCardNumber(cards[deck].n);
+            }
         });
         ["deckplant", "deckpot"].forEach(function (deck) {
             if (cards[deck] !== undefined) {
@@ -3244,7 +3241,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             }
         });
         if (cards.waterboard) {
-            this._cardManager.updateCardInformations(this.addStatics(cards.waterboard));
+            this._stocks["waterboard"].addCard(this.addStatics(cards.waterboard));
         }
         if (cards.flowerableColors) {
             //display available flowers
@@ -3375,12 +3372,15 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         return array.reduce(function (previousValue, currentValue) { return currentValue + previousValue; }, 0);
     };
     //reset the client state (and perform some extra actions if needed)
-    LittleSucculentsGame.prototype.addResetClientStateButton = function (callback) {
+    LittleSucculentsGame.prototype.addResetClientStateButton = function (callback, customLabel) {
         var _this = this;
-        this.addSecondaryActionButton("btn-cancel", _("Cancel"), function () {
-            _this.restoreServerGameState();
+        if (customLabel === void 0) { customLabel = undefined; }
+        this.addSecondaryActionButton("btn-cancel", customLabel !== null && customLabel !== void 0 ? customLabel : _("Cancel"), function () {
             if (callback)
                 callback();
+            else
+                _this.clearPossible();
+            _this.restoreServerGameState();
         });
     };
     LittleSucculentsGame.prototype.addPassButton = function (condition, callback, actionName) {
@@ -3404,11 +3404,12 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     LittleSucculentsGame.prototype.resetTitle = function () {
         this.displayTitle(this.currentStateTitle);
     };
-    LittleSucculentsGame.prototype.displayCaution = function () {
-        var text = _("Caution: this is the last turn !");
-        dojo.place('<div id="NRD_message">' + text + "</div>", "NRD_caution", "first");
-        dojo.connect($("NRD_caution"), "onclick", this, function () {
-            dojo.destroy("NRD_message");
+    LittleSucculentsGame.prototype.displayCaution = function (text, bErasePrevious) {
+        if (bErasePrevious === void 0) { bErasePrevious = true; }
+        text = text !== null && text !== void 0 ? text : _("Caution: this is the last turn !");
+        dojo.place('<div id="LSU_message">' + text + "</div>", "LSU_caution", bErasePrevious ? "only" : "first");
+        dojo.connect($("LSU_caution"), "onclick", this, function () {
+            dojo.destroy("LSU_message");
         });
     };
     /*
@@ -3521,18 +3522,8 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     LittleSucculentsGame.prototype.strReplace = function (str, subst) {
         return dojo.string.substitute(str, subst);
     };
-    LittleSucculentsGame.prototype.addCancelStateBtn = function (text) {
-        var _this = this;
-        if (text === void 0) { text = null; }
-        if (text == null) {
-            text = _("Cancel");
-        }
-        this.addSecondaryActionButton("btnCancel", text, function () {
-            return _this.clearClientState();
-        });
-    };
     LittleSucculentsGame.prototype.clearClientState = function () {
-        //this.clearPossible();
+        this.clearPossible();
         this.restoreServerGameState();
     };
     LittleSucculentsGame.prototype.translate = function (t) {

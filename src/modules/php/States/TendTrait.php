@@ -2,6 +2,7 @@
 
 namespace LSU\States;
 
+use COM;
 use PDO;
 use LSU\Core\Game;
 use LSU\Core\Globals;
@@ -17,6 +18,7 @@ trait TendTrait
 	public function actChooseTend()
 	{
 		Globals::setPossibleTendActions(['move', 'water']);
+		Globals::setRemainingMoves(2);
 		Game::transition('chooseTend');
 	}
 
@@ -56,10 +58,12 @@ trait TendTrait
 		$player = Players::getActive();
 		$plants = $player->getPlants(false);
 		$possiblePlaces = $player->getPossiblePlaces(PLANT);
+		$remainingMoves = Globals::getRemainingMoves();
 		return  [
-			'plants' => $plants,
+			'plants' => $plants->toArray(),
 			'possibleEmptyPlaces' => $possiblePlaces,
-			'possiblePlaces' => $plants->arrayMap(fn($p) => $p->getState())
+			'remainingMoves' => $remainingMoves,
+			'suffix' => $remainingMoves == 1 ? 'OnlyOne' : ""
 		];
 	}
 
@@ -74,13 +78,14 @@ trait TendTrait
 	{
 		$moves = $args['moves'];
 		$player = Players::get($pId);
+		$moveNb = count(array_keys($moves));
 
-		if (count(array_keys($moves)) > 2) {
+		if ($moveNb > 2) {
 			Game::error('You can do only 2 moves maximum', $moves);
 		}
 		foreach ($moves as $cardId => $spaceId) {
-			$plant = $stateArgs['plants'][$cardId] ?? null;
-			if (!$plant) {
+			$plant = Cards::get($cardId);
+			if (!in_array($plant, $stateArgs['plants'])) {
 				Game::error("You shouldn't be able to move this plant", $cardId);
 			}
 			$plantHere = $player->getPlant($spaceId);
@@ -92,7 +97,12 @@ trait TendTrait
 			}
 			$plant->move($spaceId);
 		}
-		Game::transition();
+		$remainingMoves = Globals::incRemainingMoves(-$moveNb);
+		if ($remainingMoves) {
+			Game::transitionSameState();
+		} else {
+			Game::transition();
+		}
 	}
 
 	public function actPass()

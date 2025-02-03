@@ -138,6 +138,7 @@ trait GrowTrait
 		foreach (Players::getAll() as $pId => $player) {
 			$player->grow();
 		}
+		Players::computeScore();
 		Game::transition(END_TURN);
 	}
 
@@ -145,6 +146,7 @@ trait GrowTrait
 	{
 		Players::getActive()->grow();
 
+		Players::computeScore();
 		Game::transition(END_TURN);
 	}
 }

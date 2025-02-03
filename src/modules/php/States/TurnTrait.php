@@ -53,12 +53,18 @@ trait TurnTrait
 	public function actConfirm($pId, $args, $stateArgs)
 	{
 		Log::checkpoint();
+
+		Globals::setRemainingMoves(0);
 		Game::transition(END_TURN);
 	}
 
 	public function stSeasonEnd()
 	{
+		if ((Cards::countInLocation(WATER) == 0)) {
+			return Game::transition(ST_PRE_END_OF_GAME);
+		}
 		$nbCardsOnBoard = Players::count() == 2 ? 2 : 3;
+
 		foreach ([PLANT, POT] as $cardType) {
 			$cards = Cards::getInLocationOrdered($cardType . BOARD);
 			$index = 1;
@@ -70,6 +76,7 @@ trait TurnTrait
 				if ($card->getLimit() < $card->getTokenNb()) {
 					$card->discard();
 					Notifications::updateCard($card);
+					continue;
 				}
 				//slide cards
 				if ($index != $card->getState()) {
@@ -81,6 +88,7 @@ trait TurnTrait
 			//fill gaps
 			for ($i = $index; $i <= $nbCardsOnBoard; $i++) {
 				$newCard = Cards::getTopOf("deck" . $cardType);
+				if (!$newCard) break;
 				$newCard->setLocation($cardType . BOARD);
 				$newCard->setState($i);
 				Notifications::drawCard($newCard);
@@ -89,8 +97,8 @@ trait TurnTrait
 		//move next weather card
 		$newWeather = Cards::pickOneForLocation(WATER, WATER . BOARD);
 		//display new water on top of deck
-		Notifications::updateDeck(WATER);
 		Notifications::updateCard($newWeather);
+		Notifications::updateDeck(WATER);
 
 		//move ladybug
 		$nextPlayerId = Globals::changeFirstPlayer();

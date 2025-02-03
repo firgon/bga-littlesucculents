@@ -132,6 +132,22 @@
   }
 }
 
+#deckplant,
+#deckpot,
+#water {
+  &::before {
+    border-radius: mix.addScale(20);
+    content: "";
+    top: 2.5%;
+    right: 2.5%;
+    bottom: 2.5%;
+    left: 2.5%;
+    position: absolute;
+    background-image: url(img/cards.jpg);
+    filter: grayscale(1);
+  }
+}
+
 .card {
   @include mix.size(300, 415);
   border-radius: mix.addScale(20);
@@ -320,12 +336,27 @@
       }
     }
   }
+  #water {
+    &::before {
+      @include mix.getBackgroundPosition(44);
+    }
+    .card .back {
+      filter: grayscale(1);
+      @include mix.getBackgroundPosition(44);
+    }
+  }
   #deckplant {
+    &::before {
+      @include mix.getBackgroundPosition(20);
+    }
     .card .back {
       @include mix.getBackgroundPosition(20);
     }
   }
   #deckpot {
+    &::before {
+      @include mix.getBackgroundPosition(42);
+    }
     .card .back {
       @include mix.getBackgroundPosition(42);
     }

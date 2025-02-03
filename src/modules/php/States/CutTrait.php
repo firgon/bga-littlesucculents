@@ -30,7 +30,6 @@ trait CutTrait
 		}
 
 		//move token leaf on pot
-		$cutCard->incToken(-1);
 		$pot = $cutCard->getMatchingCard();
 		$pot->incToken(1, $cutCard);
 		Notifications::message(_('${player_name} cuts a ${cardName} card on ${player_name2}\'s display ${cardLog}'), [

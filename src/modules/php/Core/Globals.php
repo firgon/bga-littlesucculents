@@ -19,7 +19,8 @@ class Globals extends \LSU\Helpers\DB_Manager
     'cheatMode' => 'bool',
     'playerPlans' => 'obj',
     'babySunRoseByPlayer' => 'obj',
-    'possibleTendActions' => 'obj'
+    'possibleTendActions' => 'obj',
+    'remainingMoves' => 'int'
     // 'calledValue' => 'int',
     // 'calledColor' => 'str',
     // 'calledPlayer' => 'int'
