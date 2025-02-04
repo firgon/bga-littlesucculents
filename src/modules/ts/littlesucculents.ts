@@ -601,6 +601,30 @@ class LittleSucculentsGame extends GameGui {
   //
   //
 
+  // getBasicPots(): Card[] {
+  //   return this._stocks[this.player_id]
+  //     .getCards()
+  //     .filter((c) => c.deck == "starter" && c.type == "pot");
+  // }
+
+  // moveBasicPots(direction: "close" | "open" = "open") {
+  //   const basicPots = this.getBasicPots();
+  //   debug("basic pots", basicPots);
+  //   basicPots.forEach((pot) => {
+  //     const newState =
+  //       pot.state + (pot.state > 0 ? 1 : -1) * (direction == "open" ? 1 : -1);
+  //     debug("newState", newState);
+  //     if (
+  //       this._stocks[this.player_id]
+  //         .getCards()
+  //         .every((c) => c.type != "pot" || c.state != newState)
+  //     ) {
+  //       pot.state = newState;
+  //       this._cardManager.updateCardInformations(pot);
+  //     }
+  //   });
+  // }
+
   replaceUnusedDropletIntoCan(playerId = null) {
     playerId = playerId ?? this.player_id;
     $("droplets")

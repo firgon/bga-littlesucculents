@@ -153,7 +153,7 @@ class Player extends \LSU\Helpers\DB_Model
         $min = min($min, $pot->getState());
         $max = max($max, $pot->getState());
       }
-      return [$min - 1, $max + 1];
+      return [$min, $max];
     } else {
       $result = [];
       $pots = $this->getPots();

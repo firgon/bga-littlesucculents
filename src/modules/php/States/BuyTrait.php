@@ -33,6 +33,15 @@ trait BuyTrait
 		$player->pay($card->getState());
 		Notifications::pay($player, $card->getState(), $card);
 
+		//if card is a pot => automatically move the basic pot
+		if ($card->isPot()) {
+			$movement = $state > 0 ? 1 : -1;
+			$potToMove = Players::getActive()->getPot($state);
+			if ($potToMove) {
+				$potToMove->move($state + $movement);
+			}
+		}
+
 		//move card
 		$card->setLocation(PLAYER);
 		$card->setState($state);
@@ -43,14 +52,7 @@ trait BuyTrait
 		//adjust tokens (loose leaf if there are too many)
 		$card->adjustTokenNb();
 
-		//if card is a pot => automatically move the plant on the neutral pot on it
-		if ($card->isPot()) {
-			$plantState = $state > 0 ? 1 : -1;
-			$plantToMove = Players::getActive()->getPlant($plantState);
-			if ($plantToMove) {
-				$plantToMove->move($state);
-			}
-		}
+
 
 		Game::transition(CONFIRM);
 	}

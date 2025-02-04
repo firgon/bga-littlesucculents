@@ -1375,14 +1375,24 @@ body > .card, body > .slot, #board-container body > .deck {
   background-color: rgba(30, 221, 39, 0.315);
 }
 .bga-cards_selectable-card.bga-cards_selected-card {
-  border: 3px green solid;
+  outline: 3px green solid;
 }
 
 .selectable:not(.token) {
   box-sizing: border-box;
-  border: 3px blue solid;
+  outline: 3px blue solid;
   background-color: rgba(30, 65, 221, 0.315);
   cursor: pointer;
+}
+.selectable:not(.token) .basicPot.right {
+  transform: translateX(108%);
+}
+.selectable:not(.token) .basicPot.left {
+  transform: translateX(-108%);
+}
+
+.basicPot {
+  transition: transform 0.5s ease-in;
 }
 
 .unselectable {

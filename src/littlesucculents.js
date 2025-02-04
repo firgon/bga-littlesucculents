@@ -2254,6 +2254,9 @@ var CardSetting = /** @class */ (function () {
     };
     CardSetting.prototype.setupDiv = function (card, element) {
         element.classList.add(card.type);
+        if (card.deck == "starter" && card.type == "pot") {
+            element.classList.add("basicPot", card.state > 0 ? "right" : "left");
+        }
     };
     CardSetting.prototype.setupFrontDiv = function (card, element) {
         if (card.dataId)
@@ -2860,6 +2863,28 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     //
     //
     //
+    // getBasicPots(): Card[] {
+    //   return this._stocks[this.player_id]
+    //     .getCards()
+    //     .filter((c) => c.deck == "starter" && c.type == "pot");
+    // }
+    // moveBasicPots(direction: "close" | "open" = "open") {
+    //   const basicPots = this.getBasicPots();
+    //   debug("basic pots", basicPots);
+    //   basicPots.forEach((pot) => {
+    //     const newState =
+    //       pot.state + (pot.state > 0 ? 1 : -1) * (direction == "open" ? 1 : -1);
+    //     debug("newState", newState);
+    //     if (
+    //       this._stocks[this.player_id]
+    //         .getCards()
+    //         .every((c) => c.type != "pot" || c.state != newState)
+    //     ) {
+    //       pot.state = newState;
+    //       this._cardManager.updateCardInformations(pot);
+    //     }
+    //   });
+    // }
     LittleSucculentsGame.prototype.replaceUnusedDropletIntoCan = function (playerId) {
         var _this = this;
         if (playerId === void 0) { playerId = null; }

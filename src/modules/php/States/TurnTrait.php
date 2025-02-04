@@ -61,7 +61,7 @@ trait TurnTrait
 	public function stSeasonEnd()
 	{
 		if ((Cards::countInLocation(WATER) == 0)) {
-			return Game::transition(ST_PRE_END_OF_GAME);
+			return Game::goTo(ST_PRE_END_OF_GAME);
 		}
 		$nbCardsOnBoard = Players::count() == 2 ? 2 : 3;
 
@@ -108,6 +108,11 @@ trait TurnTrait
 		Notifications::startActionPhase();
 		Log::checkpoint();
 
+		Game::transition();
+	}
+
+	public function stPreEndOfGame()
+	{
 		Game::transition();
 	}
 }

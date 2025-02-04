@@ -1,4 +1,5 @@
 interface Card {
+  deck: "setA" | "setB" | "starter";
   id: number;
   location:
     | "player"
@@ -42,6 +43,10 @@ class CardSetting<T extends Card> implements CardManagerSettings<T> {
   setupBackDiv?: (card: T, element: HTMLDivElement) => void;
   setupDiv(card: T, element: HTMLDivElement) {
     element.classList.add(card.type);
+
+    if (card.deck == "starter" && card.type == "pot") {
+      element.classList.add("basicPot", card.state > 0 ? "right" : "left");
+    }
   }
   setupFrontDiv(card: T, element: HTMLDivElement) {
     if (card.dataId) element.dataset.dataId = card.dataId.toString();
