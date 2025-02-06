@@ -80,7 +80,9 @@ trait TendTrait
 		$player = Players::get($pId);
 		$moveNb = count(array_keys($moves));
 
-		if ($moveNb > 2) {
+		$remainingMoves = Globals::incRemainingMoves(-$moveNb);
+
+		if ($remainingMoves < 0) {
 			Game::error('You can do only 2 moves maximum', $moves);
 		}
 		foreach ($moves as $cardId => $spaceId) {
@@ -97,8 +99,7 @@ trait TendTrait
 			}
 			$plant->move($spaceId);
 		}
-		$remainingMoves = Globals::incRemainingMoves(-$moveNb);
-		if ($remainingMoves) {
+		if ($remainingMoves > 0) {
 			Game::transitionSameState();
 		} else {
 			Game::transition();

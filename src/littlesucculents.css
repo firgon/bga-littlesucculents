@@ -465,13 +465,13 @@
 */
 /* Note: you must not use any @import directive */
 .automaticCounter[data-nb]::before {
-  height: calc(0.1466666667 * var(--scale));
-  width: calc(0.1466666667 * var(--scale));
   color: black;
   background: white;
   border-radius: 50%;
   box-shadow: 0 0 2px 1px black;
   font-size: 14px;
+  width: 20px;
+  height: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -761,13 +761,66 @@ body > .card, body > .slot, #board-container body > .deck {
   display: inline-flex;
 }
 
-#droplets {
+#token-container {
   display: inline-flex;
 }
-#droplets .token {
+#token-container #droplets {
+  display: inline-flex;
+  gap: 10px;
+}
+#token-container #droplets .token {
   position: relative;
   display: inline-block;
+  overflow: hidden;
+  top: 0;
+  left: 0;
+}
+#token-container #droplets:not(:empty) {
   margin-left: 10px;
+}
+#token-container #droplets:not(:empty)::before {
+  content: "";
+  height: calc(0.2766666667 * var(--scale));
+  width: calc(0.2 * var(--scale));
+  position: relative;
+  background-image: url(img/cards.jpg);
+  background-position-x: 16.6666666667%;
+  background-position-y: 100%;
+  background-size: 700%;
+  filter: grayscale(1);
+}
+#token-container #droplets:not(:empty) + #dropletsFromCan:not(:empty)::before {
+  content: "/";
+  height: calc(0.2666666667 * var(--scale));
+  width: calc(0.1 * var(--scale));
+  position: relative;
+  background-image: none;
+  font-size: x-large;
+}
+#token-container #dropletsFromCan {
+  display: inline-flex;
+  gap: 10px;
+}
+#token-container #dropletsFromCan .token {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  top: 0;
+  left: 0;
+}
+#token-container #dropletsFromCan:not(:empty) {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+#token-container #dropletsFromCan:not(:empty)::after {
+  content: "";
+  height: calc(0.2766666667 * var(--scale));
+  width: calc(0.2 * var(--scale));
+  position: relative;
+  background-image: url(img/cards.jpg);
+  background-position-x: 0%;
+  background-position-y: 100%;
+  background-size: 700%;
 }
 
 #visibleDeck .slot {
@@ -818,9 +871,9 @@ body > .card, body > .slot, #board-container body > .deck {
   background-size: 300%;
 }
 
-#deckplant::before,
-#deckpot::before,
-#water::before {
+#deckplant::after,
+#deckpot::after,
+#water::after {
   border-radius: calc(0.0666666667 * var(--scale));
   content: "";
   top: 2.5%;
@@ -830,6 +883,7 @@ body > .card, body > .slot, #board-container body > .deck {
   position: absolute;
   background-image: url(img/cards.jpg);
   filter: grayscale(1);
+  z-index: -1;
 }
 
 .card, #board-container .deck, .slot {
@@ -1292,7 +1346,7 @@ body > .card, body > .slot, #board-container body > .deck {
 #board-container #board .slot[data-slot-id=pot3] {
   left: 84.2%;
 }
-#board-container #water::before {
+#board-container #water::after {
   background-position-x: 16.6666666667%;
   background-position-y: 100%;
   background-size: 700%;
@@ -1303,7 +1357,7 @@ body > .card, body > .slot, #board-container body > .deck {
   background-position-y: 100%;
   background-size: 700%;
 }
-#board-container #deckplant::before {
+#board-container #deckplant::after {
   background-position-x: 83.3333333333%;
   background-position-y: 33.3333333333%;
   background-size: 700%;
@@ -1313,7 +1367,7 @@ body > .card, body > .slot, #board-container body > .deck {
   background-position-y: 33.3333333333%;
   background-size: 700%;
 }
-#board-container #deckpot::before {
+#board-container #deckpot::after {
   background-position-x: 100%;
   background-position-y: 83.3333333333%;
   background-size: 700%;
@@ -1323,10 +1377,11 @@ body > .card, body > .slot, #board-container body > .deck {
   background-position-y: 83.3333333333%;
   background-size: 700%;
 }
-#board-container #waterboard::before {
+#board-container #waterboard::before,
+#board-container #water::before {
   position: absolute;
   bottom: 100%;
-  width: 100%;
+  width: 150%;
   font-size: calc(0.1 * var(--scale));
   font-family: "Bungee", "roboto";
   text-shadow: 1px 0 0 white, 0 1px 0 white, -1px 0 0 white, 0 -1px 0 white, 1px 1px 0 white, -1px 1px 0 white, 1px -1px 0 white, -1px -1px 0 white;
@@ -1335,23 +1390,47 @@ body > .card, body > .slot, #board-container body > .deck {
 
 #table {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: calc(0.0666666667 * var(--scale));
 }
 #table .succulents-gamezone {
-  width: 95%;
+  position: relative;
   border-radius: calc(0.0666666667 * var(--scale));
   border-width: 2px;
   border-style: solid;
+  overflow: hidden;
+}
+#table .succulents-gamezone .player-board-name {
+  padding: 0 5px;
+  font-size: calc(0.1 * var(--scale));
+  font-family: "Bungee", "roboto";
+  text-shadow: 1px 0 0 white, 0 1px 0 white, -1px 0 0 white, 0 -1px 0 white, 1px 1px 0 white, -1px 1px 0 white, 1px -1px 0 white, -1px -1px 0 white;
 }
 #table .succulents-gamezone .gamezone-cards {
   height: calc(2.7933333333 * var(--scale) + 8px);
   flex-direction: column-reverse;
   align-content: center;
+  margin-right: calc(1 * var(--scale));
 }
 #table .succulents-gamezone .gamezone-cards .slot:empty:not(.active) {
   display: none;
+}
+#table .succulents-gamezone .waterCan {
+  height: calc(1.3833333333 * var(--scale));
+  width: calc(1 * var(--scale));
+  border-radius: calc(0.0666666667 * var(--scale));
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+#table .succulents-gamezone .waterCan .card-side.back {
+  background-position-x: 0%;
+  background-position-y: 100%;
+  background-size: 700%;
+  filter: contrast(0.8);
 }
 
 /*

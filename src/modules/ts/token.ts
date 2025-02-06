@@ -4,7 +4,11 @@ class Token {
   constructor(public gameui: LittleSucculentsGame) {}
 
   static countTokens(elem: HTMLElement) {
-    return elem.querySelectorAll(".token").length;
+    return elem.querySelectorAll(".token:not(.flower)").length;
+  }
+
+  static takeToken(elem: HTMLElement) {
+    return elem.querySelector(".token:not(.flower)") as HTMLElement;
   }
 
   moveTokenOnCard(token: HTMLElement, card: Card) {

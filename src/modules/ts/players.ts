@@ -1,7 +1,20 @@
 class Players {
   constructor(private gameui: GameGui) {}
 
-  updateScore(player: Player) {
+  updatePlayer(player: Player) {
+    if (player.isFirst) {
+      (this.gameui as LittleSucculentsGame).attachElementWithSlide(
+        $("firstPlayer"),
+        $(`first-player-${player.id}`)
+      );
+    }
+
+    this.gameui._counters["water-" + player.id].toValue(player.water);
+
+    if (player.money) {
+      this.gameui._counters["money-" + player.id].toValue(player.money);
+    }
+
     this.gameui.scoreCtrl[player.id].toValue(player.score);
   }
 
@@ -39,18 +52,7 @@ class Players {
     for (const playerId in players) {
       const player = players[playerId];
 
-      if (player.isFirst) {
-        (this.gameui as LittleSucculentsGame).attachElementWithSlide(
-          $("firstPlayer"),
-          $(`first-player-${player.id}`)
-        );
-      }
-
-      this.gameui._counters["water-" + playerId].toValue(player.water);
-
-      this.gameui._counters["money-" + playerId].toValue(player.money);
-
-      this.gameui.scoreCtrl[playerId].toValue(player.score);
+      this.updatePlayer(player);
     }
   }
 

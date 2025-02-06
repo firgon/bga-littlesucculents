@@ -27,6 +27,24 @@ class Notifications
     static::notifyAll('drawCard', '', $data);
   }
 
+  public static function flower($player, $card, $color)
+  {
+    $translatableColor = [
+      GREEN => _('green'),
+      RED => _('red'),
+      YELLOW => _('yellow'),
+      PINK => _('pink'),
+      BLUE => _('blue'),
+      ORANGE => _('orange')
+    ];
+    $data = [
+      'player' => $player,
+      'color' => $translatableColor[$color],
+      'card' => $card
+    ];
+    static::message(_('${player_name} flowers his ${cardName} and gets the ${color} flower'), $data);
+  }
+
   public static function transfert($fromCard, $toCard, $n)
   {
     $data = [

@@ -23,10 +23,17 @@ class Generics {
   }
 
   static getCardContainer(card: Card) {
-    return card.location == "player"
-      ? card.playerId
-      : card.location == "plantboard" || card.location == "potboard"
-      ? "board"
-      : card.location;
+    switch (card.location) {
+      case "player":
+        return card.playerId;
+      case "plantboard":
+      case "potboard":
+        return "board";
+      case "waterCan":
+        return "waterCan-" + card.playerId;
+
+      default:
+        return card.location;
+    }
   }
 }

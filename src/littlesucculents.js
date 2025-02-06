@@ -2013,11 +2013,17 @@ var Generics = /** @class */ (function () {
             element.append(div);
     };
     Generics.getCardContainer = function (card) {
-        return card.location == "player"
-            ? card.playerId
-            : card.location == "plantboard" || card.location == "potboard"
-                ? "board"
-                : card.location;
+        switch (card.location) {
+            case "player":
+                return card.playerId;
+            case "plantboard":
+            case "potboard":
+                return "board";
+            case "waterCan":
+                return "waterCan-" + card.playerId;
+            default:
+                return card.location;
+        }
     };
     return Generics;
 }());
@@ -2056,7 +2062,14 @@ var Players = /** @class */ (function () {
     function Players(gameui) {
         this.gameui = gameui;
     }
-    Players.prototype.updateScore = function (player) {
+    Players.prototype.updatePlayer = function (player) {
+        if (player.isFirst) {
+            this.gameui.attachElementWithSlide($("firstPlayer"), $("first-player-".concat(player.id)));
+        }
+        this.gameui._counters["water-" + player.id].toValue(player.water);
+        if (player.money) {
+            this.gameui._counters["money-" + player.id].toValue(player.money);
+        }
         this.gameui.scoreCtrl[player.id].toValue(player.score);
     };
     Players.prototype.setupPlayers = function (gamedatas) {
@@ -2076,12 +2089,7 @@ var Players = /** @class */ (function () {
     Players.prototype.updatePlayers = function (players) {
         for (var playerId in players) {
             var player = players[playerId];
-            if (player.isFirst) {
-                this.gameui.attachElementWithSlide($("firstPlayer"), $("first-player-".concat(player.id)));
-            }
-            this.gameui._counters["water-" + playerId].toValue(player.water);
-            this.gameui._counters["money-" + playerId].toValue(player.money);
-            this.gameui.scoreCtrl[playerId].toValue(player.score);
+            this.updatePlayer(player);
         }
     };
     //place each player board in good order.
@@ -2116,7 +2124,10 @@ var Token = /** @class */ (function () {
         this.gameui = gameui;
     }
     Token.countTokens = function (elem) {
-        return elem.querySelectorAll(".token").length;
+        return elem.querySelectorAll(".token:not(.flower)").length;
+    };
+    Token.takeToken = function (elem) {
+        return elem.querySelector(".token:not(.flower)");
     };
     Token.prototype.moveTokenOnCard = function (token, card) {
         if (!token) {
@@ -2284,7 +2295,7 @@ var MyCardManager = /** @class */ (function (_super) {
             this.game.addStatics(card);
         _super.prototype.updateCardInformations.call(this, card, settings);
         var newPlace = this.game._stocks[Generics.getCardContainer(card)];
-        // debug("updateCardInformations", newPlace, card);
+        debug("updateCardInformations", newPlace, card);
         if (newPlace && (!newPlace.contains(card) || newPlace instanceof SlotStock))
             newPlace.addCard(card);
         // this.game.addCustomTooltip(
@@ -2448,6 +2459,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         _this.default_viewport = "width=800";
         _this._counters = {};
         _this._stocks = {};
+        _this.waterCards = {};
         _this._animationManager = new AnimationManager(_this);
         var cardGameSetting = new CardSetting(_this._animationManager);
         _this._cardManager = new MyCardManager(_this, cardGameSetting);
@@ -2474,11 +2486,11 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         // Setting up player boards
         this._playerManager.setupPlayers(gamedatas);
         this.setupCards(gamedatas);
+        //add waterCan
+        this.updateWaterCans(gamedatas.players);
         $("ebd-body").classList.toggle("two-players", Object.keys(gamedatas.players).length == 2);
         //create zoom panel and define Utils
         this.setupZoomUI();
-        //add general tooltips
-        this.addTooltips();
         // add shortcut and navigation
         //add cheat block if cheatModule is active
         if (gamedatas.cheatModule) {
@@ -2487,13 +2499,17 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         this.adaptWidth();
         this.inherited(arguments);
         // Create a new div for tokens before buttons in maintitlebar
-        dojo.place("<div id='droplets'></div>", $("generalactions"), "before");
+        dojo.place("<div id='token-container'></div>", $("generalactions"), "before");
+        dojo.place("<div id='droplets'></div>", $("token-container"));
+        dojo.place("<div id='dropletsFromCan'></div>", $("token-container"));
         this._turnCounter = new TurnCounter(gamedatas.turn, _("Season: "), "/12");
         if (gamedatas.turn == 12)
             this.displayCaution();
         if (isDebug) {
             $("ebd-body").classList.add("debug");
         }
+        //add general tooltips
+        this.addTooltips();
         debug("Ending game setup");
     };
     /**
@@ -2528,7 +2544,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             if (selection.includes(lastChange)) {
                 _this.clientState("clientChooseDestination", _("Choose where to move this plant"), {
                     stateArgs: args,
-                    cardId: lastChange.id,
+                    card: lastChange,
                 });
             }
         };
@@ -2614,6 +2630,9 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             if (+spaceNb > 0) {
                 _this.onClick("pot_" + cardId + "-front", function () {
                     _this.planMoveToken(+cardId);
+                    if (_this.areDropletsRemaining()) {
+                        $("btn-water").innerText = _("Confirm");
+                    }
                 });
                 remainingSpace += spaceNb;
             }
@@ -2621,33 +2640,49 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
                 $("pot_" + cardId + "-front").classList.add("unselectable");
             }
         });
-        var remainingDroplets = Math.min(args.water[this.player_id], remainingSpace);
-        var _loop_3 = function (index) {
-            var element = this_1._tokenManager.createToken($("waterboard"), 0);
-            this_1.attachElementWithSlide(element, $("droplets"));
-            this_1.onClick(element.id, function () {
-                if (!_this.isCurrentPlayerActive())
-                    return;
-                var wasSelected = element.classList.contains("selected");
-                document
-                    .querySelectorAll(".token.selected")
-                    .forEach(function (elem) { return elem.classList.remove("selected"); });
-                if (!wasSelected) {
-                    element.classList.add("selected");
-                    _this.displayTitle(_this.fsr(_("${you} can choose a pot for this water"), {
-                        you: _this.coloredYou(),
-                    }));
+        //exception for watercan
+        this.onClick("waterCan-" + this.player_id, function () {
+            _this.storeWaterToken();
+            if (_this.areDropletsRemaining()) {
+                $("btn-water").innerText = _("Confirm");
+            }
+        });
+        var remainingDroplets = Math.min(args.water[this.player_id] + args.waterFromCan[this.player_id], remainingSpace);
+        //prepare tokens
+        ["", "FromCan"].forEach(function (suffix) {
+            var nbDroplet = args["water" + suffix][_this.player_id];
+            var _loop_3 = function (index) {
+                var element;
+                //if From can take from can, and if you can't (i don't know why) create it
+                if (suffix) {
+                    element = _this.takeDroplet($("droplets" + suffix));
                 }
                 else {
-                    _this.resetTitle();
+                    element = _this._tokenManager.createToken($("waterboard"), 0);
+                    _this.attachElementWithSlide(element, $("droplets" + suffix));
                 }
-            });
-        };
-        var this_1 = this;
-        //prepare tokens
-        for (var index = 0; index < args.water[this.player_id]; index++) {
-            _loop_3(index);
-        }
+                _this.onClick(element.id, function () {
+                    if (!_this.isCurrentPlayerActive())
+                        return; //useless?
+                    var wasSelected = element.classList.contains("selected");
+                    document
+                        .querySelectorAll(".token.selected")
+                        .forEach(function (elem) { return elem.classList.remove("selected"); });
+                    if (!wasSelected) {
+                        element.classList.add("selected");
+                        _this.displayTitle(_this.fsr(_("${you} can choose a pot for this water"), {
+                            you: _this.coloredYou(),
+                        }));
+                    }
+                    else {
+                        _this.resetTitle();
+                    }
+                });
+            };
+            for (var index = 0; index < nbDroplet; index++) {
+                _loop_3(index);
+            }
+        });
         //prepare buttons
         var takeAction = function () {
             _this.takeAction({
@@ -2657,9 +2692,9 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             $("btn-reset").innerText = _("Change mind");
             _this.replaceUnusedDropletIntoCan();
         };
-        this.addPrimaryActionButton("btn-water", _("Confirm"), function () {
-            if (+$("btn-water").dataset.remainingDroplets > 0) {
-                _this.confirmationDialog("You can place more water droplets, all unused droplets will be placed in your watering can", takeAction);
+        this.addPrimaryActionButton("btn-water", _("Confirm and store unused droplets"), function () {
+            if (_this.areDropletsRemaining()) {
+                _this.confirmationDialog("All unused droplets will be placed in your watering can", takeAction);
             }
             else {
                 takeAction();
@@ -2706,10 +2741,26 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         var _this = this;
         this.addResetClientStateButton();
         //select active CardId
-        $("plant_" + args.cardId).classList.add("selected");
-        this.onClick("plant_" + args.cardId, function () {
-            _this.clearClientState();
-        });
+        this._stocks[this.player_id].setSelectionMode("single");
+        //for first move you can swap two card
+        this._stocks[this.player_id].setSelectableCards(!args.stateArgs.moves && args.stateArgs.remainingMoves == 2
+            ? args.stateArgs.plants
+            : [args.card]);
+        this._stocks[this.player_id].selectCard(args.card, true);
+        this._stocks[this.player_id].onSelectionChange = function (selection, lastChange) {
+            if (lastChange.id == args.card.id) {
+                _this.clearClientState();
+            }
+            else {
+                args.stateArgs.moves = {};
+                args.stateArgs.moves[args.card.id] = lastChange.state;
+                args.stateArgs.moves[lastChange.id] = args.stateArgs.plants.find(function (c) { return c.id == args.card.id; }).state;
+                _this.takeAction({
+                    actionName: "actMovePlants",
+                    moves: args.stateArgs.moves,
+                });
+            }
+        };
         //empty spaces
         args.stateArgs.possibleEmptyPlaces.forEach(function (emptySpace) {
             //if empty space is already a destination, forget it
@@ -2722,7 +2773,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
                     if (!args.stateArgs.moves) {
                         args.stateArgs.moves = {};
                     }
-                    args.stateArgs.moves[args.cardId] = emptySpace;
+                    args.stateArgs.moves[args.card.id] = emptySpace;
                     _this.takeAction({
                         actionName: "actMovePlants",
                         moves: args.stateArgs.moves,
@@ -2730,38 +2781,14 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
                 });
             }
         });
-        //space with cards (only for first move)
-        if (!args.stateArgs.moves) {
+        //space with cards (only for first move) // USELESS ONLY KEPT FOR UI REASON (good border appearing)
+        if (!args.stateArgs.moves && args.stateArgs.remainingMoves == 2) {
             args.stateArgs.plants.forEach(function (plant) {
                 //do not move on itself
-                if (plant.id == args.cardId)
+                if (plant.id == args.card.id)
                     return;
-                _this.onClick("plant_" + plant.id, function () {
-                    args.stateArgs.moves = {};
-                    args.stateArgs.moves[args.cardId] = plant.state;
-                    var options = [_("Swap"), _("Move")];
-                    _this.multipleChoiceDialog(_("Would you like to swap both cards or just move the first one here ?"), options, function (choice) {
-                        switch (+choice) {
-                            case 0:
-                                debug(choice);
-                                //swap both cards
-                                args.stateArgs.moves[plant.id] = args.stateArgs.plants.find(function (c) { return c.id == args.cardId; }).state;
-                                _this.takeAction({
-                                    actionName: "actMovePlants",
-                                    moves: args.stateArgs.moves,
-                                });
-                                return;
-                            case 1:
-                                //move
-                                _this.clientState("clientChooseDestination", _("Choose where to move this plant"), {
-                                    stateArgs: args,
-                                    cardId: plant.id,
-                                });
-                                return;
-                        }
-                        return;
-                    });
-                });
+                $("plant_" + plant.id).classList.add("selectable");
+                _this._selectableNodes.push($("plant_" + plant.id));
             });
         }
     };
@@ -2863,6 +2890,28 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     //
     //
     //
+    LittleSucculentsGame.prototype.takeDroplet = function (destination, playerId) {
+        playerId = playerId !== null && playerId !== void 0 ? playerId : +this.player_id;
+        var token = Token.takeToken($("waterCan-" + this.player_id));
+        this.waterCards[playerId].tokenNb--;
+        if (!token) {
+            token = this._tokenManager.createToken($("waterboard"), 0);
+        }
+        this.attachElementWithSlide(token, destination);
+        return token;
+    };
+    LittleSucculentsGame.prototype.storeDroplet = function (source, playerId) {
+        playerId = playerId !== null && playerId !== void 0 ? playerId : +this.player_id;
+        var token = Token.takeToken(source);
+        if (token) {
+            this.waterCards[playerId].tokenNb++;
+            this._tokenManager.moveTokenOnCard(token, this.waterCards[playerId]);
+        }
+        else {
+            debug("error with store Droplet", source, playerId);
+        }
+        return token;
+    };
     // getBasicPots(): Card[] {
     //   return this._stocks[this.player_id]
     //     .getCards()
@@ -2889,11 +2938,10 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         var _this = this;
         if (playerId === void 0) { playerId = null; }
         playerId = playerId !== null && playerId !== void 0 ? playerId : this.player_id;
-        $("droplets")
+        $("token-container")
             .querySelectorAll(".token")
             .forEach(function (elem) {
-            _this.attachElementWithSlide(elem, $("watercan-" + playerId));
-            _this._counters["water-" + playerId].incValue(1);
+            _this.storeDroplet($("token-container"));
         });
     };
     /**
@@ -2902,12 +2950,19 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     LittleSucculentsGame.prototype.pay = function (playerId, n) {
         this._counters["money-" + playerId].incValue(-n);
     };
+    /**
+     * move all selectable token to status bar
+     */
     LittleSucculentsGame.prototype.resetMoveToken = function () {
         var _this = this;
         var tokens = document.querySelectorAll(".token.selectable");
+        var args = this.getArgs();
+        var index = 0;
         tokens.forEach(function (token) {
+            index++;
             //move token
-            _this.attachElementWithSlide(token, $("droplets"));
+            var suffix = index <= args.water[_this.player_id] ? "" : "FromCan";
+            _this.attachElementWithSlide(token, $("droplets" + suffix));
             token.classList.remove("selected");
             token.dataset.placeId = "";
             //store data
@@ -2916,7 +2971,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             var cardId = moves[token.id];
             if (!cardId) {
                 //token was in the can
-                _this._counters["water-" + _this.player_id].incValue(-1);
+                // this._counters["water-" + this.player_id].incValue(-1); //TODO this is buggy after a refresh
             }
             else {
                 _this.possiblePlaces[cardId]++;
@@ -2924,15 +2979,32 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             }
             $("btn-water").dataset.moves = JSON.stringify(moves);
         });
-        $("btn-water").dataset.remainingDroplets = this.getArgs().water;
+        $("btn-water").innerText = _("Confirm and store unused droplets");
+        $("btn-water").dataset.remainingDroplets = args.water[this.player_id];
         $("btn-reset").style.display = "none";
         $("btn-water").style.display = "inline-block";
+    };
+    LittleSucculentsGame.prototype.storeWaterToken = function () {
+        var _a;
+        //select token
+        var element = ((_a = document.querySelector(".token.selected")) !== null && _a !== void 0 ? _a : document.querySelector("#token-container .token"));
+        if (!element) {
+            this.showMessage(_("There are no droplet to place left, but you can select a droplet to move"), "error");
+            return;
+        }
+        var card = this.waterCards[this.player_id];
+        //move token
+        var _b = this._tokenManager.getAvailablePlaces(card, this._cardManager.getCardElement(card)), busyPlaces = _b[0], availablePlaces = _b[1];
+        element.dataset.placeId = availablePlaces[0].toString();
+        this._tokenManager.moveTokenOnCard(element, card);
+        element.classList.remove("selected");
+        this.resetTitle();
     };
     LittleSucculentsGame.prototype.planMoveToken = function (cardId) {
         var _a;
         if (cardId === void 0) { cardId = null; }
         //check if move is possible
-        if (this.possiblePlaces[cardId] == 0) {
+        if (cardId && this.possiblePlaces[cardId] == 0) {
             this.showMessage(_("This card is full"), "error");
             return;
         }
@@ -2940,7 +3012,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             .getCards()
             .find(function (card) { return card.id == +cardId; });
         //select token
-        var element = ((_a = document.querySelector(".token.selected")) !== null && _a !== void 0 ? _a : document.querySelector("#droplets .token"));
+        var element = ((_a = document.querySelector(".token.selected")) !== null && _a !== void 0 ? _a : document.querySelector("#token-container .token"));
         if (!element) {
             this.showMessage(_("There are no droplet to place left, but you can select a droplet to move"), "error");
             return;
@@ -2975,6 +3047,9 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
      ░░████████      █████    █████ ███████████░░█████████
       ░░░░░░░░      ░░░░░    ░░░░░ ░░░░░░░░░░░  ░░░░░░░░░
     */
+    LittleSucculentsGame.prototype.areDropletsRemaining = function () {
+        return document.querySelectorAll("#token-container .token").length == 0;
+    };
     LittleSucculentsGame.prototype.getFlowerElem = function (color) {
         // debug(".token .flower ." + color);
         return document.querySelector(".token.flower." + color);
@@ -3140,7 +3215,9 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         this.updateCards(n.args.cards);
         this.activePossibleSlots();
         $("droplets").replaceChildren();
+        $("dropletsFromCan").replaceChildren();
         this._playerManager.updatePlayers(n.args.players);
+        this.updateWaterCans(n.args.players);
     };
     LittleSucculentsGame.prototype.notif_clearTurn = function (n) {
         var _this = this;
@@ -3157,7 +3234,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         }
     };
     LittleSucculentsGame.prototype.notif_newScore = function (n) {
-        this._playerManager.updateScore(n.args.player);
+        this._playerManager.updatePlayer(n.args.player);
         //TODO display detailled score for each plant on tooltip
     };
     /*
@@ -3174,7 +3251,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
                                                                                                                  
         */
     LittleSucculentsGame.prototype.board_tpl = function (player) {
-        return "<div id='gamezone-".concat(player.id, "' class='succulents-gamezone' style='border-color:#").concat(player.color, "'>\n      <div class='player-board-name' style='background-color:#").concat(player.color, "'>\n        ").concat(player.name, "\n      </div>\n      <div id='gamezone-cards-").concat(player.id, "' class='gamezone-cards'>\n        \n      </div>\n      \n    </div>");
+        return "<div id='gamezone-".concat(player.id, "' class='succulents-gamezone' style='border-color:#").concat(player.color, "'>\n      <div class='player-board-name' style='background-color:#").concat(player.color, "'>\n        ").concat(player.name, "\n      </div>\n      <div id='gamezone-cards-").concat(player.id, "' class='gamezone-cards'>\n        \n      </div>\n      <div id='waterCan-").concat(player.id, "' class=\"waterCan\"></div>\n      \n    </div>");
     };
     // semi generic
     LittleSucculentsGame.prototype.tplPlayerPanel = function (player) {
@@ -3186,6 +3263,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             _this._stocks[deck] = new Deck(_this._cardManager, $(deck), {
                 counter: { show: true, hideWhenEmpty: true },
                 autoUpdateCardNumber: false,
+                autoRemovePreviousCards: true,
                 topCard: gamedatas.cards[deck].topCard
                     ? _this.addStatics(gamedatas.cards[deck].topCard)
                     : undefined,
@@ -3196,11 +3274,13 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             _this._stocks[deck] = new Deck(_this._cardManager, $(deck), {
                 counter: { show: true, hideWhenEmpty: false },
                 autoUpdateCardNumber: true,
+                autoRemovePreviousCards: false,
                 cardNumber: gamedatas.cards[deck].n,
             });
         });
         this._stocks["waterboard"] = new Deck(this._cardManager, $("waterboard"), {});
-        $("waterboard").dataset.label = _("Weather :");
+        $("waterboard").dataset.label = _("Current Weather :");
+        $("water").dataset.label = _("Draw pile :");
         this._stocks["board"] = new SlotStock(this._cardManager, $("board"), {
             slotsIds: ["pot1", "pot2", "pot3", "plant1", "plant2", "plant3"],
             mapCardToSlot: function (card) {
@@ -3238,6 +3318,8 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
                 },
                 wrap: "wrap",
             });
+            //waterCan
+            _this._stocks["waterCan-" + playerId] = new AllVisibleDeck(_this._cardManager, $("waterCan-" + playerId), {});
         });
         //discard
         this._stocks["discard"] = new VoidStock(this._cardManager, $("discard"));
@@ -3246,11 +3328,8 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     LittleSucculentsGame.prototype.updateCards = function (cards) {
         var _this = this;
         [/*"discardplant", "discardpot", */ "water"].forEach(function (deck) {
-            var _a, _b;
-            if ((_a = cards[deck]) === null || _a === void 0 ? void 0 : _a.topCard)
-                _this._stocks[deck].addCard(_this.addStatics(cards[deck].topCard));
-            if ((_b = cards[deck]) === null || _b === void 0 ? void 0 : _b.n) {
-                _this._stocks[deck].setCardNumber(cards[deck].n);
+            if (cards[deck]) {
+                _this._stocks[deck].setCardNumber(cards[deck].n, _this.addStatics(cards[deck].topCard));
             }
         });
         ["deckplant", "deckpot"].forEach(function (deck) {
@@ -3278,6 +3357,28 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         //remove slots of each player that are not reachable for now
         this.activePossibleSlots();
     };
+    LittleSucculentsGame.prototype.updateWaterCans = function (players) {
+        var _this = this;
+        Object.keys(players).forEach(function (playerId) {
+            if (!_this.waterCards[playerId]) {
+                _this.waterCards[playerId] = {
+                    deck: "starter",
+                    id: +playerId,
+                    location: "waterCan",
+                    state: 0,
+                    extraDatas: {},
+                    playerId: +playerId,
+                    dataId: 0,
+                    tokenNb: players[playerId].water,
+                    flowered: false,
+                };
+            }
+            else {
+                _this.waterCards[playerId].tokenNb = players[playerId].water;
+            }
+            _this._cardManager.updateCardInformations(_this.waterCards[playerId]);
+        });
+    };
     /*
       █████████  ██████████ ██████   █████ ██████████ ███████████   █████   █████████   █████████
       ███░░░░░███░░███░░░░░█░░██████ ░░███ ░░███░░░░░█░░███░░░░░███ ░░███   ███░░░░░███ ███░░░░░███
@@ -3299,6 +3400,8 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             { name: "deckplant", hint: _("Deck of Plant Cards") },
             { name: "deckpot", hint: _("Deck of Pot Cards") },
             { name: "firstPlayer", hint: _("First player token") },
+            { name: "droplets", hint: _("Droplets from weather or tend action") },
+            { name: "dropletsFromCan", hint: _("Droplets from your can") },
             { name: "money-counter", hint: _("Money of the player"), type: "class" },
             {
                 name: "water-counter",
@@ -3375,7 +3478,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         if (to === void 0) { to = 6; }
         var _loop_5 = function (index) {
             if (!$("btn-" + index)) {
-                this_2.addActionButton("btn-" + index, "" + index, function () {
+                this_1.addActionButton("btn-" + index, "" + index, function () {
                     callback(index);
                 });
             }
@@ -3383,7 +3486,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             elem.style.display = "inline-block";
             elem.classList.toggle("disabled", valuesToDisable.includes(index));
         };
-        var this_2 = this;
+        var this_1 = this;
         for (var index = from; index <= to; index++) {
             _loop_5(index);
         }

@@ -89,12 +89,61 @@
 #generalactions {
   display: inline-flex;
 }
-#droplets {
+#token-container {
   display: inline-flex;
-  .token {
-    position: relative;
-    display: inline-block;
-    margin-left: 10px;
+  #droplets {
+    display: inline-flex;
+    gap: 10px;
+    .token {
+      position: relative;
+      display: inline-block;
+      overflow: hidden;
+      top: 0;
+      left: 0;
+    }
+    &:not(:empty) {
+      margin-left: 10px;
+      &::before {
+        content: "";
+        @include mix.size(60, 83);
+        position: relative;
+        background-image: url(img/cards.jpg);
+        @include mix.getBackgroundPosition(44);
+        filter: grayscale(1);
+      }
+    }
+  }
+  #droplets:not(:empty) + #dropletsFromCan:not(:empty) {
+    &::before {
+      content: "/";
+      @include mix.size(30, 80);
+      position: relative;
+      background-image: none;
+      font-size: x-large;
+    }
+  }
+  #dropletsFromCan {
+    display: inline-flex;
+    gap: 10px;
+    .token {
+      position: relative;
+      display: inline-block;
+      overflow: hidden;
+      top: 0;
+      left: 0;
+    }
+    &:not(:empty) {
+      margin-left: 10px;
+      margin-right: 10px;
+
+      &::after {
+        content: "";
+        @include mix.size(60, 83);
+        position: relative;
+        background-image: url(img/cards.jpg);
+        @include mix.getBackgroundPosition(43);
+      }
+    }
   }
 }
 
@@ -135,7 +184,7 @@
 #deckplant,
 #deckpot,
 #water {
-  &::before {
+  &::after {
     border-radius: mix.addScale(20);
     content: "";
     top: 2.5%;
@@ -145,6 +194,7 @@
     position: absolute;
     background-image: url(img/cards.jpg);
     filter: grayscale(1);
+    z-index: -1;
   }
 }
 
@@ -337,7 +387,7 @@
     }
   }
   #water {
-    &::before {
+    &::after {
       @include mix.getBackgroundPosition(44);
     }
     .card .back {
@@ -346,7 +396,7 @@
     }
   }
   #deckplant {
-    &::before {
+    &::after {
       @include mix.getBackgroundPosition(20);
     }
     .card .back {
@@ -354,7 +404,7 @@
     }
   }
   #deckpot {
-    &::before {
+    &::after {
       @include mix.getBackgroundPosition(42);
     }
     .card .back {
@@ -362,11 +412,12 @@
     }
   }
 
-  #waterboard {
+  #waterboard,
+  #water {
     &::before {
       position: absolute;
       bottom: 100%;
-      width: 100%;
+      width: 150%;
       font-size: mix.addScale(30);
       font-family: var.$main-font;
       @include mix.textBorder(white);
@@ -376,20 +427,43 @@
 }
 #table {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: mix.addScale(20);
   .succulents-gamezone {
-    width: 95%;
+    position: relative;
+    // width: 95%;
     border-radius: mix.addScale(20);
     border-width: 2px;
     border-style: solid;
+    overflow: hidden;
+    .player-board-name {
+      padding: 0 5px;
+
+      font-size: mix.addScale(30);
+      font-family: var.$main-font;
+      @include mix.textBorder(white);
+    }
     .gamezone-cards {
       height: calc(mix.addScale(calc(419 * 2)) + 8px);
       flex-direction: column-reverse;
       align-content: center;
+      margin-right: mix.addScale(300);
       .slot:empty:not(.active) {
         display: none;
+      }
+    }
+    .waterCan {
+      @include mix.size(300, 415);
+      border-radius: mix.addScale(20);
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      .card-side.back {
+        @include mix.getBackgroundPosition(43);
+        filter: contrast(0.8);
       }
     }
   }

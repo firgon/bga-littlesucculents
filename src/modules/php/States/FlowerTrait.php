@@ -29,6 +29,8 @@ trait FlowerTrait
 		//move token leaf on pot
 		$floweredCard->setFlowered(1);
 
+		Notifications::flower($player, $floweredCard, $color);
+
 		Notifications::updateCard($floweredCard);
 		Players::computeScore();
 

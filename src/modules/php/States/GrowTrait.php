@@ -9,6 +9,7 @@ use LSU\Core\Notifications;
 use LSU\Core\Engine;
 use LSU\Core\Stats;
 use LSU\Helpers\Log;
+use LSU\Helpers\Utils;
 use LSU\Managers\Cards;
 use LSU\Managers\Players;
 use LSU\Models\Player;
@@ -18,7 +19,8 @@ trait GrowTrait
 	public function argWater()
 	{
 		return [
-			'water' => Players::getAll()->map(fn($player) => Cards::getCurrentWeather() + $player->getWater()),
+			'water' => Players::getAll()->map(fn($player) => Cards::getCurrentWeather()),
+			'waterFromCan' => Players::getAll()->map(fn($player) => $player->getWater()),
 			'possiblePlaces' => Players::getWaterPossiblePlaces(),
 			'playerPlans' => Globals::getPlayerPlans()
 		];
@@ -28,7 +30,8 @@ trait GrowTrait
 	{
 		$player = Players::getActive();
 		return [
-			'water' => [$player->getId() => 2 + $player->getWater()],
+			'water' => [$player->getId() => 2],
+			'waterFromCan' => [$player->getId() => $player->getWater()],
 			'possiblePlaces' => Players::getWaterPossiblePlaces(),
 			'playerPlans' => Globals::getPlayerPlans()
 		];
@@ -55,7 +58,7 @@ trait GrowTrait
 	{
 		$cards = $args['cardIds'];
 		$possiblePlaces = $stateArgs['possiblePlaces'][$pId];
-		$water = $stateArgs['water'][$pId];
+		$water = $stateArgs['water'][$pId] + $stateArgs['waterFromCan'][$pId];
 
 		if ($water < count($cards)) {
 			Game::error("You can\'t place more than $water water droplets", count($cards));
@@ -112,7 +115,7 @@ trait GrowTrait
 	{
 		$cards = $args['cardIds'];
 		$possiblePlaces = $stateArgs['possiblePlaces'][$pId];
-		$water = $stateArgs['water'][$pId] ?? 0;
+		$water = ($stateArgs['water'][$pId] ?? 0) + ($stateArgs['waterFromCan'][$pId] ?? 0);
 
 		if ($water < count($cards)) {
 			Game::error("You can\'t place more than $water water droplets", count($cards));
@@ -130,6 +133,8 @@ trait GrowTrait
 			$card = Cards::get($cardId);
 			$card->addWater(1);
 		}
+
+		Players::get($pId)->setWater($water - count($cards));
 		Game::transition();
 	}
 

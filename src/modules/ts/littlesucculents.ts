@@ -31,7 +31,15 @@ class LittleSucculentsGame extends GameGui {
   public _stocks: { [stockId: string]: CardStock<Card> };
   public _cardManager: MyCardManager<Card>;
   public _tokenManager: Token;
+  /**
+   * To store possible place for water droplets, cardId => nbofPlaces
+   */
   public possiblePlaces: { [cardId: number]: number };
+
+  /**
+   * fake cards for waterCan
+   */
+  public waterCards: { [playerId: number]: Card };
   public _playerManager: Players;
 
   constructor() {
@@ -58,6 +66,7 @@ class LittleSucculentsGame extends GameGui {
 
     this._counters = {};
     this._stocks = {};
+    this.waterCards = {};
 
     this._animationManager = new AnimationManager(this);
     const cardGameSetting: CardSetting<Card> = new CardSetting(
@@ -93,6 +102,9 @@ class LittleSucculentsGame extends GameGui {
 
     this.setupCards(gamedatas);
 
+    //add waterCan
+    this.updateWaterCans(gamedatas.players);
+
     $("ebd-body").classList.toggle(
       "two-players",
       Object.keys(gamedatas.players).length == 2
@@ -100,9 +112,6 @@ class LittleSucculentsGame extends GameGui {
 
     //create zoom panel and define Utils
     this.setupZoomUI();
-
-    //add general tooltips
-    this.addTooltips();
 
     // add shortcut and navigation
 
@@ -115,7 +124,13 @@ class LittleSucculentsGame extends GameGui {
     this.inherited(arguments);
 
     // Create a new div for tokens before buttons in maintitlebar
-    dojo.place("<div id='droplets'></div>", $("generalactions"), "before");
+    dojo.place(
+      "<div id='token-container'></div>",
+      $("generalactions"),
+      "before"
+    );
+    dojo.place("<div id='droplets'></div>", $("token-container"));
+    dojo.place("<div id='dropletsFromCan'></div>", $("token-container"));
 
     this._turnCounter = new TurnCounter(gamedatas.turn, _("Season: "), "/12");
     if (gamedatas.turn == 12) this.displayCaution();
@@ -123,6 +138,10 @@ class LittleSucculentsGame extends GameGui {
     if (isDebug) {
       $("ebd-body").classList.add("debug");
     }
+
+    //add general tooltips
+    this.addTooltips();
+
     debug("Ending game setup");
   }
 
@@ -171,7 +190,7 @@ class LittleSucculentsGame extends GameGui {
           _("Choose where to move this plant"),
           {
             stateArgs: args,
-            cardId: lastChange.id,
+            card: lastChange,
           }
         );
       }
@@ -272,6 +291,7 @@ class LittleSucculentsGame extends GameGui {
 
   onEnteringStateWater(args: {
     water: { [playerId: number]: number };
+    waterFromCan: { [playerId: number]: number };
     possiblePlaces: {
       [playerId: number]: { [cardId: number]: number };
     };
@@ -290,6 +310,9 @@ class LittleSucculentsGame extends GameGui {
         if (+spaceNb > 0) {
           this.onClick("pot_" + cardId + "-front", () => {
             this.planMoveToken(+cardId);
+            if (this.areDropletsRemaining()) {
+              $("btn-water").innerText = _("Confirm");
+            }
           });
           remainingSpace += spaceNb as number;
         } else {
@@ -298,34 +321,53 @@ class LittleSucculentsGame extends GameGui {
       }
     );
 
+    //exception for watercan
+    this.onClick("waterCan-" + this.player_id, () => {
+      this.storeWaterToken();
+      if (this.areDropletsRemaining()) {
+        $("btn-water").innerText = _("Confirm");
+      }
+    });
+
     const remainingDroplets = Math.min(
-      args.water[this.player_id],
+      args.water[this.player_id] + args.waterFromCan[this.player_id],
       remainingSpace
     );
 
     //prepare tokens
-    for (let index = 0; index < args.water[this.player_id]; index++) {
-      const element = this._tokenManager.createToken($("waterboard"), 0);
-      this.attachElementWithSlide(element, $("droplets"));
+    ["", "FromCan"].forEach((suffix) => {
+      const nbDroplet = args["water" + suffix][this.player_id];
 
-      this.onClick(element.id, () => {
-        if (!this.isCurrentPlayerActive()) return;
-        const wasSelected = element.classList.contains("selected");
-        document
-          .querySelectorAll(".token.selected")
-          .forEach((elem) => elem.classList.remove("selected"));
-        if (!wasSelected) {
-          element.classList.add("selected");
-          this.displayTitle(
-            this.fsr(_("${you} can choose a pot for this water"), {
-              you: this.coloredYou(),
-            })
-          );
+      for (let index = 0; index < nbDroplet; index++) {
+        let element: HTMLElement;
+        //if From can take from can, and if you can't (i don't know why) create it
+        if (suffix) {
+          element = this.takeDroplet($("droplets" + suffix));
         } else {
-          this.resetTitle();
+          element = this._tokenManager.createToken($("waterboard"), 0);
+
+          this.attachElementWithSlide(element, $("droplets" + suffix));
         }
-      });
-    }
+
+        this.onClick(element.id, () => {
+          if (!this.isCurrentPlayerActive()) return; //useless?
+          const wasSelected = element.classList.contains("selected");
+          document
+            .querySelectorAll(".token.selected")
+            .forEach((elem) => elem.classList.remove("selected"));
+          if (!wasSelected) {
+            element.classList.add("selected");
+            this.displayTitle(
+              this.fsr(_("${you} can choose a pot for this water"), {
+                you: this.coloredYou(),
+              })
+            );
+          } else {
+            this.resetTitle();
+          }
+        });
+      }
+    });
 
     //prepare buttons
     const takeAction = () => {
@@ -337,16 +379,20 @@ class LittleSucculentsGame extends GameGui {
       $("btn-reset").innerText = _("Change mind");
       this.replaceUnusedDropletIntoCan();
     };
-    this.addPrimaryActionButton("btn-water", _("Confirm"), () => {
-      if (+$("btn-water").dataset.remainingDroplets > 0) {
-        this.confirmationDialog(
-          "You can place more water droplets, all unused droplets will be placed in your watering can",
-          takeAction
-        );
-      } else {
-        takeAction();
+    this.addPrimaryActionButton(
+      "btn-water",
+      _("Confirm and store unused droplets"),
+      () => {
+        if (this.areDropletsRemaining()) {
+          this.confirmationDialog(
+            "All unused droplets will be placed in your watering can",
+            takeAction
+          );
+        } else {
+          takeAction();
+        }
       }
-    });
+    );
     $("btn-water").dataset.remainingDroplets = remainingDroplets.toString();
 
     $("btn-water").dataset.moves = JSON.stringify({});
@@ -398,18 +444,41 @@ class LittleSucculentsGame extends GameGui {
     stateArgs: {
       plants: Card[];
       possibleEmptyPlaces: number[];
-      possiblePlaces: number[];
       moves?: { [cardId: number]: number };
+      remainingMoves: 1 | 2;
     };
-    cardId: number;
+    card: Card;
   }) {
     this.addResetClientStateButton();
 
     //select active CardId
-    $("plant_" + args.cardId).classList.add("selected");
-    this.onClick("plant_" + args.cardId, () => {
-      this.clearClientState();
-    });
+    this._stocks[this.player_id].setSelectionMode("single");
+    //for first move you can swap two card
+    this._stocks[this.player_id].setSelectableCards(
+      !args.stateArgs.moves && args.stateArgs.remainingMoves == 2
+        ? args.stateArgs.plants
+        : [args.card]
+    );
+    this._stocks[this.player_id].selectCard(args.card, true);
+    this._stocks[this.player_id].onSelectionChange = (
+      selection,
+      lastChange
+    ) => {
+      if (lastChange.id == args.card.id) {
+        this.clearClientState();
+      } else {
+        args.stateArgs.moves = {};
+        args.stateArgs.moves[args.card.id] = lastChange.state;
+
+        args.stateArgs.moves[lastChange.id] = args.stateArgs.plants.find(
+          (c) => c.id == args.card.id
+        ).state;
+        this.takeAction({
+          actionName: "actMovePlants",
+          moves: args.stateArgs.moves,
+        });
+      }
+    };
 
     //empty spaces
     args.stateArgs.possibleEmptyPlaces.forEach((emptySpace) => {
@@ -424,7 +493,7 @@ class LittleSucculentsGame extends GameGui {
           if (!args.stateArgs.moves) {
             args.stateArgs.moves = {};
           }
-          args.stateArgs.moves[args.cardId] = emptySpace;
+          args.stateArgs.moves[args.card.id] = emptySpace;
 
           this.takeAction({
             actionName: "actMovePlants",
@@ -434,51 +503,13 @@ class LittleSucculentsGame extends GameGui {
       }
     });
 
-    //space with cards (only for first move)
-    if (!args.stateArgs.moves) {
+    //space with cards (only for first move) // USELESS ONLY KEPT FOR UI REASON (good border appearing)
+    if (!args.stateArgs.moves && args.stateArgs.remainingMoves == 2) {
       args.stateArgs.plants.forEach((plant) => {
         //do not move on itself
-        if (plant.id == args.cardId) return;
-
-        this.onClick("plant_" + plant.id, () => {
-          args.stateArgs.moves = {};
-          args.stateArgs.moves[args.cardId] = plant.state;
-
-          const options = [_("Swap"), _("Move")];
-          this.multipleChoiceDialog(
-            _(
-              "Would you like to swap both cards or just move the first one here ?"
-            ),
-            options,
-            (choice) => {
-              switch (+choice) {
-                case 0:
-                  debug(choice);
-                  //swap both cards
-                  args.stateArgs.moves[plant.id] = args.stateArgs.plants.find(
-                    (c) => c.id == args.cardId
-                  ).state;
-                  this.takeAction({
-                    actionName: "actMovePlants",
-                    moves: args.stateArgs.moves,
-                  });
-                  return;
-                case 1:
-                  //move
-                  this.clientState(
-                    "clientChooseDestination",
-                    _("Choose where to move this plant"),
-                    {
-                      stateArgs: args,
-                      cardId: plant.id,
-                    }
-                  );
-                  return;
-              }
-              return;
-            }
-          );
-        });
+        if (plant.id == args.card.id) return;
+        $("plant_" + plant.id).classList.add("selectable");
+        this._selectableNodes.push($("plant_" + plant.id));
       });
     }
   }
@@ -601,6 +632,28 @@ class LittleSucculentsGame extends GameGui {
   //
   //
 
+  takeDroplet(destination: HTMLElement, playerId?: number): HTMLElement {
+    playerId = playerId ?? +this.player_id;
+    let token = Token.takeToken($("waterCan-" + this.player_id));
+    this.waterCards[playerId].tokenNb--;
+    if (!token) {
+      token = this._tokenManager.createToken($("waterboard"), 0);
+    }
+    this.attachElementWithSlide(token, destination);
+    return token;
+  }
+
+  storeDroplet(source: HTMLElement, playerId?: number): HTMLElement {
+    playerId = playerId ?? +this.player_id;
+    let token = Token.takeToken(source);
+    if (token) {
+      this.waterCards[playerId].tokenNb++;
+      this._tokenManager.moveTokenOnCard(token, this.waterCards[playerId]);
+    } else {
+      debug("error with store Droplet", source, playerId);
+    }
+    return token;
+  }
   // getBasicPots(): Card[] {
   //   return this._stocks[this.player_id]
   //     .getCards()
@@ -627,14 +680,10 @@ class LittleSucculentsGame extends GameGui {
 
   replaceUnusedDropletIntoCan(playerId = null) {
     playerId = playerId ?? this.player_id;
-    $("droplets")
+    $("token-container")
       .querySelectorAll(".token")
       .forEach((elem) => {
-        this.attachElementWithSlide(
-          elem as HTMLElement,
-          $("watercan-" + playerId)
-        );
-        this._counters["water-" + playerId].incValue(1);
+        this.storeDroplet($("token-container"));
       });
   }
 
@@ -645,11 +694,29 @@ class LittleSucculentsGame extends GameGui {
     this._counters["money-" + playerId].incValue(-n);
   }
 
+  /**
+   * move all selectable token to status bar
+   */
   resetMoveToken() {
     const tokens = document.querySelectorAll(".token.selectable");
+
+    const args = this.getArgs() as {
+      water: { [playerId: number]: number };
+      waterFromCan: { [playerId: number]: number };
+      possiblePlaces: {
+        [playerId: number]: { [cardId: number]: number };
+      };
+      playerPlans: {
+        [playerId: number]: number[];
+      };
+    };
+
+    let index = 0;
     tokens.forEach((token: HTMLElement) => {
+      index++;
       //move token
-      this.attachElementWithSlide(token, $("droplets"));
+      const suffix = index <= args.water[this.player_id] ? "" : "FromCan";
+      this.attachElementWithSlide(token, $("droplets" + suffix));
       token.classList.remove("selected");
       token.dataset.placeId = "";
 
@@ -659,7 +726,7 @@ class LittleSucculentsGame extends GameGui {
       const cardId = moves[token.id];
       if (!cardId) {
         //token was in the can
-        this._counters["water-" + this.player_id].incValue(-1);
+        // this._counters["water-" + this.player_id].incValue(-1); //TODO this is buggy after a refresh
       } else {
         this.possiblePlaces[cardId]++;
         delete moves[token.id];
@@ -667,14 +734,44 @@ class LittleSucculentsGame extends GameGui {
 
       $("btn-water").dataset.moves = JSON.stringify(moves);
     });
-    $("btn-water").dataset.remainingDroplets = this.getArgs().water;
+
+    $("btn-water").innerText = _("Confirm and store unused droplets");
+    $("btn-water").dataset.remainingDroplets = args.water[this.player_id];
     $("btn-reset").style.display = "none";
     $("btn-water").style.display = "inline-block";
   }
 
+  storeWaterToken() {
+    //select token
+    const element = (document.querySelector(".token.selected") ??
+      document.querySelector("#token-container .token")) as HTMLElement;
+    if (!element) {
+      this.showMessage(
+        _(
+          "There are no droplet to place left, but you can select a droplet to move"
+        ),
+        "error"
+      );
+      return;
+    }
+
+    const card = this.waterCards[this.player_id];
+    //move token
+    const [busyPlaces, availablePlaces] = this._tokenManager.getAvailablePlaces(
+      card,
+      this._cardManager.getCardElement(card)
+    );
+
+    element.dataset.placeId = availablePlaces[0].toString();
+
+    this._tokenManager.moveTokenOnCard(element, card);
+    element.classList.remove("selected");
+    this.resetTitle();
+  }
+
   planMoveToken(cardId: number = null) {
     //check if move is possible
-    if (this.possiblePlaces[cardId] == 0) {
+    if (cardId && this.possiblePlaces[cardId] == 0) {
       this.showMessage(_("This card is full"), "error");
       return;
     }
@@ -685,7 +782,7 @@ class LittleSucculentsGame extends GameGui {
 
     //select token
     const element = (document.querySelector(".token.selected") ??
-      document.querySelector("#droplets .token")) as HTMLElement;
+      document.querySelector("#token-container .token")) as HTMLElement;
     if (!element) {
       this.showMessage(
         _(
@@ -734,6 +831,10 @@ class LittleSucculentsGame extends GameGui {
    ░░████████      █████    █████ ███████████░░█████████ 
 	░░░░░░░░      ░░░░░    ░░░░░ ░░░░░░░░░░░  ░░░░░░░░░  
   */
+
+  areDropletsRemaining() {
+    return document.querySelectorAll("#token-container .token").length == 0;
+  }
 
   getFlowerElem(color: string) {
     // debug(".token .flower ." + color);
@@ -956,7 +1057,9 @@ class LittleSucculentsGame extends GameGui {
     this.updateCards(n.args.cards);
     this.activePossibleSlots();
     $("droplets").replaceChildren();
+    $("dropletsFromCan").replaceChildren();
     this._playerManager.updatePlayers(n.args.players);
+    this.updateWaterCans(n.args.players);
   }
 
   notif_clearTurn(n: {
@@ -988,7 +1091,7 @@ class LittleSucculentsGame extends GameGui {
       scoreDetail: any;
     };
   }) {
-    this._playerManager.updateScore(n.args.player);
+    this._playerManager.updatePlayer(n.args.player);
     //TODO display detailled score for each plant on tooltip
   }
 
@@ -1014,6 +1117,7 @@ class LittleSucculentsGame extends GameGui {
       <div id='gamezone-cards-${player.id}' class='gamezone-cards'>
         
       </div>
+      <div id='waterCan-${player.id}' class="waterCan"></div>
       
     </div>`;
   }
@@ -1035,6 +1139,7 @@ class LittleSucculentsGame extends GameGui {
       this._stocks[deck] = new Deck(this._cardManager, $(deck), {
         counter: { show: true, hideWhenEmpty: true },
         autoUpdateCardNumber: false,
+        autoRemovePreviousCards: true,
         topCard: gamedatas.cards[deck].topCard
           ? this.addStatics(gamedatas.cards[deck].topCard)
           : undefined,
@@ -1045,6 +1150,7 @@ class LittleSucculentsGame extends GameGui {
       this._stocks[deck] = new Deck(this._cardManager, $(deck), {
         counter: { show: true, hideWhenEmpty: false },
         autoUpdateCardNumber: true,
+        autoRemovePreviousCards: false,
         cardNumber: gamedatas.cards[deck].n,
       });
     });
@@ -1053,7 +1159,8 @@ class LittleSucculentsGame extends GameGui {
       $("waterboard"),
       {}
     );
-    $("waterboard").dataset.label = _("Weather :");
+    $("waterboard").dataset.label = _("Current Weather :");
+    $("water").dataset.label = _("Draw pile :");
     this._stocks["board"] = new SlotStock(this._cardManager, $("board"), {
       slotsIds: ["pot1", "pot2", "pot3", "plant1", "plant2", "plant3"],
       mapCardToSlot: (card) => {
@@ -1100,6 +1207,12 @@ class LittleSucculentsGame extends GameGui {
           wrap: "wrap",
         }
       );
+      //waterCan
+      this._stocks["waterCan-" + playerId] = new AllVisibleDeck(
+        this._cardManager,
+        $("waterCan-" + playerId),
+        {}
+      );
     });
 
     //discard
@@ -1110,12 +1223,11 @@ class LittleSucculentsGame extends GameGui {
 
   updateCards(cards: Partial<GameDatasCards>) {
     [/*"discardplant", "discardpot", */ "water"].forEach((deck) => {
-      if (cards[deck]?.topCard)
-        (this._stocks[deck] as Deck<Card>).addCard(
+      if (cards[deck]) {
+        (this._stocks[deck] as Deck<Card>).setCardNumber(
+          cards[deck].n,
           this.addStatics(cards[deck].topCard)
         );
-      if (cards[deck]?.n) {
-        (this._stocks[deck] as Deck<Card>).setCardNumber(cards[deck].n);
       }
     });
     ["deckplant", "deckpot"].forEach((deck) => {
@@ -1147,6 +1259,27 @@ class LittleSucculentsGame extends GameGui {
     this.activePossibleSlots();
   }
 
+  updateWaterCans(players: { [playerId: number]: Player }) {
+    Object.keys(players).forEach((playerId) => {
+      if (!this.waterCards[playerId]) {
+        this.waterCards[playerId] = {
+          deck: "starter",
+          id: +playerId,
+          location: "waterCan",
+          state: 0,
+          extraDatas: {},
+          playerId: +playerId,
+          dataId: 0,
+          tokenNb: players[playerId].water,
+          flowered: false,
+        };
+      } else {
+        this.waterCards[playerId].tokenNb = players[playerId].water;
+      }
+      this._cardManager.updateCardInformations(this.waterCards[playerId]);
+    });
+  }
+
   /*
     █████████  ██████████ ██████   █████ ██████████ ███████████   █████   █████████   █████████ 
     ███░░░░░███░░███░░░░░█░░██████ ░░███ ░░███░░░░░█░░███░░░░░███ ░░███   ███░░░░░███ ███░░░░░███
@@ -1168,6 +1301,8 @@ class LittleSucculentsGame extends GameGui {
       { name: "deckplant", hint: _("Deck of Plant Cards") },
       { name: "deckpot", hint: _("Deck of Pot Cards") },
       { name: "firstPlayer", hint: _("First player token") },
+      { name: "droplets", hint: _("Droplets from weather or tend action") },
+      { name: "dropletsFromCan", hint: _("Droplets from your can") },
       { name: "money-counter", hint: _("Money of the player"), type: "class" },
       {
         name: "water-counter",

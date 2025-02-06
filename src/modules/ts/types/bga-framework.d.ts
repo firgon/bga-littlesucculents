@@ -248,7 +248,7 @@ declare class GameGui implements Game {
   default_viewport: string;
 
   _nonActiveStates: Array<string>;
-
+  _selectableNodes; //used for temporary clickable nodes
   _notifications: any[];
 
   setupZoomUI: Function;
