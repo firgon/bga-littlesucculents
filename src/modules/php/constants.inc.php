@@ -137,6 +137,7 @@ const END_GAME = 'endGame';
 const UNDO = "undo";
 const ACTIVE_PLAYER = "activeplayer";
 const CONFIRM = 'confirm';
+const ZOMBIE_PASS = "zombiePass";
 
 //location
 const BOARD = "board";

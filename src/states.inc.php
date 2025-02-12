@@ -73,6 +73,7 @@ $machinestates = [
         "possibleactions" => ['actBuy', 'actCut', 'actFlower', 'actChooseTend', 'actGenericAction'],
         "transitions" => [
             CONFIRM => ST_CONFIRM,
+            ZOMBIE_PASS => ST_NEXT_PLAYER,
             END_TURN => ST_NEXT_PLAYER,
             'chooseTend' => ST_TEND
         ]
@@ -91,13 +92,14 @@ $machinestates = [
             "water" => ST_WATER_SOLO,
             UNDO => ST_PLAY,
             CONFIRM => ST_CONFIRM,
+            ZOMBIE_PASS => ST_NEXT_PLAYER,
         ]
     ],
 
     ST_MOVE => [
         "name" => "move",
         "description" => clienttranslate('${actplayer} can move or swap two flowers'),
-        "descriptionmyturn" => clienttranslate('${you} can move or swap two flowers'),
+        "descriptionmyturn" => clienttranslate('${you} must select a plant to move or swap'),
         "descriptionOnlyOne" => clienttranslate('${actplayer} can still move one flower'),
         "descriptionmyturnOnlyOne" => clienttranslate('${you} can still move one flower'),
         "type" => ACTIVE_PLAYER,
@@ -107,6 +109,7 @@ $machinestates = [
         "transitions" => [
             UNDO => ST_PLAY,
             END_TURN => ST_TEND,
+            ZOMBIE_PASS => ST_NEXT_PLAYER,
         ]
     ],
 
@@ -119,7 +122,8 @@ $machinestates = [
         "possibleactions" => ['actWaterSolo', 'actUndo', 'actGenericAction'],
         "transitions" => [
             END_TURN => ST_GROW_SOLO,
-            UNDO => ST_PLAY
+            UNDO => ST_PLAY,
+            ZOMBIE_PASS => ST_NEXT_PLAYER,
         ]
     ],
 
@@ -129,7 +133,8 @@ $machinestates = [
         "type" => GAME,
         "action" => "stGrowSolo",
         "transitions" => [
-            END_TURN => ST_TEND
+            END_TURN => ST_TEND,
+            ZOMBIE_PASS => ST_NEXT_PLAYER,
         ]
     ],
 
@@ -142,7 +147,8 @@ $machinestates = [
         "possibleactions" => ['actConfirm', 'actUndo', 'actGenericAction'],
         "transitions" => [
             UNDO => ST_PLAY,
-            END_TURN => ST_NEXT_PLAYER
+            END_TURN => ST_NEXT_PLAYER,
+            ZOMBIE_PASS => ST_NEXT_PLAYER,
         ]
     ],
 

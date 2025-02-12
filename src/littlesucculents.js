@@ -2630,7 +2630,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             if (+spaceNb > 0) {
                 _this.onClick("pot_" + cardId + "-front", function () {
                     _this.planMoveToken(+cardId);
-                    if (_this.areDropletsRemaining()) {
+                    if (!_this.areDropletsRemaining()) {
                         $("btn-water").innerText = _("Confirm");
                     }
                 });
@@ -2643,7 +2643,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         //exception for watercan
         this.onClick("waterCan-" + this.player_id, function () {
             _this.storeWaterToken();
-            if (_this.areDropletsRemaining()) {
+            if (!_this.areDropletsRemaining()) {
                 $("btn-water").innerText = _("Confirm");
             }
         });
@@ -3048,7 +3048,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
       ░░░░░░░░      ░░░░░    ░░░░░ ░░░░░░░░░░░  ░░░░░░░░░
     */
     LittleSucculentsGame.prototype.areDropletsRemaining = function () {
-        return document.querySelectorAll("#token-container .token").length == 0;
+        return document.querySelectorAll("#token-container .token").length != 0;
     };
     LittleSucculentsGame.prototype.getFlowerElem = function (color) {
         // debug(".token .flower ." + color);

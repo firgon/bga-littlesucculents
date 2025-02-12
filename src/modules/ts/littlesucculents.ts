@@ -310,7 +310,7 @@ class LittleSucculentsGame extends GameGui {
         if (+spaceNb > 0) {
           this.onClick("pot_" + cardId + "-front", () => {
             this.planMoveToken(+cardId);
-            if (this.areDropletsRemaining()) {
+            if (!this.areDropletsRemaining()) {
               $("btn-water").innerText = _("Confirm");
             }
           });
@@ -324,7 +324,7 @@ class LittleSucculentsGame extends GameGui {
     //exception for watercan
     this.onClick("waterCan-" + this.player_id, () => {
       this.storeWaterToken();
-      if (this.areDropletsRemaining()) {
+      if (!this.areDropletsRemaining()) {
         $("btn-water").innerText = _("Confirm");
       }
     });
@@ -833,7 +833,7 @@ class LittleSucculentsGame extends GameGui {
   */
 
   areDropletsRemaining() {
-    return document.querySelectorAll("#token-container .token").length == 0;
+    return document.querySelectorAll("#token-container .token").length != 0;
   }
 
   getFlowerElem(color: string) {

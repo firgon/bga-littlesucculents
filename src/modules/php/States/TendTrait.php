@@ -2,8 +2,6 @@
 
 namespace LSU\States;
 
-use COM;
-use PDO;
 use LSU\Core\Game;
 use LSU\Core\Globals;
 use LSU\Core\Notifications;
@@ -19,6 +17,7 @@ trait TendTrait
 	{
 		Globals::setPossibleTendActions(['move', 'water']);
 		Globals::setRemainingMoves(2);
+		Notifications::message(clienttranslate('${player_name} chooses to tend his succulents'), ['player' => Players::getActive()]);
 		Game::transition('chooseTend');
 	}
 

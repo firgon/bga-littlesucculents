@@ -202,7 +202,7 @@ class LittleSucculents extends Table
             switch ($statename) {
 
                 default:
-                    $this->gamestate->nextState("zombiePass");
+                    $this->gamestate->nextState(ZOMBIE_PASS);
                     break;
             }
 
@@ -211,7 +211,7 @@ class LittleSucculents extends Table
 
         if ($state['type'] === "multipleactiveplayer") {
             // Make sure player is in a non blocking status for role turn
-            $this->gamestate->setPlayerNonMultiactive($active_player, '');
+            $this->gamestate->setPlayerNonMultiactive($active_player, END_TURN);
 
             return;
         }

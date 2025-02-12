@@ -97,7 +97,7 @@
     .token {
       position: relative;
       display: inline-block;
-      overflow: hidden;
+      // overflow: hidden;
       top: 0;
       left: 0;
     }
@@ -128,7 +128,7 @@
     .token {
       position: relative;
       display: inline-block;
-      overflow: hidden;
+      // overflow: hidden;
       top: 0;
       left: 0;
     }
@@ -434,7 +434,7 @@
   gap: mix.addScale(20);
   .succulents-gamezone {
     position: relative;
-    // width: 95%;
+    width: 95%;
     border-radius: mix.addScale(20);
     border-width: 2px;
     border-style: solid;
@@ -442,7 +442,7 @@
     .player-board-name {
       padding: 0 5px;
 
-      font-size: mix.addScale(30);
+      font-size: max(mix.addScale(30), 15px);
       font-family: var.$main-font;
       @include mix.textBorder(white);
     }

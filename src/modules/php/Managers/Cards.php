@@ -48,7 +48,7 @@ class Cards extends \LSU\Helpers\Pieces
                 'n' => static::countInLocation(WATER),
                 'topCard' => static::getTopOf(WATER)
             ],
-            WATER . BOARD => static::getInLocation(WATER . BOARD)->first(),
+            WATER . BOARD => static::getTopOf(WATER . BOARD),
             VISIBLE_DECK => static::getInLocation(VISIBLE_DECK)->toArray(),
             "flowerableColors" => static::getFlowerableColors(),
         ];
@@ -59,7 +59,7 @@ class Cards extends \LSU\Helpers\Pieces
      */
     public static function getCurrentWeather(): int
     {
-        return Cards::getInLocation(WATER . BOARD)->first()->getMaxWater();
+        return static::getTopOf(WATER . BOARD)->getMaxWater();
     }
 
     public static function getBuyableCards(Player $player)

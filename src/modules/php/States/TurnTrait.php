@@ -95,9 +95,11 @@ trait TurnTrait
 			}
 		}
 		//move next weather card
-		$newWeather = Cards::pickOneForLocation(WATER, WATER . BOARD);
+		$newWeatherId = Cards::getTopOf(WATER)->getId();
+		Cards::insertOnTop($newWeatherId, WATER . BOARD);
+
 		//display new water on top of deck
-		Notifications::updateCard($newWeather);
+		Notifications::updateCard(Cards::get($newWeatherId));
 		Notifications::updateDeck(WATER);
 
 		//move ladybug
