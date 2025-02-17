@@ -23,7 +23,7 @@ interface Card {
   maxLeaf?: number;
   hint?: string;
   name?: string;
-  flowered: boolean;
+  flowered?: string;
 
   tokenList?: [];
 }
@@ -80,7 +80,7 @@ class MyCardManager<T extends Card> extends CardManager<T> {
     if (card.type === undefined) this.game.addStatics(card);
     super.updateCardInformations(card, settings);
     const newPlace = this.game._stocks[Generics.getCardContainer(card)];
-    debug("updateCardInformations", newPlace, card);
+    // debug("updateCardInformations", newPlace, card);
     if (newPlace && (!newPlace.contains(card) || newPlace instanceof SlotStock))
       newPlace.addCard(card);
 
@@ -89,6 +89,14 @@ class MyCardManager<T extends Card> extends CardManager<T> {
     //   this.game.tooltip_tpl(card, "tooltip")
     // );
   }
+
+  // getMatchingCard(card: Card): Card | undefined {
+  //   const stock = this.getCardStock(card as T);
+  //   if (!stock) return;
+  //   return stock
+  //     .getCards()
+  //     .find((c) => c.state == card.state && c.type != card.type);
+  // }
 
   isElementFlipped(card: T) {
     return this.getCardElement(card).dataset.side == "back";

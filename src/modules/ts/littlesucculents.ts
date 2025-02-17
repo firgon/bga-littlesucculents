@@ -590,6 +590,8 @@ class LittleSucculentsGame extends GameGui {
         this.displayTitle(this.currentStateTitle);
       }
     };
+
+    this.addResetClientStateButton();
   }
 
   //
@@ -842,7 +844,7 @@ class LittleSucculentsGame extends GameGui {
   }
 
   addStatics(c: Card): Card {
-    Object.assign(c, CARDS_DATA[c.dataId]);
+    if (c) Object.assign(c, CARDS_DATA[c.dataId]);
     return c;
   }
 
@@ -1226,7 +1228,7 @@ class LittleSucculentsGame extends GameGui {
       if (cards[deck]) {
         (this._stocks[deck] as Deck<Card>).setCardNumber(
           cards[deck].n,
-          this.addStatics(cards[deck].topCard)
+          cards[deck].topCard ? this.addStatics(cards[deck].topCard) : undefined
         );
       }
     });

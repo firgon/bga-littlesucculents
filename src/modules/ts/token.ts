@@ -43,11 +43,12 @@ class Token {
 
     //flower
     if (card.flowered) {
-      const flowerElem = this.gameui.getFlowerElem(card.color);
-      if (!flowerElem) {
-        debug("No flower detected", card.color);
-      }
-      this.gameui.attachElementWithSlide(flowerElem, element);
+      const flowerElem = this.gameui.getFlowerElem(card.flowered);
+      // debug("bug", flowerElem, element);
+      //wait added to make it running, don't know why
+      this.gameui
+        .wait(2)
+        .then(() => this.gameui.attachElementWithSlide(flowerElem, element));
     }
 
     const [busyPlaces, availablePlaces] = this.getAvailablePlaces(

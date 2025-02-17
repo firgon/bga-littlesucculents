@@ -2148,6 +2148,7 @@ var Token = /** @class */ (function () {
     };
     Token.prototype.adjustTokens = function (card, from) {
         // debug("adjust Token", card);
+        var _this = this;
         var _a;
         if (from === void 0) { from = null; }
         var element = this.gameui._cardManager.getCardElement(card);
@@ -2155,11 +2156,12 @@ var Token = /** @class */ (function () {
             return; //for fake case no need
         //flower
         if (card.flowered) {
-            var flowerElem = this.gameui.getFlowerElem(card.color);
-            if (!flowerElem) {
-                debug("No flower detected", card.color);
-            }
-            this.gameui.attachElementWithSlide(flowerElem, element);
+            var flowerElem_1 = this.gameui.getFlowerElem(card.flowered);
+            // debug("bug", flowerElem, element);
+            //wait added to make it running, don't know why
+            this.gameui
+                .wait(2)
+                .then(function () { return _this.gameui.attachElementWithSlide(flowerElem_1, element); });
         }
         var _b = this.getAvailablePlaces(card, element), busyPlaces = _b[0], availablePlaces = _b[1];
         var tokensOnCard = Math.max(0, (_a = card.tokenNb) !== null && _a !== void 0 ? _a : 0);
@@ -2295,7 +2297,7 @@ var MyCardManager = /** @class */ (function (_super) {
             this.game.addStatics(card);
         _super.prototype.updateCardInformations.call(this, card, settings);
         var newPlace = this.game._stocks[Generics.getCardContainer(card)];
-        debug("updateCardInformations", newPlace, card);
+        // debug("updateCardInformations", newPlace, card);
         if (newPlace && (!newPlace.contains(card) || newPlace instanceof SlotStock))
             newPlace.addCard(card);
         // this.game.addCustomTooltip(
@@ -2303,6 +2305,13 @@ var MyCardManager = /** @class */ (function (_super) {
         //   this.game.tooltip_tpl(card, "tooltip")
         // );
     };
+    // getMatchingCard(card: Card): Card | undefined {
+    //   const stock = this.getCardStock(card as T);
+    //   if (!stock) return;
+    //   return stock
+    //     .getCards()
+    //     .find((c) => c.state == card.state && c.type != card.type);
+    // }
     MyCardManager.prototype.isElementFlipped = function (card) {
         return this.getCardElement(card).dataset.side == "back";
     };
@@ -2856,6 +2865,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
                 _this.displayTitle(_this.currentStateTitle);
             }
         };
+        this.addResetClientStateButton();
     };
     //
     //
@@ -3055,7 +3065,8 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         return document.querySelector(".token.flower." + color);
     };
     LittleSucculentsGame.prototype.addStatics = function (c) {
-        Object.assign(c, CARDS_DATA[c.dataId]);
+        if (c)
+            Object.assign(c, CARDS_DATA[c.dataId]);
         return c;
     };
     LittleSucculentsGame.prototype.getPlantIdOnSpaceId = function (spaceId) {
@@ -3329,7 +3340,7 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
         var _this = this;
         [/*"discardplant", "discardpot", */ "water"].forEach(function (deck) {
             if (cards[deck]) {
-                _this._stocks[deck].setCardNumber(cards[deck].n, _this.addStatics(cards[deck].topCard));
+                _this._stocks[deck].setCardNumber(cards[deck].n, cards[deck].topCard ? _this.addStatics(cards[deck].topCard) : undefined);
             }
         });
         ["deckplant", "deckpot"].forEach(function (deck) {

@@ -24,7 +24,7 @@ class Card extends \LSU\Helpers\DB_Model
         'playerId' => ['player_id', 'int'],
         'dataId' => ['data_id', 'int'],
         'tokenNb' => ['token_nb', 'int'],
-        'flowered' => ['flowered', 'int'],
+        'flowered' => 'flowered',
     ];
 
     protected $staticAttributes = [
@@ -217,7 +217,7 @@ class Card extends \LSU\Helpers\DB_Model
             case MOON_CACTUS:
                 return $this->getPlayer()
                     ->getPlants()
-                    ->filter(fn($plant) => $plant->getFlowered() == 1)
+                    ->filter(fn($plant) => !!$plant->getFlowered())
                     ->count() == 0 ? 7 : 0;
                 break;
             case LEAF_WINDOW:
@@ -296,6 +296,6 @@ class Card extends \LSU\Helpers\DB_Model
 
     public function getScoreForFlower(): int
     {
-        return $this->getFlowered() == 1 ? 7 : 0;
+        return $this->getFlowered() ? 7 : 0;
     }
 }

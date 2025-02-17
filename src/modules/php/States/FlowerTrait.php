@@ -27,7 +27,7 @@ trait FlowerTrait
 		//flower this plant
 
 		//move token leaf on pot
-		$floweredCard->setFlowered(1);
+		$floweredCard->setFlowered($color);
 
 		Notifications::flower($player, $floweredCard, $color);
 

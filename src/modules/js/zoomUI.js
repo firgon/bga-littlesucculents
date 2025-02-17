@@ -19,8 +19,7 @@ define(["dojo", "dojo/_base/declare"], (dojo, declare) => {
       this.place("zoomPanel_tpl", null, "player_boards");
 
       let chk = $("help-mode-chk");
-      //display initial value
-      chk.checked = window.localStorage.getItem("helpMode") === "true";
+
       this.toggleHelpMode(chk.checked);
 
       dojo.connect(chk, "onchange", () => this.toggleHelpMode(chk.checked));
