@@ -20,7 +20,8 @@ trait GrowTrait
 	{
 		return [
 			'water' => Players::getAll()->map(fn($player) => Cards::getCurrentWeather()),
-			'waterFromCan' => Players::getAll()->map(fn($player) => $player->getWater()),
+			'waterFromCan' => Players::getAll()->map(fn($player) => 0),
+			// 'waterFromCan' => Players::getAll()->map(fn($player) => $player->getWater()),
 			'possiblePlaces' => Players::getWaterPossiblePlaces(),
 			'playerPlans' => Globals::getPlayerPlans()
 		];

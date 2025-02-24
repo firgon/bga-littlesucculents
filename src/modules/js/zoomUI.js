@@ -106,9 +106,9 @@ define(["dojo", "dojo/_base/declare"], (dojo, declare) => {
         if ($("zoom_value" + property)) {
           value *= $("zoom_value" + property).value / 100;
         }
-        r.style.setProperty(property, value + "px");
+        r.style.setProperty(property, value);
       }
-
+      r.style.setProperty("--increased-scale", 0);
       // r.style.setProperty("--card-in-hand-width", cardInHandWidth + "px");
       // r.style.setProperty("--card-on-table-width", cardInHandWidth + "px");
     },

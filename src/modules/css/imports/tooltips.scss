@@ -1,0 +1,48 @@
+@use "mixins.scss";
+.dijitTooltipContainer {
+  --increased-scale: calc(var(--scale) * 1.5);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  .card {
+    position: relative;
+  }
+  .id-card {
+    display: flex;
+    flex-direction: column;
+    font-size: 1.2em;
+    .total-score,
+    .total-money {
+      display: flex;
+      font-size: xxx-large;
+      align-items: baseline;
+      justify-content: flex-end;
+      margin-top: -0.6em;
+      &::after {
+        content: "";
+        display: block;
+        aspect-ratio: 1;
+        width: 50px;
+        height: 40px;
+        @include mixins.getIcon(2);
+      }
+    }
+    .total-money::after {
+      @include mixins.getIcon(1);
+    }
+    .rules {
+      max-width: 300px;
+    }
+    .name {
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+    .score-details,
+    .explanations {
+      font-size: 0.8em;
+      margin-left: mixins.addScale(20);
+    }
+    box-sizing: border-box;
+    padding: mixins.addScale(10);
+  }
+}

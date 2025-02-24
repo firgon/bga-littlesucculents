@@ -46,6 +46,11 @@
   height: 100px;
 }
 
+//fake component to create justify behaviour
+.fake-component {
+  flex-grow: 1;
+}
+
 //canceled logs
 .canceled .roundedbox {
   text-decoration: line-through;

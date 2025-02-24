@@ -176,59 +176,68 @@ class Card extends \LSU\Helpers\DB_Model
 
     public function getScore(): array
     {
-        return [$this->getScoreForFlower(), $this->getScoreForLeaves(), $this->getScoreForPlant()];
+        [$scoreForPlant, $args] = $this->getScoreForPlant();
+        return [$this->getScoreForFlower(), $this->getScoreForLeaves(), $scoreForPlant, $args];
     }
 
-    public function getScoreForPlant(): int
+    public function getScoreForPlant(): array
     {
-        if ($this->isPot()) return 0;
+        if ($this->isPot()) return [2, []];
         switch ($this->getClass()) {
             case BABY_TOES:
-                return (($this->getPlayer()->hasAsManyPlantEachSide()) ? 5 : 0);
+                return $this->getPlayer()->hasAsManyPlantEachSide();
                 break;
             case SNAKE_PLANT:
-                return ($this->isAtmax() ? 5 : 0);
+                return [($this->isAtmax() ? 5 : 0), [$this->getTokenNb(), $this->getLimit()]];
                 break;
             case MEXICAN_FIRECRACKER:
                 return (Players::scoreMexican($this->getPlayerId()));
                 break;
             case JELLYBEAN_PLANT:
-                return $this->getPlayer()->getColorNb();
+                $colors = $this->getPlayer()->getColors();
+                return [count($colors), array_map(fn($c) => Notifications::getTranslatableColors($c), $colors)];
                 break;
             case CALICO_HEARTS:
-                return $this->getPlayer()
+                $nbCalicoHeart = $this->getPlayer()
                     ->getPlants()
                     ->filter(fn($plant) => abs($plant->getState()) < abs($this->getState()) && $plant->getState() != 0)
                     ->count();
+                return [$nbCalicoHeart, [$nbCalicoHeart]];
                 break;
             case BUNNY_EARS:
-                return $this->getTokenNb() % 2 == 0 ? 4 : -1;
+                return [$this->getTokenNb() % 2 == 0 ? 4 : -1, [$this->getTokenNb()]];
                 break;
             case RIBBON_PLANT:
-                return Cards::getInLocation(PLAYER)->filter(fn($card) => $card->getClass() == RIBBON_PLANT)->count();
+                $nbRibbon = Cards::getInLocation(PLAYER)->filter(fn($card) => $card->getClass() == RIBBON_PLANT)->count();
+                return [$nbRibbon, [$nbRibbon]];
                 break;
             case LIVING_STONE:
-                return 3 * $this->getPlayer()->getPlants()->filter(fn($card) => $card->getClass() == LIVING_STONE)->count();
+                $nbLivingStone = $this->getPlayer()->getPlants()->filter(fn($card) => $card->getClass() == LIVING_STONE)->count();
+                // return [3 * $nbLivingStone, [$nbLivingStone]];
+                return [3, []];
                 break;
 
             case ALOE_VERA:
-                return $this->getPlayer()->getWater();
+                return [$this->getPlayer()->getWater(), [$this->getPlayer()->getWater()]];
                 break;
             case MOON_CACTUS:
-                return $this->getPlayer()
+                return [$this->getPlayer()
                     ->getPlants()
                     ->filter(fn($plant) => !!$plant->getFlowered())
-                    ->count() == 0 ? 7 : 0;
+                    ->count() == 0 ? 7 : 0, [$this->getPlayer()
+                    ->getPlants()
+                    ->filter(fn($plant) => !!$plant->getFlowered())
+                    ->count()]];
                 break;
             case LEAF_WINDOW:
                 $moneyPlant = $this->getPlayer()->getPlant(0);
-                return $moneyPlant->isAtmax() ? 7 : 0;
+                return [$moneyPlant->isAtmax() ? 7 : 0, [$moneyPlant->getTokenNb(), $moneyPlant->getLimit()]];
                 break;
             case MERMAID_TAIL:
                 return Players::scoreMermaid($this->getPlayerId());
                 break;
             case PET_ROCK:
-                return 5;
+                return [5, []];
                 break;
 
             case RAINBOW_WEST:
@@ -237,7 +246,7 @@ class Card extends \LSU\Helpers\DB_Model
             case MONEY_PLANT:
             case STRING_OF_PEARLS:
             case STRING_OF_DOLPHINS:
-                return 0;
+                return [0, [$this->getTokenNb()]];
         }
     }
 

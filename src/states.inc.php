@@ -65,7 +65,7 @@ $machinestates = [
 
     ST_PLAY => [
         "name" => "play",
-        "description" => clienttranslate('${actplayer} can buy a card, cut another player plant, flower his succulent or tend to his plants'),
+        "description" => clienttranslate('${actplayer} can buy a card, cut another player succulent, flower his succulent or tend to his succulents'),
         "descriptionmyturn" => clienttranslate('${you} can : '),
         "type" => ACTIVE_PLAYER,
         "args" => "argPlay",
@@ -99,7 +99,7 @@ $machinestates = [
     ST_MOVE => [
         "name" => "move",
         "description" => clienttranslate('${actplayer} can move or swap two flowers'),
-        "descriptionmyturn" => clienttranslate('${you} must select a plant to move or swap'),
+        "descriptionmyturn" => clienttranslate('${you} must select a succulent to move or swap'),
         "descriptionOnlyOne" => clienttranslate('${actplayer} can still move one flower'),
         "descriptionmyturnOnlyOne" => clienttranslate('${you} can still move one flower'),
         "type" => ACTIVE_PLAYER,

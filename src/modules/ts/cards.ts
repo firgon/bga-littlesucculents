@@ -1,3 +1,26 @@
+type classForCard =
+  | "BabyToes"
+  | "SnakePlant"
+  | "MexicanFirecracker"
+  | "StringofPearls"
+  | "StringofDolphins"
+  | "JellybeanPlant"
+  | "CalicoHearts"
+  | "BunnyEars"
+  | "RibbonPlant"
+  | "BabySunRose"
+  | "CoralCactus"
+  | "LivingStone"
+  | "RainbowWest"
+  | "AloeVera"
+  | "MoonCactus"
+  | "LeafWindow"
+  | "MermaidTail"
+  | "PetRock"
+  | "Pot"
+  | "MoneyPlant"
+  | "Water";
+
 interface Card {
   deck: "setA" | "setB" | "starter";
   id: number;
@@ -21,6 +44,7 @@ interface Card {
   color?: string;
   maxWater?: number;
   maxLeaf?: number;
+  class?: classForCard;
   hint?: string;
   name?: string;
   flowered?: string;
@@ -73,6 +97,15 @@ class CardSetting<T extends Card> implements CardManagerSettings<T> {
 class MyCardManager<T extends Card> extends CardManager<T> {
   public game: LittleSucculentsGame;
 
+  public updateAllToolTips() {
+    this.game.forEachPlayer((player) => {
+      debug("update du stock de ", player.id);
+      this.game._stocks[player.id]
+        .getCards()
+        .forEach((card) => this.addTooltip(card as T));
+    });
+  }
+
   public updateCardInformations(
     card: T,
     settings?: Omit<FlipCardSettings, "updateData">
@@ -84,19 +117,285 @@ class MyCardManager<T extends Card> extends CardManager<T> {
     if (newPlace && (!newPlace.contains(card) || newPlace instanceof SlotStock))
       newPlace.addCard(card);
 
-    // this.game.addCustomTooltip(
-    //   CardSetting.getElementId(card) + "-front",
-    //   this.game.tooltip_tpl(card, "tooltip")
-    // );
+    this.addTooltip(card);
   }
 
-  // getMatchingCard(card: Card): Card | undefined {
-  //   const stock = this.getCardStock(card as T);
-  //   if (!stock) return;
-  //   return stock
-  //     .getCards()
-  //     .find((c) => c.state == card.state && c.type != card.type);
-  // }
+  addTooltip(card: T) {
+    this.game.addCustomTooltip(
+      CardSetting.getElementId(card) + "-front",
+      this.tooltip_tpl(card)
+    );
+  }
+
+  tooltip_tpl(card: T): string {
+    const baseElem = this.getCardElement(card).cloneNode(true) as HTMLElement;
+    baseElem.id = "";
+    baseElem
+      .querySelectorAll(".token, .help-marker")
+      .forEach((elem) => elem.remove());
+    return baseElem.outerHTML + this.createHelpText(card);
+  }
+
+  createHelpText<T extends Card>(card: T): string {
+    const noExplanationPlants: classForCard[] = [
+      "RainbowWest",
+      "StringofPearls",
+      "StringofDolphins",
+      "CoralCactus",
+      "BabySunRose",
+      "LivingStone",
+      "Pot",
+    ];
+    let html = '<div class="id-card">';
+
+    //name
+    html += `<div class="name">${_(card.name)}</div>`;
+
+    //score details
+    const scoreDetail =
+      this.game.gamedatas.players[card.playerId]?.scoreDetails?.[card.id];
+    // if (card.id == 10) debug("scoreDetail", scoreDetail);
+    if (scoreDetail) {
+      if (card.class == "MoneyPlant") {
+        html += `<div class="total-money">${card.tokenNb}</div>`;
+        html += "<p class='score-details'>";
+        html += `<p class="explanations">${this.getExplanation(
+          card,
+          scoreDetail[3]
+        )}</p>`;
+        html += "</p>";
+      } else {
+        html += `<div class="total-score">${
+          scoreDetail[0] + scoreDetail[1] + scoreDetail[2]
+        }</div>`;
+
+        html += "<p class='score-details'>";
+
+        if (scoreDetail[0]) {
+          html += `${_("Score for flower :")} ${scoreDetail[0]}<br>`;
+        }
+        if (card.type != POT) {
+          html += `${_("Leaves on this succulent :")} ${scoreDetail[1]}<br>`;
+        } else {
+          html += _("Each pot scores 2 points");
+        }
+
+        if (!noExplanationPlants.includes(card.class)) {
+          html += `${_("Special scoring :")} ${scoreDetail[2]}<br>`;
+
+          //explanations
+          if (card.class)
+            html += `<p class="explanations">${this.getExplanation(
+              card,
+              scoreDetail[3]
+            )}</p>`;
+        }
+        html += "</p>";
+      }
+    }
+    //rule
+    html += `<p class="fake-component"></p>`;
+    html += `<p class="rules">${this.getRules(card.class)}</p>`;
+    if (card.type == POT) {
+      // for pot
+      html += `<p>${this.game.fsr(_("Water to grow : ${value}"), {
+        value: card.maxWater ?? "",
+      })}</p>`;
+      html += `<p>${this.game.fsr(_("Max succulent size : ${value} leaves"), {
+        value: card.maxLeaf ?? "",
+      })}</p>`;
+    }
+    html += `<p class="color">${this.game.fsr("Color : ${color}", {
+      color: card.color ?? "",
+      i18n: ["color"],
+    })}</p>`;
+
+    html += "</div>";
+    return html;
+  }
+
+  getRules(classe: classForCard) {
+    switch (classe) {
+      case "BabyToes":
+        return _(
+          "If you have the same number of succulents on each side of your moneyplant, each copy of Baby Toes is worth 5 points."
+        );
+      case "SnakePlant":
+        return _(
+          "If this succulent has grown to it’s pots leaf capacity it’s considered ‘full’ and can’t grow anymore - it scores an additional 5 points. This applies to all pots."
+        );
+      case "MexicanFirecracker":
+        return _(
+          "If you have the most or equal most number of Mexican Firecracker plants, each is worth 5 points. Otherwise each is worth 2."
+        );
+      case "StringofPearls":
+        return _(
+          "This succulent can grow 6 more leaves than the maximum size of the pot. There are no additional bonus points."
+        );
+      case "StringofDolphins":
+        return _(
+          "Each time you convert water into leaves, add 2 leaves to the String of Dolphins."
+        );
+      case "JellybeanPlant":
+        return _(
+          "Count each of colour in your display (excluding gray and rainbow) and score 1 point for each per Jellybean plant you have. Consider both pot and plant cards."
+        );
+      case "CalicoHearts":
+        return _(
+          "Count the number of succulents between this Calico Hearts and the Money Plant. Score 1 points for each."
+        );
+      case "BunnyEars":
+        return _(
+          "If the number of leaves on this Bunny Ears is odd, score -1 point. If it is even, score +4 points."
+        );
+      case "RibbonPlant":
+        return _(
+          "Count the number of Ribbon Plants in all displays. The score for each is 1 times that number."
+        );
+      case "BabySunRose":
+        return _(
+          "Every turn, during the growth phase, move one leaf from another succulent onto this Baby Sun Rose. You may do this before or after placing water or leaves. If this Baby Sun Rose has reached it’s pot limit, do not move any leaves."
+        );
+      case "CoralCactus":
+        return _(
+          "This Coral Cactus gains an extra water droplet every grow phase."
+        );
+      case "LivingStone":
+        return _("Score 3 points for each living stone you have");
+      case "RainbowWest":
+        return _(
+          "The Rainbow West can flower any flower once per game. The colour of the pot needs to match the desired flower."
+        );
+      case "AloeVera":
+        return _(
+          "Each water in the watering can at the end of the game is worth 1 point."
+        );
+      case "MoonCactus":
+        return _(
+          "At the end of the game, if you have no flowers in your display, score 7 points."
+        );
+      case "LeafWindow":
+        return _(
+          "If your Money Plant is at max capacity you score 7 points. The leaves on the Money Plant still score 0."
+        );
+      case "MermaidTail":
+        return _(
+          "If you have the most or equal most succulents, score 7 points."
+        );
+      case "PetRock":
+        return _(
+          "The pet rock never scores from it’s leaves - it scores 5 points at the end of the game."
+        );
+      case "MoneyPlant":
+        return _(
+          "Leaves on this Money Plant can be used at the market to buy new cards. The leaves of the Money Plant score 0 points."
+        );
+      case "Water":
+        return "";
+      case "Pot":
+        return _("");
+    }
+  }
+
+  getExplanation(card: Card, explanations: any) {
+    let args = {};
+    //prepare args
+    for (let index = 0; index < explanations.length; index++) {
+      args["item" + index] = explanations[index];
+    }
+
+    let log = "";
+    switch (card.class) {
+      case "BabyToes":
+        log =
+          "The display must be balanced, actually : ${item0} on left, ${item1} on right";
+        break;
+      case "SnakePlant":
+        log = _("Snake Plant must be at max : ${item0}/${item1}");
+        break;
+      case "MermaidTail":
+      case "MexicanFirecracker":
+        log =
+          (card.class == "MexicanFirecracker"
+            ? _("Number of Mexican Firecracker :")
+            : _("Number of Mermaid Tail :")) + "<br>";
+        Object.entries(explanations).forEach(([key, value]) => {
+          log += `${this.game._playerManager.getColoredName(
+            +key
+          )} : ${value}<br>`;
+        });
+        return log;
+      case "JellybeanPlant":
+        //TODO make it translatable
+        const stringToTranslate =
+          "(" +
+          Object.keys(args)
+            .map((e) => "${" + e + "}")
+            .join(", ") +
+          ")";
+        args["i18n"] = Object.keys(args);
+        return (
+          this.game.fsr(_("Each color score 1 ${point}"), { point: "point" }) +
+          this.game.fsr(stringToTranslate, args)
+        );
+      case "CalicoHearts":
+        log = _("${item0} succulent(s) between this card and Money Plant");
+        break;
+      case "BunnyEars":
+        log =
+          card.tokenNb % 2 == 0
+            ? _("${item0} token(s) on this card, it's even => 4 ${points}")
+            : _("${item0} token(s) on this card, it's odd => -1 ${point}");
+        break;
+      case "RibbonPlant":
+        log = _("${item0} Ribbon Plant(s) in all displays");
+        break;
+      case "AloeVera":
+        log = this.game.isItMe(card.playerId)
+          ? _("${you} have ${item0} droplet(s) in your water can")
+          : _("${player_name} has ${item0} droplet(s) in his water can");
+        break;
+      case "MoonCactus":
+        log = args["item0"] //true if you have more than 1 flower
+          ? this.game.isItMe(card.playerId)
+            ? _("${you} have ${item0} flowers(s) in your display, no bonus.")
+            : _(
+                "${player_name} has ${item0} flowers(s) in his display, no bonus."
+              )
+          : this.game.isItMe(card.playerId)
+          ? _("${you} have ${item0} flower in your display => 7 ${points}")
+          : _(
+              "${player_name} has ${item0} flower in your display => 7 ${points}"
+            );
+        break;
+      case "LeafWindow":
+        log = _("Money plant must be at max : ${item0}/${item1}");
+        break;
+      case "MoneyPlant":
+        log = this.game.isItMe(card.playerId)
+          ? _("${you} have ${item0}$ to buy new pots or succulents.")
+          : _("${player_name} has ${item0}$ to buy new pots or succulents.");
+        break;
+      case "Water":
+        log = "";
+        break;
+    }
+
+    args["player_name"] = this.game._playerManager.getColoredName(
+      card.playerId
+    );
+    args["you"] = this.game.coloredYou();
+    args["points"] = _("points");
+    args["point"] = _("point");
+    if (args["i18n"]) {
+      args["i18n"].push("point");
+      args["i18n"].push("points");
+    } else {
+      args["i18n"] = ["points", "point"];
+    }
+    if (args && !log) debug("What can I do with ", args, card.class);
+    return this.game.fsr(log, args);
+  }
 
   isElementFlipped(card: T) {
     return this.getCardElement(card).dataset.side == "back";

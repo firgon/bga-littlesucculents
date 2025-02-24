@@ -11,12 +11,12 @@ class Notifications
 {
   public static function startActionPhase()
   {
-    static::notifyAll('startAction', _('Actions phase'), ['turn' => 12 - Cards::countInLocation(WATER), 'preserve' => ['turn']]);
+    static::notifyAll('startAction', clienttranslate('Actions phase'), ['turn' => 12 - Cards::countInLocation(WATER), 'preserve' => ['turn']]);
   }
 
   public static function startWaterPhase()
   {
-    static::notifyAll('startWater', _('Season growth phase'), ['water' => Cards::getCurrentWeather(), 'preserve' => ['water']]);
+    static::notifyAll('startWater', clienttranslate('Season growth phase'), ['water' => Cards::getCurrentWeather(), 'preserve' => ['water']]);
   }
 
   public static function drawCard($card)
@@ -27,22 +27,28 @@ class Notifications
     static::notifyAll('drawCard', '', $data);
   }
 
-  public static function flower($player, $card, $color)
+  public static function getTranslatableColors($c)
   {
     $translatableColor = [
-      GREEN => _('green'),
-      RED => _('red'),
-      YELLOW => _('yellow'),
-      PINK => _('pink'),
-      BLUE => _('blue'),
-      ORANGE => _('orange')
+      GREEN => clienttranslate('green'),
+      RED => clienttranslate('red'),
+      YELLOW => clienttranslate('yellow'),
+      PINK => clienttranslate('pink'),
+      BLUE => clienttranslate('blue'),
+      ORANGE => clienttranslate('orange')
     ];
+    return $translatableColor[$c];
+  }
+
+  public static function flower($player, $card, $color)
+  {
+
     $data = [
       'player' => $player,
-      'color' => $translatableColor[$color],
+      'color' => static::getTranslatableColors($color),
       'card' => $card
     ];
-    static::message(_('${player_name} flowers his ${cardName} and gets the ${color} flower'), $data);
+    static::message(clienttranslate('${player_name} flowers his ${cardName} and gets the ${color} flower'), $data);
   }
 
   public static function transfert($fromCard, $toCard, $n)
@@ -58,12 +64,12 @@ class Notifications
   public static function loseToken($card, $n)
   {
     $translatableTokenType = [
-      PLANT => _('leaf token(s)'),
-      POT => _('water droplet(s)')
+      PLANT => clienttranslate('leaf token(s)'),
+      POT => clienttranslate('water droplet(s)')
     ];
     $translatableCardType = [
-      PLANT => _('plant'),
-      POT => _('pot')
+      PLANT => clienttranslate('succulent'),
+      POT => clienttranslate('pot')
     ];
     $data = [
       'card' => $card,
@@ -73,7 +79,7 @@ class Notifications
       'tokenName' => $translatableTokenType[$card->getType()],
       'i18n' => ['tokenName', 'cardType']
     ];
-    static::notifyAll('updateCard', _('${player_name} adjusts tokens number on his ${cardType} and loses ${n} ${tokenName}'), $data);
+    static::notifyAll('updateCard', clienttranslate('${player_name} adjusts tokens number on his ${cardType} and loses ${n} ${tokenName}'), $data);
   }
 
   public static function newScore($player, $scoreDetail)
@@ -94,7 +100,7 @@ class Notifications
       'moneyPlant' => $player->getPlant(0),
       'preserve' => ['moneyPlant']
     ];
-    $msg = _('${player_name} pays ${n} to buy a new ${cardName} card ${cardLog}');
+    $msg = clienttranslate('${player_name} pays ${n} to buy a new ${cardName} card ${cardLog}');
     static::notifyAll('pay', $msg, $data);
   }
 
@@ -108,7 +114,7 @@ class Notifications
 
   public static function playerReady($pId)
   {
-    $msg = _('${player_name} waters his plants');
+    $msg = clienttranslate('${player_name} waters his succulents');
     $data = ['player' => Players::get($pId)];
     static::notifyAll('playerReady', $msg, $data);
   }
@@ -151,7 +157,7 @@ class Notifications
 
   public static function clearTurn($player, $notifIds)
   {
-    static::notifyAll('clearTurn', _('${player_name} cancels his turn'), ['player' => $player, 'notifIds' => $notifIds]);
+    static::notifyAll('clearTurn', clienttranslate('${player_name} cancels his turn'), ['player' => $player, 'notifIds' => $notifIds]);
   }
 
   protected static function notifyAll($name, $msg, $data)

@@ -460,6 +460,59 @@
   content: "\f061";
 }
 
+.dijitTooltipContainer {
+  --increased-scale: calc(var(--scale) * 1.5);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.dijitTooltipContainer .card, .dijitTooltipContainer .slot, .dijitTooltipContainer #board-container .deck, #board-container .dijitTooltipContainer .deck {
+  position: relative;
+}
+.dijitTooltipContainer .id-card {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.2em;
+  box-sizing: border-box;
+  padding: max(0.0333333333 * var(--scale) * 1px, 0.0333333333 * var(--increased-scale) * 1px);
+}
+.dijitTooltipContainer .id-card .total-score,
+.dijitTooltipContainer .id-card .total-money {
+  display: flex;
+  font-size: xxx-large;
+  align-items: baseline;
+  justify-content: flex-end;
+  margin-top: -0.6em;
+}
+.dijitTooltipContainer .id-card .total-score::after,
+.dijitTooltipContainer .id-card .total-money::after {
+  content: "";
+  display: block;
+  aspect-ratio: 1;
+  width: 50px;
+  height: 40px;
+  background-image: url("img/icons.png");
+  background-position-x: 33.3333333333%;
+  background-size: 400%;
+}
+.dijitTooltipContainer .id-card .total-money::after {
+  background-image: url("img/icons.png");
+  background-position-x: 0%;
+  background-size: 400%;
+}
+.dijitTooltipContainer .id-card .rules {
+  max-width: 300px;
+}
+.dijitTooltipContainer .id-card .name {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+.dijitTooltipContainer .id-card .score-details,
+.dijitTooltipContainer .id-card .explanations {
+  font-size: 0.8em;
+  margin-left: max(0.0666666667 * var(--scale) * 1px, 0.0666666667 * var(--increased-scale) * 1px);
+}
+
 /**
  *------
  * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
@@ -504,8 +557,8 @@
 */
 /* Note: you must not use any @import directive */
 .automaticCounter[data-nb]::before {
-  height: calc(0.1466666667 * var(--scale));
-  width: calc(0.1466666667 * var(--scale));
+  height: max(0.1466666667 * var(--scale) * 1px, 0.1466666667 * var(--increased-scale) * 1px);
+  width: max(0.1466666667 * var(--scale) * 1px, 0.1466666667 * var(--increased-scale) * 1px);
   color: black;
   background: white;
   border-radius: 50%;
@@ -516,8 +569,8 @@
   align-items: center;
   content: attr(data-nb);
   position: absolute;
-  top: calc(0.05 * var(--scale));
-  right: calc(0.05 * var(--scale));
+  top: max(0.05 * var(--scale) * 1px, 0.05 * var(--increased-scale) * 1px);
+  right: max(0.05 * var(--scale) * 1px, 0.05 * var(--increased-scale) * 1px);
   z-index: 1;
   font-family: "roboto";
 }
@@ -533,6 +586,10 @@
   height: 100px;
 }
 
+.fake-component {
+  flex-grow: 1;
+}
+
 .canceled .roundedbox {
   text-decoration: line-through;
 }
@@ -543,7 +600,7 @@
 }
 
 #LSU_turnCounter {
-  position: absolute;
+  position: relative;
   float: left;
   border: 2px solid black;
   font-size: 75%;
@@ -773,8 +830,8 @@ body > .card, body > .slot, #board-container body > .deck {
 
 #ebd-body.two-players #board {
   position: relative;
-  height: calc(2.2933333333 * var(--scale));
-  width: calc(4.4 * var(--scale));
+  height: max(2.2933333333 * var(--scale) * 1px, 2.2933333333 * var(--increased-scale) * 1px);
+  width: max(4.4 * var(--scale) * 1px, 4.4 * var(--increased-scale) * 1px);
   background-position-x: 50%;
 }
 #ebd-body.two-players #board .slot[data-slot-id=plant2] {
@@ -818,8 +875,8 @@ body > .card, body > .slot, #board-container body > .deck {
 }
 #token-container #droplets:not(:empty)::before {
   content: "";
-  height: calc(0.2766666667 * var(--scale));
-  width: calc(0.2 * var(--scale));
+  height: max(0.2766666667 * var(--scale) * 1px, 0.2766666667 * var(--increased-scale) * 1px);
+  width: max(0.2 * var(--scale) * 1px, 0.2 * var(--increased-scale) * 1px);
   position: relative;
   background-image: url(img/cards.jpg);
   background-position-x: 16.6666666667%;
@@ -829,8 +886,8 @@ body > .card, body > .slot, #board-container body > .deck {
 }
 #token-container #droplets:not(:empty) + #dropletsFromCan:not(:empty)::before {
   content: "/";
-  height: calc(0.2666666667 * var(--scale));
-  width: calc(0.1 * var(--scale));
+  height: max(0.2666666667 * var(--scale) * 1px, 0.2666666667 * var(--increased-scale) * 1px);
+  width: max(0.1 * var(--scale) * 1px, 0.1 * var(--increased-scale) * 1px);
   position: relative;
   background-image: none;
   font-size: x-large;
@@ -851,8 +908,8 @@ body > .card, body > .slot, #board-container body > .deck {
 }
 #token-container #dropletsFromCan:not(:empty)::after {
   content: "";
-  height: calc(0.2766666667 * var(--scale));
-  width: calc(0.2 * var(--scale));
+  height: max(0.2766666667 * var(--scale) * 1px, 0.2766666667 * var(--increased-scale) * 1px);
+  width: max(0.2 * var(--scale) * 1px, 0.2 * var(--increased-scale) * 1px);
   position: relative;
   background-image: url(img/cards.jpg);
   background-position-x: 0%;
@@ -861,13 +918,13 @@ body > .card, body > .slot, #board-container body > .deck {
 }
 
 #visibleDeck .slot {
-  height: calc(1.6666666667 * var(--scale));
-  width: calc(1 * var(--scale));
+  height: max(1.6666666667 * var(--scale) * 1px, 1.6666666667 * var(--increased-scale) * 1px);
+  width: max(1 * var(--scale) * 1px, 1 * var(--increased-scale) * 1px);
 }
 
 .token.flower {
-  height: calc(0.5 * var(--scale));
-  width: calc(0.5 * var(--scale));
+  height: max(0.5 * var(--scale) * 1px, 0.5 * var(--increased-scale) * 1px);
+  width: max(0.5 * var(--scale) * 1px, 0.5 * var(--increased-scale) * 1px);
   background-image: url(img/tokens2.png);
   box-shadow: 0 2px black;
   border-radius: 100%;
@@ -875,7 +932,7 @@ body > .card, body > .slot, #board-container body > .deck {
   z-index: 2;
   position: absolute;
   left: 25%;
-  bottom: calc(-0.25 * var(--scale));
+  bottom: calc(max(0.25 * var(--scale) * 1px, 0.25 * var(--increased-scale) * 1px) * -1);
 }
 .token.flower.blue {
   background-position-x: 0%;
@@ -911,7 +968,7 @@ body > .card, body > .slot, #board-container body > .deck {
 #deckplant::after,
 #deckpot::after,
 #water::after {
-  border-radius: calc(0.0666666667 * var(--scale));
+  border-radius: max(0.0666666667 * var(--scale) * 1px, 0.0666666667 * var(--increased-scale) * 1px);
   content: "";
   top: 2.5%;
   right: 2.5%;
@@ -924,9 +981,9 @@ body > .card, body > .slot, #board-container body > .deck {
 }
 
 .card, #board-container .deck, .slot {
-  height: calc(1.3833333333 * var(--scale));
-  width: calc(1 * var(--scale));
-  border-radius: calc(0.0666666667 * var(--scale));
+  height: max(1.3833333333 * var(--scale) * 1px, 1.3833333333 * var(--increased-scale) * 1px);
+  width: max(1 * var(--scale) * 1px, 1 * var(--increased-scale) * 1px);
+  border-radius: max(0.0666666667 * var(--scale) * 1px, 0.0666666667 * var(--increased-scale) * 1px);
   position: absolute;
 }
 .card .card-sides, #board-container .deck .card-sides, .slot .card-sides {
@@ -1174,7 +1231,7 @@ body > .card, body > .slot, #board-container body > .deck {
   padding-right: 10%;
   width: 80%;
   top: 5%;
-  font-size: calc(0.1333333333 * var(--scale));
+  font-size: max(0.1333333333 * var(--scale) * 1px, 0.1333333333 * var(--increased-scale) * 1px);
 }
 .card .card-sides .front .text, #board-container .deck .card-sides .front .text, .slot .card-sides .front .text {
   font-family: "Bungee", "roboto";
@@ -1186,15 +1243,15 @@ body > .card, body > .slot, #board-container body > .deck {
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: calc(0.1 * var(--scale));
-  bottom: calc(0.04 * var(--scale));
+  font-size: max(0.1 * var(--scale) * 1px, 0.1 * var(--increased-scale) * 1px);
+  bottom: max(0.04 * var(--scale) * 1px, 0.04 * var(--increased-scale) * 1px);
 }
 .card .card-sides .front .size, #board-container .deck .card-sides .front .size, .slot .card-sides .front .size {
   font-family: "Bungee", "roboto";
   position: absolute;
   top: 5%;
   right: 0;
-  font-size: calc(0.2 * var(--scale));
+  font-size: max(0.2 * var(--scale) * 1px, 0.2 * var(--increased-scale) * 1px);
 }
 .card.plant .token .sides, #board-container .plant.deck .token .sides, .plant.slot .token .sides {
   transform: rotateY(0deg);
@@ -1204,8 +1261,8 @@ body > .card, body > .slot, #board-container body > .deck {
 }
 
 .token:not(.flower) {
-  height: calc(0.2666666667 * var(--scale));
-  width: calc(0.2666666667 * var(--scale));
+  height: max(0.2666666667 * var(--scale) * 1px, 0.2666666667 * var(--increased-scale) * 1px);
+  width: max(0.2666666667 * var(--scale) * 1px, 0.2666666667 * var(--increased-scale) * 1px);
   position: absolute;
   z-index: 2;
   border-radius: 100%;
@@ -1288,7 +1345,7 @@ body > .card, body > .slot, #board-container body > .deck {
   box-sizing: border-box;
   transform-style: preserve-3d;
   height: 100%;
-  box-shadow: calc(0 * var(--scale)) calc(0.0166666667 * var(--scale)) black;
+  box-shadow: max(0 * var(--scale) * 1px, 0 * var(--increased-scale) * 1px) max(0.0166666667 * var(--scale) * 1px, 0.0166666667 * var(--increased-scale) * 1px) black;
   border-radius: 100%;
   border: 1px solid black;
 }
@@ -1343,7 +1400,7 @@ body > .card, body > .slot, #board-container body > .deck {
   padding-bottom: 5px;
   flex-wrap: wrap;
   width: 100%;
-  gap: calc(0.0666666667 * var(--scale));
+  gap: max(0.0666666667 * var(--scale) * 1px, 0.0666666667 * var(--increased-scale) * 1px);
 }
 #board-container .lsu-row {
   display: flex;
@@ -1355,11 +1412,11 @@ body > .card, body > .slot, #board-container body > .deck {
 }
 #board-container #board {
   position: relative;
-  height: calc(2.2933333333 * var(--scale));
-  width: calc(6.59 * var(--scale));
+  height: max(2.2933333333 * var(--scale) * 1px, 2.2933333333 * var(--increased-scale) * 1px);
+  width: max(6.59 * var(--scale) * 1px, 6.59 * var(--increased-scale) * 1px);
   background-image: url(img/board.jpg);
   background-size: cover;
-  border-radius: calc(0.0666666667 * var(--scale));
+  border-radius: max(0.0666666667 * var(--scale) * 1px, 0.0666666667 * var(--increased-scale) * 1px);
 }
 #board-container #board .slot {
   position: absolute;
@@ -1419,7 +1476,7 @@ body > .card, body > .slot, #board-container body > .deck {
   position: absolute;
   bottom: 100%;
   width: 150%;
-  font-size: calc(0.1 * var(--scale));
+  font-size: max(0.1 * var(--scale) * 1px, 0.1 * var(--increased-scale) * 1px);
   font-family: "Bungee", "roboto";
   text-shadow: 1px 0 0 white, 0 1px 0 white, -1px 0 0 white, 0 -1px 0 white, 1px 1px 0 white, -1px 1px 0 white, 1px -1px 0 white, -1px -1px 0 white;
   content: attr(data-label);
@@ -1431,35 +1488,35 @@ body > .card, body > .slot, #board-container body > .deck {
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: calc(0.0666666667 * var(--scale));
+  gap: max(0.0666666667 * var(--scale) * 1px, 0.0666666667 * var(--increased-scale) * 1px);
 }
 #table .succulents-gamezone {
   position: relative;
   width: 95%;
-  border-radius: calc(0.0666666667 * var(--scale));
+  border-radius: max(0.0666666667 * var(--scale) * 1px, 0.0666666667 * var(--increased-scale) * 1px);
   border-width: 2px;
   border-style: solid;
   overflow: hidden;
 }
 #table .succulents-gamezone .player-board-name {
   padding: 0 5px;
-  font-size: max(0.1 * var(--scale), 15px);
+  font-size: max(max(0.1 * var(--scale) * 1px, 0.1 * var(--increased-scale) * 1px), 15px);
   font-family: "Bungee", "roboto";
   text-shadow: 1px 0 0 white, 0 1px 0 white, -1px 0 0 white, 0 -1px 0 white, 1px 1px 0 white, -1px 1px 0 white, 1px -1px 0 white, -1px -1px 0 white;
 }
 #table .succulents-gamezone .gamezone-cards {
-  height: calc(2.7933333333 * var(--scale) + 8px);
+  height: calc(max(2.7933333333 * var(--scale) * 1px, 2.7933333333 * var(--increased-scale) * 1px) + 8px);
   flex-direction: column-reverse;
   align-content: center;
-  margin-right: calc(1 * var(--scale));
+  margin-right: max(1 * var(--scale) * 1px, 1 * var(--increased-scale) * 1px);
 }
 #table .succulents-gamezone .gamezone-cards .slot:empty:not(.active) {
   display: none;
 }
 #table .succulents-gamezone .waterCan {
-  height: calc(1.3833333333 * var(--scale));
-  width: calc(1 * var(--scale));
-  border-radius: calc(0.0666666667 * var(--scale));
+  height: max(1.3833333333 * var(--scale) * 1px, 1.3833333333 * var(--increased-scale) * 1px);
+  width: max(1 * var(--scale) * 1px, 1 * var(--increased-scale) * 1px);
+  border-radius: max(0.0666666667 * var(--scale) * 1px, 0.0666666667 * var(--increased-scale) * 1px);
   position: absolute;
   right: 0;
   bottom: 0;
@@ -1546,7 +1603,6 @@ body > .card, body > .slot, #board-container body > .deck {
   background-image: url(img/icons.png);
   position: relative;
   vertical-align: bottom;
-  margin-left: -0.5em;
 }
 .inline-icon.icon-money {
   background-image: url("img/icons.png");

@@ -17,6 +17,14 @@ interface Player {
   water: number;
   money: number;
   isFirst: boolean;
+  scoreDetails: {
+    [cardId: number]: [
+      scoreForFlower: number,
+      scoreForLeaves: number,
+      scoreForPlant: number,
+      args: any
+    ];
+  };
 }
 
 interface GameDatasCards {

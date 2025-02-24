@@ -46,6 +46,7 @@
 
 @use "imports/safeMode.scss";
 @use "imports/modals.scss";
+@use "imports/tooltips.scss";
 @use "imports/mixins.scss" as mix;
 @use "imports/variables.scss" as var;
 @use "imports/generics.scss";
@@ -160,7 +161,7 @@
   z-index: 2;
   position: absolute;
   left: 25%;
-  bottom: mix.addScale(-75);
+  bottom: calc(mix.addScale(75) * -1);
   &.blue {
     @include mix.getBackgroundPosition(4, 3, 3);
   }
@@ -548,7 +549,6 @@
   background-image: url(img/icons.png);
   position: relative;
   vertical-align: bottom;
-  margin-left: -0.5em;
   &.icon-money {
     @include mix.getIcon(1);
   }

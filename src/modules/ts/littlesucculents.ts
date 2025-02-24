@@ -336,6 +336,7 @@ class LittleSucculentsGame extends GameGui {
 
     //prepare tokens
     ["", "FromCan"].forEach((suffix) => {
+      if (!args["water" + suffix]) return;
       const nbDroplet = args["water" + suffix][this.player_id];
 
       for (let index = 0; index < nbDroplet; index++) {
@@ -1094,7 +1095,10 @@ class LittleSucculentsGame extends GameGui {
     };
   }) {
     this._playerManager.updatePlayer(n.args.player);
+    this.gamedatas.players[n.args.player.id].scoreDetails = n.args.scoreDetail;
+
     //TODO display detailled score for each plant on tooltip
+    this._cardManager.updateAllToolTips();
   }
 
   /*
@@ -1534,27 +1538,13 @@ class LittleSucculentsGame extends GameGui {
    */
 
   getTokenDiv(key, args) {
-    debug("getTokenDiv", key, args);
+    // debug("getTokenDiv", key, args);
     // ... implement whatever html you want here, example from sharedcode.js
     var token_id = args[key];
     switch (key) {
-      case "attack":
-        return `<span class="${
-          args[this.getActivePlayerId()]["canAttack"] ? "" : "no"
-        }">${token_id}</span>`;
-      case "recruit":
-        return `<span class="${
-          args[this.getActivePlayerId()]["canRecruit"] ? "" : "no"
-        }">${token_id}</span>`;
-      case "trade":
-        return `<span class="${
-          args[this.player_id]["canTrade"] ? "" : "no"
-        }">${token_id}</span>`;
-
-      case "tactic":
-        return `<span class="${
-          args[this.player_id]["canTactic"] ? "" : "no"
-        }">${token_id}</span>`;
+      case "points":
+      case "point":
+        return `<span class="inline-icon icon-vp"></span>`;
 
       default:
         return token_id;
@@ -1576,7 +1566,7 @@ class LittleSucculentsGame extends GameGui {
   //
   //
   //
-  forEachPlayer(callback) {
+  forEachPlayer(callback: (player: Player) => any) {
     Object.values(this.gamedatas.players).forEach(callback);
   }
 

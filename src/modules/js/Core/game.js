@@ -725,7 +725,7 @@ define([
           });
 
           // list of special keys we want to replace with images
-          var keys = ["color", "value", "value2"];
+          var keys = ["point", "points"];
 
           for (var i in keys) {
             const key = keys[i];
@@ -861,10 +861,9 @@ define([
         return;
       }
 
-      html = '<div class="midSizeDialog">' + html + "</div>";
       delay = delay || 400;
       let tooltip = new dijit.Tooltip({
-        //        connectId: [id],
+        connectId: [id],
         label: html,
         position: this.defaultTooltipPosition,
         showDelay: delay,

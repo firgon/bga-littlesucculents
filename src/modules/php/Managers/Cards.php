@@ -83,7 +83,7 @@ class Cards extends \LSU\Helpers\Pieces
     public static function getFlowerableColors()
     {
         $cards = self::getInLocationQ(PLAYER)
-            ->where('flowered', FLOWERED)
+            ->whereNotNull('flowered')
             ->get();
         return array_values(array_diff(ALL_COLORS, $cards->map(fn($card) => $card->getColor())->toArray()));
     }

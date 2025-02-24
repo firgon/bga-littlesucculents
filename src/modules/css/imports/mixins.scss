@@ -25,7 +25,10 @@
 }
 
 @function addScale($n) {
-  @return calc($n / var.$card-width * var(--scale));
+  @return max(
+    calc($n / var.$card-width * var(--scale) * 1px),
+    calc($n / var.$card-width * var(--increased-scale) * 1px)
+  );
 }
 
 @mixin createBackGroundForMap($list, $maxX: 7, $maxY: 7) {

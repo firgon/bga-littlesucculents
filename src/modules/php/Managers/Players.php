@@ -179,49 +179,55 @@ class Players extends \LSU\Helpers\DB_Manager
     }
     return $data;
   }
+
+  //Mexican is a majority
   public static function scoreMexican($pId)
   {
     $players = static::getAll();
     $max = 0;
     $nbPlayer = 0;
+    $args = [];
     foreach ($players as $id => $player) {
       $nb = $player->getPlants()->filter(fn($plant) => $plant->getClass() == MEXICAN_FIRECRACKER)->count();
 
       if ($id == $pId) {
         $nbPlayer = $nb;
       }
+      $args[$id] = $nb;
 
       if ($nb > $max) {
         $max = $nb;
       }
     }
-    if ($nbPlayer == 0) return 0; //should not happen
-    else if ($nbPlayer == $max) return 5;
-    else return 2;
+    if ($nbPlayer == 0) return [0, $args]; //should not happen
+    else if ($nbPlayer == $max) return [5, $args];
+    else return [2, $args];
   }
   public static function scoreMermaid($pId)
   {
     $players = static::getAll();
     $nbPlayer = 0;
     $max = 0;
+    $args = [];
     foreach ($players as $id => $player) {
       $nb = $player->getPlants()->count();
 
       if ($id == $pId) {
         $nbPlayer = $nb;
       }
+      $args[$pId] = $nb;
 
       if ($nb > $max) {
         $max = $nb;
       }
     }
-    return ($max == $nbPlayer) ? 7 : 0;
+    return [($max == $nbPlayer) ? 7 : 0, $args];
   }
 
-  public static function computeScore()
+  public static function computeScore($bSilent = false)
   {
     foreach (static::getAll() as $key => $player) {
-      $player->computeScore();
+      $player->computeScore($bSilent);
     }
   }
 }

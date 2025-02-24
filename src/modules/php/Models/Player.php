@@ -37,28 +37,33 @@ class Player extends \LSU\Helpers\DB_Model
 
   public function getUiData($currentPlayerId = null)
   {
+    $scoreDetail = $this->computeScore(true); //first so playerScore is up to date
     $data = parent::getUiData();
     $data['money'] = $this->getMoney();
     $data['isFirst'] = Globals::getFirstPlayer() == $this->getId();
+    $data['scoreDetails'] = $scoreDetail;
+
 
     return $data;
   }
 
-  public function computeScore()
+  public function computeScore($bSilent = false)
   {
     $registeredScore = $this->getScore();
     $score = 0;
     $scoreDetail = [];
-    foreach ($this->getPlants() as $plantId => $plant) {
+    foreach (Cards::getInLocationPId(PLAYER, $this->getId()) as $plantId => $plant) {
       $plantScore = $plant->getScore();
       $scoreDetail[$plantId] = $plantScore;
+      //removes args to keep only summable scores
+      array_pop($plantScore);
       $score += array_sum($plantScore);
     }
     $this->setScore($score);
-    if ($registeredScore != $score) {
+    if ($registeredScore != $score && !$bSilent) {
       Notifications::newScore($this, $scoreDetail);
     }
-    return $score;
+    return $scoreDetail;
   }
 
   public function getMoney()
@@ -110,13 +115,13 @@ class Player extends \LSU\Helpers\DB_Model
   {
     $plants = $this->getPlants();
 
-    $plantLeft = $plants->filter(fn($plant) => $plant->getState() < 0);
-    $plantRight = $plants->filter(fn($plant) => $plant->getState() > 0);
+    $plantLeft = $plants->filter(fn($plant) => $plant->getState() < 0)->count();
+    $plantRight = $plants->filter(fn($plant) => $plant->getState() > 0)->count();
 
-    return $plantLeft->count() == $plantRight->count();
+    return [$plantLeft == $plantRight ? 5 : 0, [$plantLeft, $plantRight]];
   }
 
-  public function getColorNb()
+  public function getColors()
   {
     $validatedColors = [];
     foreach ($this->getPlants() as $key => $plant) {
@@ -127,7 +132,7 @@ class Player extends \LSU\Helpers\DB_Model
       $color = $pot->getColor();
       if (in_array($color, ALL_COLORS)) $validatedColors[$color] = true;
     }
-    return count(array_keys($validatedColors));
+    return array_keys($validatedColors);
   }
 
   public function getWaterPossiblePlaces()
