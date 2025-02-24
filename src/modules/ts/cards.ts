@@ -268,7 +268,7 @@ class MyCardManager<T extends Card> extends CardManager<T> {
         );
       case "AloeVera":
         return _(
-          "Each water in the watering can at the end of the game is worth 1 point."
+          "Each water in the watering can at the end of the game is worth 1 point (max 4)."
         );
       case "MoonCactus":
         return _(

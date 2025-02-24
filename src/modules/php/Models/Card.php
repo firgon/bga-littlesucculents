@@ -218,7 +218,8 @@ class Card extends \LSU\Helpers\DB_Model
                 break;
 
             case ALOE_VERA:
-                return [$this->getPlayer()->getWater(), [$this->getPlayer()->getWater()]];
+                $nbWater = min(4, $this->getPlayer()->getWater());
+                return [$nbWater, [$nbWater]];
                 break;
             case MOON_CACTUS:
                 return [$this->getPlayer()
