@@ -301,7 +301,7 @@ class MyCardManager<T extends Card> extends CardManager<T> {
     let args = {};
     //prepare args
     for (let index = 0; index < explanations.length; index++) {
-      args["item" + index] = explanations[index];
+      args["item" + index] = explanations[index] ?? 0;
     }
 
     let log = "";

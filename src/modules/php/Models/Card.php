@@ -247,6 +247,7 @@ class Card extends \LSU\Helpers\DB_Model
             case MONEY_PLANT:
             case STRING_OF_PEARLS:
             case STRING_OF_DOLPHINS:
+            default:
                 return [0, [$this->getTokenNb()]];
         }
     }

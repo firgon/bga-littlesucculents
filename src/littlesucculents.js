@@ -2415,7 +2415,7 @@ var MyCardManager = /** @class */ (function (_super) {
             case "RainbowWest":
                 return _("The Rainbow West can flower any flower once per game. The colour of the pot needs to match the desired flower.");
             case "AloeVera":
-                return _("Each water in the watering can at the end of the game is worth 1 point.");
+                return _("Each water in the watering can at the end of the game is worth 1 point (max 4).");
             case "MoonCactus":
                 return _("At the end of the game, if you have no flowers in your display, score 7 points.");
             case "LeafWindow":
@@ -2434,10 +2434,11 @@ var MyCardManager = /** @class */ (function (_super) {
     };
     MyCardManager.prototype.getExplanation = function (card, explanations) {
         var _this = this;
+        var _a;
         var args = {};
         //prepare args
         for (var index = 0; index < explanations.length; index++) {
-            args["item" + index] = explanations[index];
+            args["item" + index] = (_a = explanations[index]) !== null && _a !== void 0 ? _a : 0;
         }
         var log = "";
         switch (card.class) {

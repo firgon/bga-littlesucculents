@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `cards` (
   `card_location` varchar(32) NOT NULL,
   `extra_datas` JSON NULL,
   `flowered` varchar(32) NULL,
-  `token_nb` int(3) NULL,
+  `token_nb` int(3) DEFAULT 0,
   `data_id` int(3) NULL,
   `player_id` int(10) DEFAULT 0,
   PRIMARY KEY (`card_id`)
