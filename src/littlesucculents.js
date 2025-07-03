@@ -2509,7 +2509,9 @@ var MyCardManager = /** @class */ (function (_super) {
                 break;
         }
         args["player_name"] = this.game._playerManager.getColoredName(card.playerId);
-        args["you"] = this.game.coloredYou();
+        if (!this.game.isSpectator) {
+            args["you"] = this.game.coloredYou();
+        }
         args["points"] = _("points");
         args["point"] = _("point");
         if (args["i18n"]) {

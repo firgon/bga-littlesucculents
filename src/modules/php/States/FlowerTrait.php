@@ -25,9 +25,12 @@ trait FlowerTrait
 		}
 
 		//flower this plant
+		$floweredCard->setFlowered($color);
 
 		//move token leaf on pot
-		$floweredCard->setFlowered($color);
+		$pot = $floweredCard->getMatchingCard();
+		$pot->setTokenNb(0);
+		Notifications::updateCard($pot);
 
 		Notifications::flower($player, $floweredCard, $color);
 

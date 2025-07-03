@@ -199,8 +199,8 @@ class Card extends \LSU\Helpers\DB_Model
                 break;
             case CALICO_HEARTS:
                 $nbCalicoHeart = $this->getPlayer()
-                    ->getPlants()
-                    ->filter(fn($plant) => abs($plant->getState()) < abs($this->getState()) && $plant->getState() != 0)
+                    ->getPlants(true)
+                    ->filter(fn($plant) => abs($plant->getState()) < abs($this->getState()) && (($plant->getState() <= 0 && $this->getState() <= 0) || ($plant->getState() >= 0 && $this->getState() >= 0)))
                     ->count();
                 return [$nbCalicoHeart, [$nbCalicoHeart]];
                 break;
