@@ -327,13 +327,13 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 #popin_showCards {
-  background-color: #fefdfd;
+  background-color: rgb(253.7380952381, 253.2619047619, 253.2619047619);
   border-radius: 8px;
   box-shadow: 0 3px 8px black;
   position: relative;
 }
 #popin_showCards .popin_closeicon {
-  background-color: #573f3f;
+  background-color: rgb(86.9047619048, 63.0952380952, 63.0952380952);
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -345,7 +345,7 @@
   right: -18px;
   font-size: 90%;
   color: white !important;
-  border: 1px solid #573f3f;
+  border: 1px solid rgb(86.9047619048, 63.0952380952, 63.0952380952);
   z-index: 2;
 }
 #popin_showCards .popin_closeicon:hover {
@@ -364,14 +364,14 @@
   background: #926a6a;
   border-radius: 8px 8px 0px 0px;
   padding: 11px 0px 3px;
-  border-bottom: 1px solid #573f3f;
+  border-bottom: 1px solid rgb(86.9047619048, 63.0952380952, 63.0952380952);
 }
 
 #popin_showCards {
   width: 750px;
   min-height: 51px;
   background-color: #ffffff;
-  border-top: 1px solid #573f3f;
+  border-top: 1px solid rgb(86.9047619048, 63.0952380952, 63.0952380952);
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
   text-align: right;
@@ -600,7 +600,7 @@
 }
 
 #LSU_turnCounter {
-  position: absolute;
+  position: relative;
   float: left;
   border: 2px solid black;
   font-weight: 100;

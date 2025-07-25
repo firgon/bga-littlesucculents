@@ -184,15 +184,14 @@ $machinestates = [
         ]
     ],
 
-    //TODO
     ST_BABY_SUN_ROSE => [
         "name" => "babySunRose",
         "description" => clienttranslate('All players with Baby Sun Rose can move a leaf on them'),
-        "descriptionmyturn" => clienttranslate('${you} can move a leaf on your Baby Sun Rose'),
+        "descriptionmyturn" => clienttranslate('${you} can choose which of your Baby Sun Roses activate'),
         "type" => MULTI,
         "action" => "stBabySunRose",
         "args" => "argBabySunRose",
-        "possibleactions" => ['actBabySunRose', 'actGenericAction'],
+        "possibleactions" => ['actBabySunRose', 'actDeny', 'actGenericAction'],
         "transitions" => [
             END_TURN => ST_GROW
         ]
@@ -204,23 +203,23 @@ $machinestates = [
         "type" => GAME,
         "action" => "stGrow",
         "transitions" => [
-            END_TURN => ST_BABY_SUN_ROSE2
+            END_TURN => ST_SEASON_END
         ]
     ],
 
     //TODO
-    ST_BABY_SUN_ROSE2 => [
-        "name" => "babySunRose",
-        "description" => clienttranslate('All players with Baby Sun Rose can move a leaf on them'),
-        "descriptionmyturn" => clienttranslate('${you} can move a leaf on your Baby Sun Rose'),
-        "type" => MULTI,
-        "action" => "stBabySunRose",
-        "args" => "argBabySunRose",
-        "possibleactions" => ['actBabySunRose', 'actGenericAction'],
-        "transitions" => [
-            END_TURN => ST_SEASON_END
-        ]
-    ],
+    // ST_BABY_SUN_ROSE2 => [
+    //     "name" => "babySunRose",
+    //     "description" => clienttranslate('All players with Baby Sun Rose can move a leaf on them'),
+    //     "descriptionmyturn" => clienttranslate('${you} can move a leaf on your Baby Sun Rose'),
+    //     "type" => MULTI,
+    //     "action" => "stBabySunRose",
+    //     "args" => "argBabySunRose",
+    //     "possibleactions" => ['actBabySunRose', 'actGenericAction'],
+    //     "transitions" => [
+    //         END_TURN => ST_SEASON_END
+    //     ]
+    // ],
 
     ST_SEASON_END => [
         "name" => "seasonEnd",

@@ -38,7 +38,7 @@ class action_littlesucculents extends APP_GameAction
       self::trace("Complete reinitialization of board game");
     }
   }
-  
+
   public function actGenericAction()
   {
     self::setAjaxMode();
@@ -69,7 +69,7 @@ class action_littlesucculents extends APP_GameAction
   //   self::ajaxResponse();
   // }
 
-  
+
   //   █████████  █████   █████ ██████████   █████████   ███████████
   //  ███░░░░░███░░███   ░░███ ░░███░░░░░█  ███░░░░░███ ░█░░░███░░░█
   // ███     ░░░  ░███    ░███  ░███  █ ░  ░███    ░███ ░   ░███  ░ 
@@ -114,7 +114,7 @@ class action_littlesucculents extends APP_GameAction
     }
     $bValid = preg_match("/^[_0-9a-zA-Z- ]*$/", $value) === 1;
     if (!$bValid) {
-      throw new BgaSystemException("Bad value for: $argName", true, true, FEX_bad_input_argument);
+      throw new BgaSystemException("Bad value for: $argName", true);
     }
     return true;
   }

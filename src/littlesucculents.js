@@ -2129,6 +2129,16 @@ var Token = /** @class */ (function () {
     Token.takeToken = function (elem) {
         return elem.querySelector(".token:not(.flower)");
     };
+    Token.takeAllTokens = function (elem) {
+        var list = elem.querySelectorAll(".token:not(.flower)");
+        var array = [];
+        for (var _i = 0, _a = list; _i < _a.length; _i++) {
+            var sub = _a[_i];
+            // then will pass compiler
+            array.push(sub);
+        }
+        return array;
+    };
     Token.prototype.moveTokenOnCard = function (token, card) {
         if (!token) {
             debug("Problem in moveTokenOnCard", token, card);
@@ -2299,6 +2309,18 @@ var MyCardManager = /** @class */ (function (_super) {
             _this.game._stocks[player.id]
                 .getCards()
                 .forEach(function (card) { return _this.addTooltip(card); });
+        });
+    };
+    MyCardManager.prototype.getCardElementById = function (cardId) {
+        return _super.prototype.getCardElement.call(this, {
+            id: cardId,
+            deck: "setA",
+            location: "water",
+            state: 0,
+            extraDatas: undefined,
+            playerId: 0,
+            dataId: 0,
+            tokenNb: 0,
         });
     };
     MyCardManager.prototype.updateCardInformations = function (card, settings) {
@@ -2752,6 +2774,102 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
             _this.takeAction({ actionName: "actConfirm" });
         });
         this.startActionTimer("btn-confirm", 8, this.getGameUserPreference(201));
+    };
+    LittleSucculentsGame.prototype.onEnteringStateBabySunRose = function (args) {
+        var _this = this;
+        if (!Object.keys(args).some(function (pId) { return _this.isItMe(pId); })) {
+            return;
+        }
+        this.babySunRoseMoves = { from: [], to: [] };
+        this.initializeBabySunRosePhase(args);
+        this.addSecondaryActionButton("btn-pass", _("Pass"), function () {
+            _this.confirmationDialog(_("You are skipping Baby Sun Rose action"), function () {
+                _this.takeAction({
+                    actionName: "actDeny",
+                });
+            });
+        });
+    };
+    LittleSucculentsGame.prototype.onEnteringStateClientBabySunRose = function (args) {
+        this.initializeBabySunRosePhase(args);
+    };
+    LittleSucculentsGame.prototype.initializeBabySunRosePhase = function (args) {
+        var _this = this;
+        var _a;
+        debug("initialize BabySunRose");
+        //determine remaining card to activate
+        var babySunRosesToActivate = Object.values(args[this.player_id].babySunRoses).filter(function (card) { return !_this.babySunRoseMoves.to.includes(card); });
+        //for each make it selectable (or even selected)
+        babySunRosesToActivate.forEach(function (bsrCard) {
+            var _a;
+            var bsrCardElement = _this._cardManager.getCardElement(_this.addStatics(bsrCard));
+            _this.onClick(bsrCardElement, function () {
+                if (bsrCardElement.classList.contains("selected"))
+                    return;
+                _this.clientState("clientChooseLeafToTransfert", _("Choose which leaf to move"), __assign(__assign({}, args), { selectedCard: bsrCard }));
+            });
+            if (bsrCard.id == ((_a = args.selectedCard) === null || _a === void 0 ? void 0 : _a.id)) {
+                bsrCardElement.classList.add("selected");
+            }
+        });
+        if (this.babySunRoseMoves.from.length > 0) {
+            if (babySunRosesToActivate.length == 0) {
+                this.displayTitle(_("Confirm your choice(s)"));
+            }
+            if (!$("btn-confirm")) {
+                (_a = $("btn-pass")) === null || _a === void 0 ? void 0 : _a.remove();
+                this.addPrimaryActionButton("btn-confirm", _("Confirm"), function () {
+                    var takeAction = function () {
+                        return _this.takeAction({
+                            actionName: "actBabySunRose",
+                            toIds: _this.babySunRoseMoves.to.map(function (card) { return card.id; }),
+                            fromIds: _this.babySunRoseMoves.from.map(function (card) { return card.id; }),
+                        });
+                    };
+                    if (_this.babySunRoseMoves.to.length !=
+                        Object.values(args[_this.player_id].babySunRoses).length) {
+                        _this.confirmationDialog(_("You didn't activate all your Baby Sun Rose plants"), takeAction);
+                    }
+                    else {
+                        takeAction();
+                    }
+                });
+            }
+            if (!$("btn-cancel")) {
+                this.addResetClientStateButton(function () {
+                    for (var index = 0; index < _this.babySunRoseMoves.from.length; index++) {
+                        var fromElem = _this._cardManager.getCardElement(_this.babySunRoseMoves.to[index]);
+                        var toCard = _this.babySunRoseMoves.from[index];
+                        _this._tokenManager.moveTokenOnCard(Token.takeToken(fromElem), toCard);
+                    }
+                    _this.babySunRoseMoves = { from: [], to: [] };
+                });
+            }
+        }
+    };
+    LittleSucculentsGame.prototype.onEnteringStateClientChooseLeafToTransfert = function (args) {
+        var _this = this;
+        this.initializeBabySunRosePhase(args);
+        Object.entries(args[this.player_id].usableCards).forEach(function (_a) {
+            var _b;
+            var cardId = _a[0], card = _a[1];
+            //you can't take a token a the selected card or on a card that already received a token (stupid move)
+            if (+cardId != ((_b = args.selectedCard) === null || _b === void 0 ? void 0 : _b.id) &&
+                !_this.babySunRoseMoves.to.includes(card)) {
+                var cardElem = _this._cardManager.getCardElement(_this.addStatics(card));
+                Token.takeAllTokens(cardElem).forEach(function (element) {
+                    _this.onClick(element, function () {
+                        if (_this.babySunRoseMoves.to.includes(args.selectedCard))
+                            return;
+                        _this.babySunRoseMoves.to.push(args.selectedCard);
+                        _this.babySunRoseMoves.from.push(card);
+                        _this._stocks[_this.player_id].unselectAll();
+                        _this._tokenManager.moveTokenOnCard(element, args.selectedCard);
+                        _this.clientState("clientBabySunRose", _("${you} can choose which of your Baby Sun Roses activate"), __assign(__assign({}, args), { you: _this.coloredYou }));
+                    });
+                });
+            }
+        });
     };
     LittleSucculentsGame.prototype.onEnteringStateMove = function (args) {
         var _this = this;
@@ -3420,7 +3538,14 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     LittleSucculentsGame.prototype.notif_transfert = function (n) {
         var _this = this;
         var fromElem = this._cardManager.getCardElement(this.addStatics(n.args.from));
+        var toElem = this._cardManager.getCardElement(this.addStatics(n.args.to));
         for (var index = 0; index < n.args.n; index++) {
+            //do not move if already done :
+            if (Token.countTokens(fromElem) == n.args.from.tokenNb ||
+                Token.countTokens(toElem) == n.args.to.tokenNb) {
+                debug("Transfert canceled (already visible)");
+                continue;
+            }
             var element = fromElem.querySelector(".token");
             if (!element)
                 debug("problem in notif transfert", index, fromElem, n.args.to);
@@ -3741,9 +3866,9 @@ var LittleSucculentsGame = /** @class */ (function (_super) {
     };
     LittleSucculentsGame.prototype.addPassButton = function (condition, callback, actionName) {
         var _this = this;
-        if (condition === void 0) { condition = true; }
+        if (condition === void 0) { condition = function () { return true; }; }
         if (actionName === void 0) { actionName = "actDeny"; }
-        if (condition) {
+        if (condition()) {
             this.addSecondaryActionButton("btn-pass", _("Pass"), function () {
                 _this.takeAction({
                     actionName: actionName,

@@ -103,11 +103,11 @@ trait GrowTrait
 		Globals::setPlayerPlans([]);
 
 		//prepare for next phase
-		//determine babysunroseplayer
-		$babySunRoseByPlayer = Players::getBabySunRoseByPlayer();
-		Globals::setBabySunRoseByPlayer($babySunRoseByPlayer);
-		Game::activeAll();
+		$babySunRosePlayerIds = Players::getPlayerIdsWithBabySunRose();
 
+		if (count($babySunRosePlayerIds)) {
+			$this->gamestate->setPlayersMultiactive($babySunRosePlayerIds, END_TURN, true);
+		}
 		Game::transition();
 	}
 

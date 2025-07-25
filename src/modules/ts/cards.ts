@@ -106,6 +106,19 @@ class MyCardManager<T extends Card> extends CardManager<T> {
     });
   }
 
+  public getCardElementById(cardId: number): HTMLElement {
+    return super.getCardElement({
+      id: cardId,
+      deck: "setA",
+      location: "water",
+      state: 0,
+      extraDatas: undefined,
+      playerId: 0,
+      dataId: 0,
+      tokenNb: 0,
+    } as T);
+  }
+
   public updateCardInformations(
     card: T,
     settings?: Omit<FlipCardSettings, "updateData">

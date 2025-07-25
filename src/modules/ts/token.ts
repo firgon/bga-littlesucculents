@@ -11,6 +11,16 @@ class Token {
     return elem.querySelector(".token:not(.flower)") as HTMLElement;
   }
 
+  static takeAllTokens(elem: HTMLElement) {
+    const list = elem.querySelectorAll(".token:not(.flower)");
+    const array = [];
+    for (const sub of list as any) {
+      // then will pass compiler
+      array.push(sub as HTMLElement);
+    }
+    return array;
+  }
+
   moveTokenOnCard(token: HTMLElement, card: Card) {
     if (!token) {
       debug("Problem in moveTokenOnCard", token, card);

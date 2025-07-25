@@ -37,6 +37,11 @@ class LittleSucculentsGame extends GameGui {
   public possiblePlaces: { [cardId: number]: number };
 
   /**
+   * To store moves during baby sun rose phase
+   */
+  public babySunRoseMoves: { from: Card[]; to: Card[] };
+
+  /**
    * fake cards for waterCan
    */
   public waterCards: { [playerId: number]: Card };
@@ -163,6 +168,156 @@ class LittleSucculentsGame extends GameGui {
       this.takeAction({ actionName: "actConfirm" });
     });
     this.startActionTimer("btn-confirm", 8, this.getGameUserPreference(201));
+  }
+
+  onEnteringStateBabySunRose(args: {
+    [playerId: number]: {
+      babySunRoses: { [cardId: number]: Card };
+      usableCards: { [cardId: number]: Card };
+    };
+  }) {
+    if (!Object.keys(args).some((pId) => this.isItMe(pId))) {
+      return;
+    }
+    this.babySunRoseMoves = { from: [], to: [] };
+    this.initializeBabySunRosePhase(args);
+    this.addSecondaryActionButton("btn-pass", _("Pass"), () => {
+      this.confirmationDialog(
+        _("You are skipping Baby Sun Rose action"),
+        () => {
+          this.takeAction({
+            actionName: "actDeny",
+          });
+        }
+      );
+    });
+  }
+
+  onEnteringStateClientBabySunRose(args: {
+    [playerId: number]: {
+      babySunRoses: { [cardId: number]: Card };
+      usableCards: { [cardId: number]: Card };
+    };
+  }) {
+    this.initializeBabySunRosePhase(args);
+  }
+
+  initializeBabySunRosePhase(args: {
+    [playerId: number]: {
+      babySunRoses: { [cardId: number]: Card };
+      usableCards: { [cardId: number]: Card };
+    };
+    selectedCard?: Card;
+  }) {
+    debug("initialize BabySunRose");
+    //determine remaining card to activate
+    const babySunRosesToActivate = (
+      Object.values(args[this.player_id].babySunRoses) as Card[]
+    ).filter((card) => !this.babySunRoseMoves.to.includes(card));
+
+    //for each make it selectable (or even selected)
+    babySunRosesToActivate.forEach((bsrCard) => {
+      const bsrCardElement = this._cardManager.getCardElement(
+        this.addStatics(bsrCard)
+      );
+      this.onClick(bsrCardElement, () => {
+        if (bsrCardElement.classList.contains("selected")) return;
+        this.clientState(
+          "clientChooseLeafToTransfert",
+          _("Choose which leaf to move"),
+          { ...args, selectedCard: bsrCard }
+        );
+      });
+      if (bsrCard.id == args.selectedCard?.id) {
+        bsrCardElement.classList.add("selected");
+      }
+    });
+
+    if (this.babySunRoseMoves.from.length > 0) {
+      if (babySunRosesToActivate.length == 0) {
+        this.displayTitle(_("Confirm your choice(s)"));
+      }
+      if (!$("btn-confirm")) {
+        $("btn-pass")?.remove();
+        this.addPrimaryActionButton("btn-confirm", _("Confirm"), () => {
+          const takeAction = () =>
+            this.takeAction({
+              actionName: "actBabySunRose",
+
+              toIds: this.babySunRoseMoves.to.map((card) => card.id),
+              fromIds: this.babySunRoseMoves.from.map((card) => card.id),
+            });
+          if (
+            this.babySunRoseMoves.to.length !=
+            Object.values(args[this.player_id].babySunRoses).length
+          ) {
+            this.confirmationDialog(
+              _("You didn't activate all your Baby Sun Rose plants"),
+              takeAction
+            );
+          } else {
+            takeAction();
+          }
+        });
+      }
+      if (!$("btn-cancel")) {
+        this.addResetClientStateButton(() => {
+          for (
+            let index = 0;
+            index < this.babySunRoseMoves.from.length;
+            index++
+          ) {
+            const fromElem = this._cardManager.getCardElement(
+              this.babySunRoseMoves.to[index]
+            );
+            const toCard = this.babySunRoseMoves.from[index];
+            this._tokenManager.moveTokenOnCard(
+              Token.takeToken(fromElem),
+              toCard
+            );
+          }
+          this.babySunRoseMoves = { from: [], to: [] };
+        });
+      }
+    }
+  }
+
+  onEnteringStateClientChooseLeafToTransfert(args: {
+    [playerId: number]: {
+      babySunRoses: { [cardId: number]: Card };
+      usableCards: { [cardId: number]: Card };
+    };
+    selectedCard: Card;
+  }) {
+    this.initializeBabySunRosePhase(args);
+
+    Object.entries(args[this.player_id].usableCards).forEach(
+      ([cardId, card]) => {
+        //you can't take a token a the selected card or on a card that already received a token (stupid move)
+        if (
+          +cardId != args.selectedCard?.id &&
+          !this.babySunRoseMoves.to.includes(card as Card)
+        ) {
+          const cardElem = this._cardManager.getCardElement(
+            this.addStatics(card as Card)
+          );
+          Token.takeAllTokens(cardElem).forEach((element) => {
+            this.onClick(element, () => {
+              if (this.babySunRoseMoves.to.includes(args.selectedCard)) return;
+              this.babySunRoseMoves.to.push(args.selectedCard);
+              this.babySunRoseMoves.from.push(card as Card);
+              this._stocks[this.player_id].unselectAll();
+              this._tokenManager.moveTokenOnCard(element, args.selectedCard);
+              this.clientState(
+                "clientBabySunRose",
+                _("${you} can choose which of your Baby Sun Roses activate"),
+                { ...args, you: this.coloredYou }
+              );
+            });
+          });
+        }
+      }
+    );
   }
 
   onEnteringStateMove(args: {
@@ -1035,8 +1190,18 @@ class LittleSucculentsGame extends GameGui {
     const fromElem = this._cardManager.getCardElement(
       this.addStatics(n.args.from)
     );
+    const toElem = this._cardManager.getCardElement(this.addStatics(n.args.to));
 
     for (let index = 0; index < n.args.n; index++) {
+      //do not move if already done :
+      if (
+        Token.countTokens(fromElem) == n.args.from.tokenNb ||
+        Token.countTokens(toElem) == n.args.to.tokenNb
+      ) {
+        debug("Transfert canceled (already visible)");
+        continue;
+      }
+
       const element = fromElem.querySelector(".token") as HTMLElement;
       if (!element)
         debug("problem in notif transfert", index, fromElem, n.args.to);
@@ -1433,8 +1598,12 @@ class LittleSucculentsGame extends GameGui {
     );
   }
 
-  addPassButton(condition = true, callback?: Function, actionName = "actDeny") {
-    if (condition) {
+  addPassButton(
+    condition = () => true,
+    callback?: Function,
+    actionName = "actDeny"
+  ) {
+    if (condition()) {
       this.addSecondaryActionButton("btn-pass", _("Pass"), () => {
         this.takeAction({
           actionName: actionName,

@@ -116,7 +116,7 @@ class Card extends \LSU\Helpers\DB_Model
         }
 
         if ($from) {
-            $from->incTokenNb(-$n);
+            $from->incToken(-$n);
             Notifications::transfert($from, $this, $n);
         } else {
             Notifications::updateCard($this);
@@ -198,6 +198,7 @@ class Card extends \LSU\Helpers\DB_Model
                 return [count($colors), array_map(fn($c) => Notifications::getTranslatableColors($c), $colors)];
                 break;
             case CALICO_HEARTS:
+                //nb of cards with abs state < to this plant and state on the same side of the money plant
                 $nbCalicoHeart = $this->getPlayer()
                     ->getPlants(true)
                     ->filter(fn($plant) => abs($plant->getState()) < abs($this->getState()) && (($plant->getState() <= 0 && $this->getState() <= 0) || ($plant->getState() >= 0 && $this->getState() >= 0)))
@@ -208,27 +209,27 @@ class Card extends \LSU\Helpers\DB_Model
                 return [$this->getTokenNb() % 2 == 0 ? 4 : -1, [$this->getTokenNb()]];
                 break;
             case RIBBON_PLANT:
+                //as many points as ribbon plants in game
                 $nbRibbon = Cards::getInLocation(PLAYER)->filter(fn($card) => $card->getClass() == RIBBON_PLANT)->count();
                 return [$nbRibbon, [$nbRibbon]];
                 break;
             case LIVING_STONE:
-                $nbLivingStone = $this->getPlayer()->getPlants()->filter(fn($card) => $card->getClass() == LIVING_STONE)->count();
+                // $nbLivingStone = $this->getPlayer()->getPlants()->filter(fn($card) => $card->getClass() == LIVING_STONE)->count();
                 // return [3 * $nbLivingStone, [$nbLivingStone]];
                 return [3, []];
                 break;
 
             case ALOE_VERA:
-                $nbWater = min(4, $this->getPlayer()->getWater());
+                $nbWater = $this->getPlayer()->getWater();
                 return [$nbWater, [$nbWater]];
                 break;
             case MOON_CACTUS:
-                return [$this->getPlayer()
+                // 7 points if you have no flower 
+                $plantCount = $this->getPlayer()
                     ->getPlants()
                     ->filter(fn($plant) => !!$plant->getFlowered())
-                    ->count() == 0 ? 7 : 0, [$this->getPlayer()
-                    ->getPlants()
-                    ->filter(fn($plant) => !!$plant->getFlowered())
-                    ->count()]];
+                    ->count();
+                return [$plantCount == 0 ? 7 : 0, [$plantCount]];
                 break;
             case LEAF_WINDOW:
                 $moneyPlant = $this->getPlayer()->getPlant(0);

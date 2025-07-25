@@ -162,11 +162,12 @@ class Players extends \LSU\Helpers\DB_Manager
   /**
    * return a map with number of babysunrose by player id
    */
-  public static function getBabySunRoseByPlayer()
+  public static function getPlayerIdsWithBabySunRose()
   {
     $result = [];
     foreach (static::getAll() as $pId => $player) {
-      $result[$pId] = $player->getPlants()->filter(fn($plant) => $plant->getClass() == BABY_SUN_ROSE)->getIds();
+      if ($player->getPlants()->filter(fn($plant) => $plant->getClass() == BABY_SUN_ROSE)->count() > 0)
+        $result[] = $pId;
     }
     return $result;
   }

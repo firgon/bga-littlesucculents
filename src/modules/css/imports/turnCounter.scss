@@ -1,7 +1,7 @@
 @use "variables.scss" as var;
 
 #LSU_turnCounter {
-  position: absolute;
+  position: relative;
   float: left;
   border: 2px solid black;
   font-weight: 100;

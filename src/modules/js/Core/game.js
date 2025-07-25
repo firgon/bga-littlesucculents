@@ -660,7 +660,7 @@ define([
      * Return a span with a colored 'You'
      */
     coloredYou() {
-      var color = this.gamedatas.players[this.player_id].color;
+      var color = this.gamedatas.players[this.player_id]?.color ?? "000000";
       var color_bg = "";
       if (
         this.gamedatas.players[this.player_id] &&
