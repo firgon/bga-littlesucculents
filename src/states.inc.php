@@ -70,6 +70,7 @@ $machinestates = [
         "type" => ACTIVE_PLAYER,
         "args" => "argPlay",
         "action" => "stPlay",
+        "updateGameProgression" => true,
         "possibleactions" => ['actBuy', 'actCut', 'actFlower', 'actChooseTend', 'actGenericAction'],
         "transitions" => [
             CONFIRM => ST_CONFIRM,
