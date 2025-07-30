@@ -1,5 +1,5 @@
 define(["dojo", "dojo/_base/declare"], (dojo, declare) => {
-  return declare("littlesucculents.zoomUI", null, {
+  return declare("gretchensgarden.zoomUI", null, {
     setupZoomUI() {
       this._propertiesUI = {
         //   "--map-size": {// css var properties

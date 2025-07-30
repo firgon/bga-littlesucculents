@@ -1,5 +1,5 @@
 define(["dojo", "dojo/_base/declare"], (dojo, declare) => {
-  return declare("littlesucculents.players", null, {
+  return declare("gretchensgarden.players", null, {
     /*
      *   █████████                                          ███
      *  ███░░░░░███                                        ░░░

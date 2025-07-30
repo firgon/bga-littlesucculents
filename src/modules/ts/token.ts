@@ -1,7 +1,7 @@
 class Token {
   static idGen = 0;
 
-  constructor(public gameui: LittleSucculentsGame) {}
+  constructor(public gameui: GretchensGardenGame) {}
 
   static countTokens(elem: HTMLElement) {
     return elem.querySelectorAll(".token:not(.flower)").length;

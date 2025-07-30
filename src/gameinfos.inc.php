@@ -13,7 +13,7 @@
 $gameinfos = array(
 
     // Name of the game in English (will serve as the basis for translation) 
-    'game_name' => "LittleSucculents",
+    'game_name' => "GretchensGarden",
 
 
     // Game publisher (use empty string if there is no publisher)

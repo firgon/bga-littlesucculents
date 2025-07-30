@@ -6,12 +6,13 @@ declare var g_archive_mode: boolean;
 declare function _(str: string): string;
 declare function __(site: string, str: string): string;
 declare function $(text: string | Element): HTMLElement;
+declare function getLibUrl(module: "bga-autofit", version: "1.x");
 
 declare const define;
 declare const ebg;
 declare const dojo;
 declare const dijit;
-declare const littlesucculents;
+declare const gretchensgarden;
 declare const customgame;
 declare type eventhandler = (event?: any) => void;
 
@@ -362,3 +363,20 @@ interface Dojo {
 }
 
 type Gamestate = any; // TODO
+
+interface AutofitSettings {
+  scaleStep?: number;
+  minScale?: number;
+}
+interface AutofitWithObserverSettings extends AutofitSettings {
+  rootElement?: HTMLElement;
+}
+/**
+ * Auto-scale the content of divs with a `bga-autofit` class. Those divs should have a fixed width and height.
+ * @param settings settings, width default : { scaleStep: 0.05, minScale: 0.1 }
+ */
+declare function init(settings?: AutofitWithObserverSettings): void;
+
+declare const BgaAutofit: {
+  init: typeof init;
+};

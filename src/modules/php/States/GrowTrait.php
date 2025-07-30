@@ -52,6 +52,13 @@ trait GrowTrait
 			Notifications::message(_('All Coral Cactus with available place automatically receive an extra water droplet'));
 		}
 
+		//prepare for next phase
+		$babySunRosePlayerIds = Players::getPlayerIdsWithBabySunRose();
+
+		if (count($babySunRosePlayerIds)) {
+			$this->gamestate->setPlayersMultiactive($babySunRosePlayerIds, END_TURN, true);
+		}
+
 		Game::transition();
 	}
 
@@ -102,12 +109,6 @@ trait GrowTrait
 		//reset playerPlans
 		Globals::setPlayerPlans([]);
 
-		//prepare for next phase
-		$babySunRosePlayerIds = Players::getPlayerIdsWithBabySunRose();
-
-		if (count($babySunRosePlayerIds)) {
-			$this->gamestate->setPlayersMultiactive($babySunRosePlayerIds, END_TURN, true);
-		}
 		Game::transition();
 	}
 

@@ -2,7 +2,7 @@
 
 namespace LSU\Core;
 
-use LittleSucculents;
+use GretchensGarden;
 
 /*
  * Game: a wrapper over table object to allow more generic modules
@@ -12,7 +12,7 @@ class Game
 {
   public static function get()
   {
-    return LittleSucculents::get();
+    return GretchensGarden::get();
   }
 
   public static function isStudio(): bool

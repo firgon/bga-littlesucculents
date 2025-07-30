@@ -65,7 +65,17 @@ class CardSetting<T extends Card> implements CardManagerSettings<T> {
   }
   selectableCardClass: "selectable";
   selectedCardClass: "selected";
-  setupBackDiv?: (card: T, element: HTMLDivElement) => void;
+  setupBackDiv(card: T, element: HTMLDivElement) {
+    if (card.location == "waterCan") {
+      Generics.addTextDiv(_("Watering Can"), "title", element, true);
+      Generics.addTextDiv(
+        _("Tend Action:<br>+2 water in this can"),
+        "text",
+        element,
+        true
+      );
+    }
+  }
   setupDiv(card: T, element: HTMLDivElement) {
     element.classList.add(card.type);
 
@@ -79,11 +89,10 @@ class CardSetting<T extends Card> implements CardManagerSettings<T> {
       Generics.addTextDiv(
         this.animationManager.game.insertIcons(card.hint),
         "text",
-        element
+        element,
+        true
       );
-      Generics.addTextDiv(_(card.name), "title", element);
-    } else if (card.type == "pot") {
-      Generics.addTextDiv(card.maxLeaf.toString(), "size", element);
+      Generics.addTextDiv(_(card.name), "title", element, true);
     }
 
     Generics.addIdDiv(card, element);
@@ -95,7 +104,7 @@ class CardSetting<T extends Card> implements CardManagerSettings<T> {
 }
 
 class MyCardManager<T extends Card> extends CardManager<T> {
-  public game: LittleSucculentsGame;
+  public game: GretchensGardenGame;
 
   public updateAllToolTips() {
     this.game.forEachPlayer((player) => {
@@ -415,10 +424,77 @@ class MyCardManager<T extends Card> extends CardManager<T> {
   isElementFlipped(card: T) {
     return this.getCardElement(card).dataset.side == "back";
   }
+
+  addStatics(card: Card) {
+    const gretchensgarden_f = (data) => {
+      return {
+        type: data[0],
+        maxLeaf: data[1],
+        maxWater: data[2],
+        nb: data[3],
+        color: data[4],
+        deck: data[5],
+        class: data[6],
+        name: data[7],
+        subtitle: data[9],
+        hint: data[8],
+      };
+    };
+    // prettier-ignore
+    const CARDS_DATA = {
+    1: gretchensgarden_f([POT, 2, 1, 8, GREY, STARTER, 'Pot', _('Pot'), '', '']),
+    2: gretchensgarden_f([POT, 6, 2, 1, PINK, DECK_POT, 'Pot', _('Pot'), '', '']),
+    3: gretchensgarden_f([POT, 8, 3, 1, PINK, DECK_POT, 'Pot', _('Pot'), '', '']),
+    4: gretchensgarden_f([POT, 12, 4, 1, PINK, DECK_POT, 'Pot', _('Pot'), '', '']),
+    5: gretchensgarden_f([POT, 6, 2, 1, ORANGE, DECK_POT, 'Pot', _('Pot'), '', '']),
+    6: gretchensgarden_f([POT, 8, 3, 1, ORANGE, DECK_POT, 'Pot', _('Pot'), '', '']),
+    7: gretchensgarden_f([POT, 12, 4, 1, ORANGE, DECK_POT, 'Pot', _('Pot'), '', '']),
+    8: gretchensgarden_f([POT, 6, 2, 1, YELLOW, DECK_POT, 'Pot', _('Pot'), '', '']),
+    9: gretchensgarden_f([POT, 8, 3, 1, YELLOW, DECK_POT, 'Pot', _('Pot'), '', '']),
+    10: gretchensgarden_f([POT, 12, 4, 1, YELLOW, DECK_POT, 'Pot', _('Pot'), '', '']),
+    11: gretchensgarden_f([POT, 6, 2, 1, GREEN, DECK_POT, 'Pot', _('Pot'), '', '']),
+    12: gretchensgarden_f([POT, 8, 3, 1, GREEN, DECK_POT, 'Pot', _('Pot'), '', '']),
+    13: gretchensgarden_f([POT, 12, 4, 1, GREEN, DECK_POT, 'Pot', _('Pot'), '', '']),
+    14: gretchensgarden_f([POT, 6, 2, 1, BLUE, DECK_POT, 'Pot', _('Pot'), '', '']),
+    15: gretchensgarden_f([POT, 8, 3, 1, BLUE, DECK_POT, 'Pot', _('Pot'), '', '']),
+    16: gretchensgarden_f([POT, 12, 4, 1, BLUE, DECK_POT, 'Pot', _('Pot'), '', '']),
+    17: gretchensgarden_f([POT, 6, 2, 1, RED, DECK_POT, 'Pot', _('Pot'), '', '']),
+    18: gretchensgarden_f([POT, 8, 3, 1, RED, DECK_POT, 'Pot', _('Pot'), '', '']),
+    19: gretchensgarden_f([POT, 12, 4, 1, RED, DECK_POT, 'Pot', _('Pot'), '', '']),
+    20: gretchensgarden_f([POT, 4, 1, 6, RAINBOW, DECK_POT, 'Pot', _('Pot'), '']),
+    21: gretchensgarden_f([PLANT, 0, 0, 6, PINK, SET_A, 'BabyToes', _('Baby Toes'), _('<5vp><br>if same number of plants left and right of money plant'), _('every step is a balancing act')]),
+    22: gretchensgarden_f([PLANT, 0, 0, 6, ORANGE, SET_A, 'SnakePlant', _('Snake Plant'), _('<5vp><br>if if holds as many leaves as the pot allows'), _('snakes plants are non-venomous')]),
+    23: gretchensgarden_f([PLANT, 0, 0, 6, YELLOW, SET_A, 'MexicanFirecracker', _('Mexican Firecracker'), _('per Mexican Firecraker:<br><5vp> if most<br><2vp> otherwise'), _('goes out with a bang')]),
+    24: gretchensgarden_f([PLANT, 0, 0, 6, GREEN, SET_A, 'StringofPearls', _('String of Pearls'), _('can hold 6 additional leaves'), _('makes the most of its space')]),
+    25: gretchensgarden_f([PLANT, 0, 0, 6, BLUE, SET_A, 'StringofDolphins', _('String of Dolphins'), _('Growth Phase:<br>+2 leaves from the stock'), _('smarter than the average plant')]),
+    26: gretchensgarden_f([PLANT, 0, 0, 6, RED, SET_A, 'JellybeanPlant', _('Jellybean Plant'), _('<Xvp><br>? = number of colors in your display'), _('the forbidden snack')]),
+    27: gretchensgarden_f([PLANT, 0, 0, 6, PINK, SET_B, 'CalicoHearts', _('Calico Hearts'), _('<Xvp><br>? = distance from money plant'), _('money can\'t buy love')]),
+    28: gretchensgarden_f([PLANT, 0, 0, 6, ORANGE, SET_B, 'BunnyEars', _('Bunny Ears'), _('number of leaves on it:<br><4vp> if even<br><-1vp> if odd'), _('best in pairs')]),
+    29: gretchensgarden_f([PLANT, 0, 0, 6, YELLOW, SET_B, 'RibbonPlant', _('Ribbon Plant'), _('<Xvp><br>? = number of copies in all displays'), _('the more the merrier')]),
+    30: gretchensgarden_f([PLANT, 0, 0, 6, GREEN, SET_B, 'BabySunRose', _('Baby Sun Rose'), _('Growth Phase:<br>+1 leaf from another plant in your display'), _('spreads in sun-drenched light')]),
+    31: gretchensgarden_f([PLANT, 0, 0, 6, BLUE, SET_B, 'CoralCactus', _('Coral Cactus'), _('Weather Phase:<br>+1 water in this pot'), _('likes to stay a little moist')]),
+    32: gretchensgarden_f([PLANT, 0, 0, 6, RED, SET_B, 'LivingStone', _('Living Stone'), '<3vp>', _('life is like a box of stones')]),
+    33: gretchensgarden_f([PLANT, 0, 0, 1, RAINBOW, DECK_PLANT, 'RainbowWest', _('Rainbow West'), _('Flower Action:<br>matches its pot color'), _('can change color to suit the season')]),
+    34: gretchensgarden_f([PLANT, 0, 0, 1, GREY, DECK_PLANT, 'AloeVera', _('Aloe Vera'), _('<Xvp><br>? = amount of water in your can'), _('the healing plant')]),
+    35: gretchensgarden_f([PLANT, 0, 0, 1, GREY, DECK_PLANT, 'MoonCactus', _('Moon Cactus'), _('<7vp><br>if there is no flower in your display'), _('the only flower that matters')]),
+    36: gretchensgarden_f([PLANT, 0, 0, 1, GREY, DECK_PLANT, 'LeafWindow', _('Leaf Window'), _('<7vp><br>if your money plant has 4 leaves'), _('little glass houses')]),
+    37: gretchensgarden_f([PLANT, 0, 0, 1, GREY, DECK_PLANT, 'MermaidTail', _('Mermaid Tail'), _('<7vp><br>if you have the most plants'), _('needs a treasure trove')]),
+    38: gretchensgarden_f([PLANT, 0, 0, 1, GREY, DECK_PLANT, 'PetRock', _('Pet Rock'), _('<5vp><br>does not grow'), _('his name is Dwayne')]),
+    39 : gretchensgarden_f([POT, 4, 2, 4, GREY, STARTER + POT, 'Pot', _('Pot'), '', '']),
+    40 : gretchensgarden_f([PLANT, 0, 0, 4, GREY, STARTER + PLANT, 'MoneyPlant', _('Money Plant'), _('leaves here = <money>'), _('the green gold')]),
+    41 : gretchensgarden_f([WATER, 0, 1, 3, GREY, WATER, 'Water', _('Water'), '', '']),
+    42 : gretchensgarden_f([WATER, 0, 2, 3, GREY, WATER, 'Water', _('Water'), '', '']),
+    43 : gretchensgarden_f([WATER, 0, 3, 3, GREY, WATER, 'Water', _('Water'), '', '']),
+    44 : gretchensgarden_f([WATER, 0, 4, 3, GREY, WATER, 'Water', _('Water'), '', '']),
+  }
+    if (CARDS_DATA.hasOwnProperty(card.dataId))
+      Object.assign(card, CARDS_DATA[card.dataId]);
+    return card;
+  }
 }
 
 class SlotStockForSucculents<T extends Card> extends SlotStock<T> {
-  public game: LittleSucculentsGame;
+  public game: GretchensGardenGame;
 
   constructor(
     protected manager: CardManager<T>,
@@ -426,7 +502,7 @@ class SlotStockForSucculents<T extends Card> extends SlotStock<T> {
     settings: SlotStockSettings<T>
   ) {
     super(manager, element, settings);
-    this.game = manager.game as LittleSucculentsGame;
+    this.game = manager.game as GretchensGardenGame;
   }
 
   public addCard(
@@ -448,20 +524,6 @@ class SlotStockForSucculents<T extends Card> extends SlotStock<T> {
   }
 }
 
-let littlesucculents_f = (data) => {
-  return {
-    type: data[0],
-    maxLeaf: data[1],
-    maxWater: data[2],
-    nb: data[3],
-    color: data[4],
-    deck: data[5],
-    class: data[6],
-    name: data[7],
-    hint: data[8],
-  };
-};
-
 /*
  * Game Constants
  */
@@ -482,51 +544,3 @@ const RAINBOW = "rainbow";
 const SET_A = "setA";
 const SET_B = "setB";
 const STARTER = "starter";
-
-// prettier-ignore
-const CARDS_DATA = {
-    1: littlesucculents_f([POT, 2, 1, 8, GREY, STARTER, 'Pot', 'Pot', '']),
-    2: littlesucculents_f([POT, 6, 2, 1, PINK, DECK_POT, 'Pot', 'Pot', '']),
-    3: littlesucculents_f([POT, 8, 3, 1, PINK, DECK_POT, 'Pot', 'Pot', '']),
-    4: littlesucculents_f([POT, 12, 4, 1, PINK, DECK_POT, 'Pot', 'Pot', '']),
-    5: littlesucculents_f([POT, 6, 2, 1, ORANGE, DECK_POT, 'Pot', 'Pot', '']),
-    6: littlesucculents_f([POT, 8, 3, 1, ORANGE, DECK_POT, 'Pot', 'Pot', '']),
-    7: littlesucculents_f([POT, 12, 4, 1, ORANGE, DECK_POT, 'Pot', 'Pot', '']),
-    8: littlesucculents_f([POT, 6, 2, 1, YELLOW, DECK_POT, 'Pot', 'Pot', '']),
-    9: littlesucculents_f([POT, 8, 3, 1, YELLOW, DECK_POT, 'Pot', 'Pot', '']),
-    10: littlesucculents_f([POT, 12, 4, 1, YELLOW, DECK_POT, 'Pot', 'Pot', '']),
-    11: littlesucculents_f([POT, 6, 2, 1, GREEN, DECK_POT, 'Pot', 'Pot', '']),
-    12: littlesucculents_f([POT, 8, 3, 1, GREEN, DECK_POT, 'Pot', 'Pot', '']),
-    13: littlesucculents_f([POT, 12, 4, 1, GREEN, DECK_POT, 'Pot', 'Pot', '']),
-    14: littlesucculents_f([POT, 6, 2, 1, BLUE, DECK_POT, 'Pot', 'Pot', '']),
-    15: littlesucculents_f([POT, 8, 3, 1, BLUE, DECK_POT, 'Pot', 'Pot', '']),
-    16: littlesucculents_f([POT, 12, 4, 1, BLUE, DECK_POT, 'Pot', 'Pot', '']),
-    17: littlesucculents_f([POT, 6, 2, 1, RED, DECK_POT, 'Pot', 'Pot', '']),
-    18: littlesucculents_f([POT, 8, 3, 1, RED, DECK_POT, 'Pot', 'Pot', '']),
-    19: littlesucculents_f([POT, 12, 4, 1, RED, DECK_POT, 'Pot', 'Pot', '']),
-    20: littlesucculents_f([POT, 4, 1, 6, RAINBOW, DECK_POT, 'Pot', 'Pot']),
-    21: littlesucculents_f([PLANT, 0, 0, 6, PINK, SET_A, 'BabyToes', 'Baby Toes', 'Balanced display<br>5 <vp>']),
-    22: littlesucculents_f([PLANT, 0, 0, 6, ORANGE, SET_A, 'SnakePlant', 'Snake Plant', 'Plant is max <leaf><br>5 <vp>']),
-    23: littlesucculents_f([PLANT, 0, 0, 6, YELLOW, SET_A, 'MexicanFirecracker', 'Mexican Firecracker', 'Most 5 <vp><br>Second 2 <vp>']),
-    24: littlesucculents_f([PLANT, 0, 0, 6, GREEN, SET_A, 'StringofPearls', 'String of Pearls', 'Pot size<br>+6']),
-    25: littlesucculents_f([PLANT, 0, 0, 6, BLUE, SET_A, 'StringofDolphins', 'String of Dolphins', 'Growth<br>+2']),
-    26: littlesucculents_f([PLANT, 0, 0, 6, RED, SET_A, 'JellybeanPlant', 'Jellybean Plant', '1 <vp> per colour<br>in display']),
-    27: littlesucculents_f([PLANT, 0, 0, 6, PINK, SET_B, 'CalicoHearts', 'Calico Hearts', '1 <vp> per space<br>from money plant']),
-    28: littlesucculents_f([PLANT, 0, 0, 6, ORANGE, SET_B, 'BunnyEars', 'Bunny Ears', 'Total <leaf><br>Odd -1 <vp>/ Even 4 <vp>']),
-    29: littlesucculents_f([PLANT, 0, 0, 6, YELLOW, SET_B, 'RibbonPlant', 'Ribbon Plant', '1 <vp> per copy<br>in all displays']),
-    30: littlesucculents_f([PLANT, 0, 0, 6, GREEN, SET_B, 'BabySunRose', 'Baby Sun Rose', 'Take 1 <leaf> from display<br>in grow phase']),
-    31: littlesucculents_f([PLANT, 0, 0, 6, BLUE, SET_B, 'CoralCactus', 'Coral Cactus', '+1 <water><br> in grow phase']),
-    32: littlesucculents_f([PLANT, 0, 0, 6, RED, SET_B, 'LivingStone', 'Living Stone', '3 <vp>']),
-    33: littlesucculents_f([PLANT, 0, 0, 1, RAINBOW, DECK_PLANT, 'RainbowWest', 'Rainbow West', 'Can flower<br>the colour of its pot']),
-    34: littlesucculents_f([PLANT, 0, 0, 1, GREY, DECK_PLANT, 'AloeVera', 'Aloe Vera', 'each <water> in wathering can<br> is worth 1 <vp>']),
-    35: littlesucculents_f([PLANT, 0, 0, 1, GREY, DECK_PLANT, 'MoonCactus', 'Moon Cactus', 'If no flowers in display<br>7 <vp>']),
-    36: littlesucculents_f([PLANT, 0, 0, 1, GREY, DECK_PLANT, 'LeafWindow', 'Leaf Window', 'If money plant is max <leaf><br>7 <vp>']),
-    37: littlesucculents_f([PLANT, 0, 0, 1, GREY, DECK_PLANT, 'MermaidTail', 'Mermaid Tail', 'Display has most plants<br>7 <vp>']),
-    38: littlesucculents_f([PLANT, 0, 0, 1, GREY, DECK_PLANT, 'PetRock', 'Pet Rock', '<leaf> don\'t score<br>5 <vp>']),
-    39 : littlesucculents_f([POT, 4, 2, 4, GREY, STARTER + POT, 'Pot', 'Pot', '']),
-    40 : littlesucculents_f([PLANT, 0, 0, 4, GREY, STARTER + PLANT, 'MoneyPlant', 'Money Plant', '<leaf> are <money><br>but worth 0<vp>']),
-    41 : littlesucculents_f([WATER, 0, 1, 3, GREY, WATER, 'Water', 'Water', '']),
-    42 : littlesucculents_f([WATER, 0, 2, 3, GREY, WATER, 'Water', 'Water', '']),
-    43 : littlesucculents_f([WATER, 0, 3, 3, GREY, WATER, 'Water', 'Water', '']),
-    44 : littlesucculents_f([WATER, 0, 4, 3, GREY, WATER, 'Water', 'Water', '']),
-  }

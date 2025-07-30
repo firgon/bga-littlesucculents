@@ -1,0 +1,755 @@
+/**
+ *------
+ * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
+ * GretchensGarden implementation : © Emmanuel Albisser <emmanuel.albisser@gmail.com>
+ *
+ * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
+ * See http://en.boardgamearena.com/#!doc/Studio for more information.
+ * -----
+ *
+ * gretchensgarden.css
+ *
+ * GretchensGarden stylesheet
+ *
+ */
+
+/*
+    This is the CSS stylesheet of your game User Interface.
+    
+    Styles defined on this file will be applied to the HTML elements you define in your
+    HTML template (gretchensgarden_gretchensgarden.tpl), and to HTML elements you create dynamically
+    (in gretchensgarden.js).
+    
+    Usually, you are using CSS to:
+    
+    1°) define the overall layout of your game
+        (ex: place the board on the top left, place player's hand beside, place the deck on the right, ...).
+
+    2°) create your CSS-sprites:
+        All images of your games should be gathered into a small number of image files. Then, using
+        background-image and background-position CSS properties, you create HTML blocks that can 
+        display these images correctly (see example below).
+    
+    3°) ... anything else:
+        It is really easy to add and remove CSS classes dynamically from your Javascript with
+        dojo.addClass and dojo.removeClass. It is also easy to check if an element has a class
+        (dojo.hasClass) or to get all elements with a specific class (dojo.query). This is why,
+        very often, using CSS classes for the logic of your user interface allow you to do complex
+        thing easily.
+        
+        
+     Note: on the production platform, this file will be compressed and comments will be removed.
+           Consequently, don't hesitate to put as many comments as necessary.
+*/
+
+/* Note: you must not use any @import directive */
+
+@use "imports/safeMode.scss";
+@use "imports/modals.scss";
+@use "imports/tooltips.scss";
+@use "imports/mixins.scss" as mix;
+@use "imports/variables.scss" as var;
+@use "imports/generics.scss";
+@use "imports/turnCounter.scss";
+@use "../../../node_modules/bga-cards/src/bga-cards.scss";
+@use "sass:list";
+
+%shadow {
+  box-shadow: 2px 2px 6px -1px #000;
+  -webkit-box-shadow: 2px 2px 6px -1px #000; /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
+  -moz-box-shadow: 2px 2px 6px -1px #000;
+}
+
+#ebd-body.two-players {
+  #board {
+    background-image: url("img/board2.jpg");
+    .slot {
+      &[data-slot-id="plant2"] {
+        left: 16.5%;
+      }
+      &[data-slot-id="plant1"] {
+        left: 33.8%;
+      }
+      &[data-slot-id="pot1"] {
+        left: 52%;
+      }
+      &[data-slot-id="pot2"] {
+        left: 69.55%;
+      }
+      &[data-slot-id="plant3"] {
+        display: none;
+      }
+      &[data-slot-id="pot3"] {
+        display: none;
+      }
+    }
+  }
+}
+
+#generalactions {
+  display: inline-flex;
+}
+#token-container {
+  display: inline-flex;
+  #droplets {
+    display: inline-flex;
+    gap: 10px;
+    .token {
+      position: relative;
+      display: inline-block;
+      // overflow: hidden;
+      top: 0;
+      left: 0;
+    }
+    &:not(:empty) {
+      margin-left: 10px;
+      &::before {
+        content: "";
+        @include mix.size(60, 83);
+        position: relative;
+        background-image: url(img/cards.jpg);
+        @include mix.getBackgroundPosition(44);
+        filter: grayscale(1);
+      }
+    }
+  }
+  #droplets:not(:empty) + #dropletsFromCan:not(:empty) {
+    &::before {
+      content: "/";
+      @include mix.size(30, 80);
+      position: relative;
+      background-image: none;
+      font-size: x-large;
+    }
+  }
+  #dropletsFromCan {
+    display: inline-flex;
+    gap: 10px;
+    .token {
+      position: relative;
+      display: inline-block;
+      // overflow: hidden;
+      top: 0;
+      left: 0;
+    }
+    &:not(:empty) {
+      margin-left: 10px;
+      margin-right: 10px;
+
+      &::after {
+        content: "";
+        @include mix.size(60, 83);
+        position: relative;
+        background-image: url(img/cards.jpg);
+        @include mix.getBackgroundPosition(43);
+      }
+    }
+  }
+}
+
+#visibleDeck .slot {
+  @include mix.size(300, 500);
+}
+
+.token.flower {
+  @include mix.size(150, 150);
+  background-image: url(img/tokens2.png);
+  background-color: white;
+  box-shadow: 0 2px black;
+  border-radius: 100%;
+  border: 1px solid black;
+  z-index: 2;
+  position: absolute;
+  left: 25%;
+  bottom: calc(mix.addScale(75) * -1);
+  &.blue {
+    @include mix.getBackgroundPosition(4, 3, 3);
+  }
+  &.green {
+    @include mix.getBackgroundPosition(5, 3, 3);
+  }
+  &.orange {
+    @include mix.getBackgroundPosition(6, 3, 3);
+  }
+  &.pink {
+    @include mix.getBackgroundPosition(7, 3, 3);
+  }
+  &.red {
+    @include mix.getBackgroundPosition(8, 3, 3);
+  }
+  &.yellow {
+    @include mix.getBackgroundPosition(9, 3, 3);
+  }
+}
+
+#deckplant,
+#deckpot,
+#water {
+  &::after {
+    border-radius: mix.addScale(20);
+    content: "";
+    top: 2.5%;
+    right: 2.5%;
+    bottom: 2.5%;
+    left: 2.5%;
+    position: absolute;
+    background-image: url(img/cards.jpg);
+    filter: grayscale(1);
+    z-index: -1;
+  }
+}
+
+.card {
+  @include mix.size(300, 462.7);
+  border-radius: mix.addScale(20);
+  position: absolute;
+  .card-sides {
+    border-radius: inherit;
+    .card-side {
+      border-radius: inherit;
+      background-image: url(img/cards.jpg);
+    }
+
+    .back {
+      @include mix.getBackgroundPosition(20);
+      .title {
+        top: 1%;
+      }
+      .text {
+        top: 13%;
+        align-items: flex-start;
+      }
+    }
+    .front {
+      overflow: visible;
+      @include mix.createBackGroundForMap(var.$imageList);
+    }
+    .title {
+      font-family: var.$title-font;
+      position: absolute;
+      display: flex;
+      width: 100%;
+      padding-left: 5%;
+      padding-right: 5%;
+      justify-content: center;
+      width: 90%;
+      height: 12%;
+      top: 20%;
+      font-size: mix.addScale(30);
+      div {
+        text-align: center;
+      }
+    }
+    .text {
+      font-family: var.$main-font;
+      position: absolute;
+      display: flex;
+      // @include mix.textBorder(white);
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      top: 32%;
+      height: 40%;
+      width: 90%;
+      left: 5%;
+      font-size: mix.addScale(30);
+      bottom: mix.addScale(12);
+    }
+    .size {
+      font-family: var.$main-font;
+      position: absolute;
+      top: 5%;
+      right: 0;
+      font-size: mix.addScale(60);
+    }
+  }
+  &.plant {
+    .token .sides {
+      transform: rotateY(0deg);
+    }
+  }
+  &:hover {
+    // .token {
+    //   opacity: 0.2;
+    //   transition: top 1s 0.3s, left 1s 0.3s, opacity 0.3s 0.5s;
+    // }
+  }
+  .token {
+    transition: top 1s 0.3s, left 1s 0.3s;
+  }
+}
+
+.token:not(.flower) {
+  @include mix.size(80, 80);
+  position: absolute;
+  z-index: 2;
+  border-radius: 100%;
+
+  $placeList: 1 72% 54%, 2 49% 59%, 3 26% 59%, 4 1% 52%, 5 -7% 25%, 6 5% 63%,
+    7 69% 67%, 8 76% 36%, 9 65% 21%, 10 22% 69%, 11 77% 8%, 12 11% -3%,
+    13 1% 10%, 14 63% -5%, 15 0% 80%, 16 20% 80%, 17 54% 77%, 18 75% 81%;
+  @each $index, $left, $top in $placeList {
+    &[data-place-id="#{$index}"] {
+      left: #{$left};
+      top: #{$top};
+    }
+  }
+
+  .sides {
+    transform: rotateY(180deg);
+    transition: transform 1s 0.3s;
+    box-sizing: border-box;
+    transform-style: preserve-3d;
+    height: 100%;
+    box-shadow: mix.addScale(0) mix.addScale(5) black;
+    border-radius: 100%;
+    border: 1px solid black;
+    .side {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+      border-radius: 100%;
+      &.front {
+        background-image: url(img/tokens2.png);
+        background-color: white;
+        @include mix.getBackgroundPosition(1, 3, 3);
+      }
+      &.back {
+        transform: rotateY(180deg);
+        background-image: url(img/tokens2.png);
+        background-color: white;
+        @include mix.getBackgroundPosition(2, 3, 3);
+      }
+    }
+  }
+  &.trashed {
+    top: 1500px;
+    left: 1500px;
+  }
+  &.selectable .sides .side {
+    &.front,
+    &.back {
+      background-color: rgb(158, 250, 163);
+    }
+  }
+  &.selected .sides .side {
+    &.front,
+    &.back {
+      background-color: rgb(131, 151, 241);
+    }
+  }
+}
+
+.slot {
+  @extend .card;
+  position: relative;
+  > .token {
+    position: absolute;
+    left: 25%;
+    bottom: 0;
+  }
+}
+
+#board-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: stretch;
+  padding-bottom: 5px;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: mix.addScale(20);
+  .lsu-row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+  .deck {
+    @extend .card;
+    position: relative;
+  }
+  #board {
+    position: relative;
+    @include mix.size(2130, 676);
+    background-image: url(img/board.jpg);
+    background-size: cover;
+    border-radius: mix.addScale(20);
+    @extend %shadow;
+    .slot {
+      position: absolute;
+      top: 4.1%;
+      &[data-slot-id="plant3"] {
+        left: 2%;
+      }
+      &[data-slot-id="plant2"] {
+        left: 18.65%;
+      }
+      &[data-slot-id="plant1"] {
+        left: 34.8%;
+      }
+      &[data-slot-id="pot1"] {
+        left: 51%;
+      }
+      &[data-slot-id="pot2"] {
+        left: 67.55%;
+      }
+      &[data-slot-id="pot3"] {
+        left: 83.8%;
+      }
+    }
+  }
+  #water {
+    &::after {
+      @include mix.getBackgroundPosition(44);
+    }
+    .card .back {
+      filter: grayscale(1);
+      @include mix.getBackgroundPosition(44);
+    }
+  }
+  #deckplant {
+    &::after {
+      @include mix.getBackgroundPosition(20);
+    }
+    .card .back {
+      @include mix.getBackgroundPosition(20);
+    }
+  }
+  #deckpot {
+    &::after {
+      @include mix.getBackgroundPosition(42);
+    }
+    .card .back {
+      @include mix.getBackgroundPosition(42);
+    }
+  }
+
+  #waterboard,
+  #water {
+    &::before {
+      position: absolute;
+      bottom: 100%;
+      width: 150%;
+      font-size: mix.addScale(30);
+      font-family: var.$main-font;
+      @include mix.textBorder(white);
+      content: attr(data-label);
+    }
+  }
+}
+#table {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: mix.addScale(20);
+  .succulents-gamezone {
+    position: relative;
+    width: 95%;
+    border-radius: mix.addScale(20);
+    border-width: 2px;
+    border-style: solid;
+    overflow: hidden;
+    .player-board-name {
+      padding: 0 5px;
+
+      font-size: max(mix.addScale(30), 15px);
+      font-family: var.$main-font;
+      @include mix.textBorder(white);
+    }
+    .gamezone-cards {
+      height: calc(mix.addScale(calc(463 * 2)) + 8px);
+      flex-direction: column-reverse;
+      align-content: center;
+      margin-right: mix.addScale(300);
+      row-gap: 0;
+      .slot:empty:not(.active) {
+        display: none;
+      }
+    }
+    .waterCan {
+      @include mix.size(300, 415);
+      border-radius: mix.addScale(20);
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      .card-side.back {
+        @include mix.getBackgroundPosition(43);
+        filter: contrast(0.8);
+      }
+    }
+  }
+}
+
+/*
+                  ████                     █████     ███                     
+                 ░░███                    ░░███     ░░░                      
+  █████   ██████  ░███   ██████   ██████  ███████   ████   ██████  ████████  
+ ███░░   ███░░███ ░███  ███░░███ ███░░███░░░███░   ░░███  ███░░███░░███░░███ 
+░░█████ ░███████  ░███ ░███████ ░███ ░░░   ░███     ░███ ░███ ░███ ░███ ░███ 
+ ░░░░███░███░░░   ░███ ░███░░░  ░███  ███  ░███ ███ ░███ ░███ ░███ ░███ ░███ 
+ ██████ ░░██████  █████░░██████ ░░██████   ░░█████  █████░░██████  ████ █████
+░░░░░░   ░░░░░░  ░░░░░  ░░░░░░   ░░░░░░     ░░░░░  ░░░░░  ░░░░░░  ░░░░ ░░░░░ 
+                                                                             
+                                                                             
+                                                                             
+*/
+.bga-cards_selectable-card {
+  .card-side.front::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(30, 221, 39, 0.315);
+  }
+  &.bga-cards_selected-card {
+    outline: 3px green solid;
+  }
+}
+
+//for decks or slots
+.selectable:not(.token) {
+  box-sizing: border-box;
+  outline: 3px blue solid;
+  background-color: rgba(30, 65, 221, 0.315);
+  cursor: pointer;
+
+  //move card if here
+  .basicPot.right {
+    transform: translateX(108%);
+  }
+  .basicPot.left {
+    transform: translateX(-108%);
+  }
+}
+.basicPot {
+  transition: transform 0.5s ease-in;
+}
+.unselectable {
+  cursor: not-allowed;
+}
+
+.notif_startAction,
+.notif_startWater {
+  .roundedbox {
+    font-family: var.$main-font;
+    border: 2px rgb(119, 119, 119) solid;
+    text-align: center;
+  }
+}
+/*
+   █████████                                          ███          
+  ███░░░░░███                                        ░░░           
+ ███     ░░░   ██████  ████████    ██████  ████████  ████   ██████ 
+░███          ███░░███░░███░░███  ███░░███░░███░░███░░███  ███░░███
+░███    █████░███████  ░███ ░███ ░███████  ░███ ░░░  ░███ ░███ ░░░ 
+░░███  ░░███ ░███░░░   ░███ ░███ ░███░░░   ░███      ░███ ░███  ███
+ ░░█████████ ░░██████  ████ █████░░██████  █████     █████░░██████ 
+  ░░░░░░░░░   ░░░░░░  ░░░░ ░░░░░  ░░░░░░  ░░░░░     ░░░░░  ░░░░░░  
+                                                                  
+*/
+.animate-on-transforms {
+  transition: all 0.5s 0.5s;
+}
+
+.inline-icon {
+  display: inline-block;
+  line-height: normal;
+  width: 3em;
+  height: 2em;
+  background-image: url(img/points.png);
+  position: relative;
+  vertical-align: bottom;
+  $list: "-1vp", "1vp", "2vp", "3vp", "4vp", "5vp", "7vp", "Xvp", "money";
+
+  @for $i from 1 through list.length($list) {
+    $name: list.nth($list, $i);
+    &.icon-#{$name} {
+      @include mix.getBackgroundPosition($i, 3, 3);
+    }
+  }
+}
+.id_number {
+  display: none;
+}
+
+#ebd-body.debug {
+  & .card:hover .id_number {
+    font-size: 1.2em;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    font-weight: 700;
+    background-color: #fff;
+    display: block;
+    &::before {
+      content: "ID:";
+    }
+  }
+}
+
+#LSU_caution {
+  -webkit-transition: max-height 0.5s, padding 0.5s;
+  -moz-transition: max-height 0.5s, padding 0.5s;
+  -ms-transition: max-height 0.5s, padding 0.5s;
+  -o-transition: max-height 0.5s, padding 0.5s;
+  transition: max-height 0.5s, padding 0.5s;
+  &:empty {
+    max-height: 0;
+    padding: 0;
+  }
+
+  &:not(:empty)::before {
+    content: "\2716";
+    height: 20px;
+    width: 20px;
+    position: absolute;
+    right: 10px;
+  }
+  max-height: 30px;
+  background-color: red;
+  border-radius: 5px;
+  padding: 5px;
+  margin: 5px;
+  font-weight: 600;
+  text-align: center;
+}
+
+//for displaying idNumber in debug mode
+.id_number {
+  display: none;
+}
+
+#game_play_area.debug {
+  & .card:hover .id_number {
+    font-size: 1.2em;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    font-weight: 700;
+    background-color: #fff;
+    display: block;
+    &::before {
+      content: "ID:";
+    }
+  }
+}
+
+//empty deck
+.empty {
+  filter: grayscale(100%);
+  &::before {
+    background-color: rgba(241, 240, 240, 0.25);
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.player-infos {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  margin: 5px;
+  justify-content: flex-start;
+  .first-player-holder {
+    width: 50px;
+    height: 50px;
+  }
+
+  #firstPlayer {
+    width: 50px;
+    height: 50px;
+    background-image: url(img/tokens2.png);
+    @include mix.getBackgroundPosition(3, 3, 3);
+  }
+
+  .counter {
+    display: inline-flex;
+    align-items: center;
+    text-align: center;
+    font-size: 1.5em;
+    font-family: var.$main-font;
+    margin-right: 0.5em;
+
+    &.water-counter::before {
+      background: url(img/cards.jpg);
+      @include mix.getBackgroundPosition(43);
+
+      width: 30px;
+      height: 41px;
+    }
+
+    &:before {
+      background: url("img/icons.png");
+      content: "";
+      display: block;
+      background-size: cover;
+      width: 30px;
+      height: 30px;
+      float: left;
+    }
+  }
+}
+
+.rewards-counter:after {
+  background: url(img/icons.png);
+  content: "";
+  display: inline-block;
+  background-size: cover;
+  width: 20px;
+  height: 20px;
+  top: 4px;
+  position: relative;
+  background-position: 100%;
+}
+
+.deckinfo {
+  background: #fff;
+  border: 2px solid rgb(80, 57, 9);
+  border-radius: 50%;
+  color: rgb(80, 57, 9);
+  overflow: visible;
+  padding: 1px 2px 0px 1px;
+  position: absolute;
+  text-align: center;
+  bottom: 4%;
+  left: 2%;
+  z-index: 99;
+}
+//                                         ████
+//                                        ░░███
+//  ██████  █████ █████  ██████  ████████  ░███   ██████   █████ ████
+// ███░░███░░███ ░░███  ███░░███░░███░░███ ░███  ░░░░░███ ░░███ ░███
+//░███ ░███ ░███  ░███ ░███████  ░███ ░░░  ░███   ███████  ░███ ░███
+//░███ ░███ ░░███ ███  ░███░░░   ░███      ░███  ███░░███  ░███ ░███
+//░░██████   ░░█████   ░░██████  █████     █████░░████████ ░░███████
+// ░░░░░░     ░░░░░     ░░░░░░  ░░░░░     ░░░░░  ░░░░░░░░   ░░░░░███
+//                                                          ███ ░███
+//                                                         ░░██████
+//                                                          ░░░░░░
+
+#card-overlay {
+  opacity: 0;
+  position: fixed;
+  width: 100%;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.3);
+  top: 0;
+  left: 0;
+  z-index: 4000;
+  pointer-events: none;
+  transition: opacity 600ms;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#card-overlay.active {
+  opacity: 1;
+  pointer-events: none;
+}

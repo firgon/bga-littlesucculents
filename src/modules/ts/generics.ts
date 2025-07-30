@@ -11,9 +11,15 @@ class Generics {
     }
   }
 
-  static addTextDiv(text: string, classe: string, element: HTMLElement): void {
+  static addTextDiv(
+    text: string,
+    classe: string,
+    element: HTMLElement,
+    isAutofit: boolean = false
+  ): void {
     let div = document.createElement("div");
     div.classList.add(classe);
+    if (isAutofit) div.classList.add("bga-autofit");
     const innerDiv = document.createElement("div");
     innerDiv.innerHTML = text;
     div.append(innerDiv);

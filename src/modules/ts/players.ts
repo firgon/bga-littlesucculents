@@ -3,7 +3,7 @@ class Players {
 
   updatePlayer(player: Player) {
     if (player.isFirst) {
-      (this.gameui as LittleSucculentsGame).attachElementWithSlide(
+      (this.gameui as GretchensGardenGame).attachElementWithSlide(
         $("firstPlayer"),
         $(`first-player-${player.id}`)
       );

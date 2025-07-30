@@ -5,7 +5,7 @@
 
 define(['dojo', 'dojo/_base/declare', 'dojo/fx', 'dojox/fx/ext-dojo/complex'], function (dojo, declare) {
 	  
-	return declare('littlesucculents.cheatModule', null, {
+	return declare('gretchensgarden.cheatModule', null, {
 
 		cheatModuleSetup(gamedatas){
 			dojo.place(this.cheatBlock(), "player_boards");

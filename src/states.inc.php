@@ -3,7 +3,7 @@
 /**
  *------
  * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
- * LittleSucculents implementation : © Emmanuel Albisser <emmanuel.albisser@gmail.com>
+ * GretchensGarden implementation : © Emmanuel Albisser <emmanuel.albisser@gmail.com>
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
@@ -11,7 +11,7 @@
  * 
  * states.inc.php
  *
- * LittleSucculents game states description
+ * GretchensGarden game states description
  *
  */
 
@@ -159,6 +159,18 @@ $machinestates = [
         "type" => GAME,
         "action" => "stAutomaticWater",
         "transitions" => [
+            END_TURN => ST_BABY_SUN_ROSE
+        ]
+    ],
+
+    ST_BABY_SUN_ROSE => [
+        "name" => "babySunRose",
+        "description" => clienttranslate('All players with Baby Sun Rose can move a leaf on them'),
+        "descriptionmyturn" => clienttranslate('${you} can choose which of your Baby Sun Roses activate'),
+        "type" => MULTI,
+        "args" => "argBabySunRose",
+        "possibleactions" => ['actBabySunRose', 'actDeny', 'actGenericAction'],
+        "transitions" => [
             END_TURN => ST_WATER
         ]
     ],
@@ -181,19 +193,6 @@ $machinestates = [
         "type" => GAME,
         "action" => "stRegisterWater",
         "transitions" => [
-            END_TURN => ST_BABY_SUN_ROSE
-        ]
-    ],
-
-    ST_BABY_SUN_ROSE => [
-        "name" => "babySunRose",
-        "description" => clienttranslate('All players with Baby Sun Rose can move a leaf on them'),
-        "descriptionmyturn" => clienttranslate('${you} can choose which of your Baby Sun Roses activate'),
-        "type" => MULTI,
-        "action" => "stBabySunRose",
-        "args" => "argBabySunRose",
-        "possibleactions" => ['actBabySunRose', 'actDeny', 'actGenericAction'],
-        "transitions" => [
             END_TURN => ST_GROW
         ]
     ],
@@ -207,20 +206,6 @@ $machinestates = [
             END_TURN => ST_SEASON_END
         ]
     ],
-
-    //TODO
-    // ST_BABY_SUN_ROSE2 => [
-    //     "name" => "babySunRose",
-    //     "description" => clienttranslate('All players with Baby Sun Rose can move a leaf on them'),
-    //     "descriptionmyturn" => clienttranslate('${you} can move a leaf on your Baby Sun Rose'),
-    //     "type" => MULTI,
-    //     "action" => "stBabySunRose",
-    //     "args" => "argBabySunRose",
-    //     "possibleactions" => ['actBabySunRose', 'actGenericAction'],
-    //     "transitions" => [
-    //         END_TURN => ST_SEASON_END
-    //     ]
-    // ],
 
     ST_SEASON_END => [
         "name" => "seasonEnd",
