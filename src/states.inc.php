@@ -159,7 +159,8 @@ $machinestates = [
         "type" => GAME,
         "action" => "stAutomaticWater",
         "transitions" => [
-            END_TURN => ST_BABY_SUN_ROSE
+            BABY_SUN_ROSE => ST_BABY_SUN_ROSE,
+            END_TURN => ST_WATER
         ]
     ],
 

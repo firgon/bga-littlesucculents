@@ -279,21 +279,63 @@
   }
 }
 
+.card.pot {
+  /* prettier-ignore */
+  $placeList: (1, (1 36% 50%,)), (2, (1 15% 50%, 2 55% 50%)), (3, (1 38% 41%, 2 10% 58%, 3 67% 58%)),
+    (4, (1 29% 58%, 2 48% 41%, 3 10% 41%, 4 67% 58%));
+  @each $nbPlaces, $listOfPlaces in $placeList {
+    &[data-max-water="#{$nbPlaces}"] {
+      @each $index, $left, $top in $listOfPlaces {
+        .token:not(.flower)[data-place-id="#{$index}"] {
+          left: #{$left};
+          top: #{$top};
+        }
+      }
+    }
+  }
+}
+.tokenPlaceHolder {
+  position: absolute;
+  display: flex;
+  bottom: 10%;
+  left: 10%;
+  &.automaticCounter[data-nb]::before {
+    position: relative;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    @include mix.textBorder(white);
+    font-size: mix.addScale(80);
+    margin-right: -0.3em;
+    z-index: 3;
+  }
+}
+.waterCan {
+  .tokenPlaceHolder {
+    bottom: 19%;
+    left: 37%;
+  }
+}
+.gamezone-cards {
+  .tokenPlaceHolder {
+    bottom: 110%;
+    width: 100%;
+    left: 0;
+    justify-content: center;
+    &.automaticCounter::before {
+      margin-right: 0.7em;
+    }
+  }
+  .slot[data-slot-id^="plant"] {
+    margin-top: mix.addScale(100);
+  }
+}
+
 .token:not(.flower) {
   @include mix.size(80, 80);
   position: absolute;
   z-index: 2;
   border-radius: 100%;
-
-  $placeList: 1 72% 54%, 2 49% 59%, 3 26% 59%, 4 1% 52%, 5 -7% 25%, 6 5% 63%,
-    7 69% 67%, 8 76% 36%, 9 65% 21%, 10 22% 69%, 11 77% 8%, 12 11% -3%,
-    13 1% 10%, 14 63% -5%, 15 0% 80%, 16 20% 80%, 17 54% 77%, 18 75% 81%;
-  @each $index, $left, $top in $placeList {
-    &[data-place-id="#{$index}"] {
-      left: #{$left};
-      top: #{$top};
-    }
-  }
 
   .sides {
     transform: rotateY(180deg);
@@ -461,11 +503,12 @@
       @include mix.textBorder(white);
     }
     .gamezone-cards {
-      height: calc(mix.addScale(calc(463 * 2)) + 8px);
+      $marginForPlaceHolders: 100;
+      height: calc(mix.addScale(calc(463 * 2 + $marginForPlaceHolders)) + 8px);
       flex-direction: column-reverse;
       align-content: center;
       margin-right: mix.addScale(300);
-      row-gap: 0;
+      row-gap: 3px;
       .slot:empty:not(.active) {
         display: none;
       }
@@ -570,6 +613,11 @@
     &.icon-#{$name} {
       @include mix.getBackgroundPosition($i, 3, 3);
     }
+  }
+  &.icon-vp {
+    background-position: 57.4% 44%;
+    background-size: 600% 300%;
+    width: 2em;
   }
 }
 .id_number {

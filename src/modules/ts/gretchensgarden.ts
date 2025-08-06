@@ -916,13 +916,6 @@ class GretchensGardenGame extends GameGui {
 
     const card = this.waterCards[this.player_id];
     //move token
-    const [busyPlaces, availablePlaces] = this._tokenManager.getAvailablePlaces(
-      card,
-      this._cardManager.getCardElement(card)
-    );
-
-    element.dataset.placeId = availablePlaces[0].toString();
-
     this._tokenManager.moveTokenOnCard(element, card);
     element.classList.remove("selected");
     this.resetTitle();
@@ -1353,7 +1346,7 @@ class GretchensGardenGame extends GameGui {
     );
     colors.forEach((color) => {
       const elem = document.querySelector(`[data-slot-id='${color}']`);
-      this.addAutomaticCounter(elem as HTMLElement);
+      GretchensGardenGame.addAutomaticCounter(elem as HTMLElement);
       //create flower token
       const flowerElem = document.createElement("div");
       flowerElem.classList.add("token", "flower", color);
@@ -1510,14 +1503,14 @@ class GretchensGardenGame extends GameGui {
     }
   }
 
-  addAutomaticCounter(elem: HTMLElement) {
+  static addAutomaticCounter(elem: HTMLElement, selector = ".card") {
     elem.classList.add("automaticCounter");
     let observer = new MutationObserver((mutationRecords) => {
       mutationRecords.forEach((record) => {
         (record.target as HTMLElement).dataset.nb = (
           record.target as HTMLElement
         )
-          .querySelectorAll(".card")
+          .querySelectorAll(selector)
           .length.toString();
       });
     });

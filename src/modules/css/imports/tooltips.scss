@@ -21,14 +21,19 @@
       &::after {
         content: "";
         display: block;
-        aspect-ratio: 1;
-        width: 50px;
-        height: 40px;
-        @include mixins.getIcon(2);
+        width: 1em;
+        height: 1em;
+        background-image: url(img/points.png);
       }
     }
+    .total-score::after {
+      background-position: 57.5% 44%;
+      background-size: 600% 300%;
+    }
     .total-money::after {
-      @include mixins.getIcon(1);
+      background-image: url(img/points.png);
+      background-position: 92.5% 96%;
+      background-size: 500%;
     }
     .rules {
       max-width: 300px;

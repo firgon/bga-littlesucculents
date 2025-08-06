@@ -31,18 +31,17 @@ class Token {
 
     const cardElement = this.gameui._cardManager.getCardElement(card);
 
-    const [busyPlaces, availablePlaces] = this.getAvailablePlaces(
-      card,
-      cardElement
-    );
-
-    //change token place if busy
-    if (busyPlaces.includes(+token.dataset.placeId)) {
-      debug("I change token placeId");
-      token.dataset.placeId = availablePlaces[0].toString();
+    if (card.type == "pot") {
+      token.dataset.placeId =
+        this.getAvailableNextPlace(cardElement).toString();
     }
 
-    this.gameui.attachElementWithSlide(token, cardElement);
+    const destination =
+      card.type == "pot"
+        ? cardElement
+        : (cardElement.querySelector(".tokenPlaceHolder") as HTMLElement);
+
+    this.gameui.attachElementWithSlide(token, destination);
   }
 
   adjustTokens(card: Card, from: HTMLElement = null) {
@@ -54,62 +53,32 @@ class Token {
     //flower
     if (card.flowered) {
       const flowerElem = this.gameui.getFlowerElem(card.flowered);
-      // debug("bug", flowerElem, element);
       //wait added to make it running, don't know why
       this.gameui
         .wait(2)
         .then(() => this.gameui.attachElementWithSlide(flowerElem, element));
     }
 
-    const [busyPlaces, availablePlaces] = this.getAvailablePlaces(
-      card,
-      element
-    );
     const tokensOnCard = Math.max(0, card.tokenNb ?? 0);
+    const tokenElementsOnCard = Token.countTokens(element);
 
-    if (busyPlaces.length < tokensOnCard) {
-      // debug(
-      //   `There are ${
-      //     busyPlaces.length
-      //   } tokens on this element, it should have ${tokensOnCard}, i add ${
-      //     card.tokenNb - busyPlaces.length
-      //   } elems`
-      // );
-      this.addTokens(
-        card.tokenNb - busyPlaces.length,
-        card,
-        availablePlaces,
-        from
-      );
-    } else if (busyPlaces.length > tokensOnCard) {
-      // debug(
-      //   `There are ${
-      //     busyPlaces.length
-      //   } tokens on this element, it should have ${tokensOnCard}, i remove ${
-      //     busyPlaces.length - card.tokenNb
-      //   } elems`
-      // );
-      this.removeTokens(Math.abs(tokensOnCard - busyPlaces.length), element);
+    if (tokenElementsOnCard < tokensOnCard) {
+      this.addTokens(card.tokenNb - tokenElementsOnCard, card, from);
+    } else if (tokenElementsOnCard > tokensOnCard) {
+      this.removeTokens(Math.abs(tokensOnCard - tokenElementsOnCard), element);
     }
   }
 
-  addTokens(
-    nb: number,
-    card: Card,
-    availablePlaces: number[],
-    container: HTMLElement
-  ) {
+  addTokens(nb: number, card: Card, container: HTMLElement) {
     // debug("addTokens", nb, card, availablePlaces);
     for (let index = 0; index < nb; index++) {
       if (container) {
-        const token = this.createToken(container, availablePlaces[index]);
+        const token = this.createToken(container);
         this.moveTokenOnCard(token, card);
       } else {
         const token = this.createToken(
-          this.gameui._cardManager.getCardElement(card),
-          availablePlaces[index]
+          this.gameui._cardManager.getCardElement(card)
         );
-        token.dataset.placeId = availablePlaces[index].toString();
       }
     }
   }
@@ -124,7 +93,7 @@ class Token {
     }
   }
 
-  createToken(initialContainer: HTMLElement, placeId: number): HTMLElement {
+  createToken(initialContainer: HTMLElement): HTMLElement {
     const result = document.createElement("div");
     result.id = "token-" + Token.idGen++;
     result.classList.add("token");
@@ -141,9 +110,18 @@ class Token {
       sides.append(sideElem);
     });
     result.append(sides);
-    result.dataset.placeId = placeId.toString();
+    result.dataset.placeId =
+      this.getAvailableNextPlace(initialContainer).toString();
+    // If there is a dedicated placeholder use it
+    initialContainer =
+      (initialContainer.querySelector(".tokenPlaceHolder") as HTMLElement) ??
+      initialContainer;
     initialContainer.append(result);
     return result;
+  }
+
+  getAvailableNextPlace(cardElement: HTMLElement) {
+    return Token.countTokens(cardElement) + 1;
   }
 
   getAvailablePlaces(
@@ -155,7 +133,7 @@ class Token {
       return;
     }
     const places = Array.from(
-      new Array((card.tokenNb ?? 0) + 4),
+      new Array(card.maxWater > 0 ? card.maxWater : (card.tokenNb ?? 0) + 4),
       (x, i) => i + 1
     );
     const busyPlaces = Array.from(

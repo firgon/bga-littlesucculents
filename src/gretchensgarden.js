@@ -2152,13 +2152,14 @@ var Token = /** @class */ (function () {
         if (card.type === undefined)
             this.gameui.addStatics(card);
         var cardElement = this.gameui._cardManager.getCardElement(card);
-        var _a = this.getAvailablePlaces(card, cardElement), busyPlaces = _a[0], availablePlaces = _a[1];
-        //change token place if busy
-        if (busyPlaces.includes(+token.dataset.placeId)) {
-            debug("I change token placeId");
-            token.dataset.placeId = availablePlaces[0].toString();
+        if (card.type == "pot") {
+            token.dataset.placeId =
+                this.getAvailableNextPlace(cardElement).toString();
         }
-        this.gameui.attachElementWithSlide(token, cardElement);
+        var destination = card.type == "pot"
+            ? cardElement
+            : cardElement.querySelector(".tokenPlaceHolder");
+        this.gameui.attachElementWithSlide(token, destination);
     };
     Token.prototype.adjustTokens = function (card, from) {
         // debug("adjust Token", card);
@@ -2171,45 +2172,29 @@ var Token = /** @class */ (function () {
         //flower
         if (card.flowered) {
             var flowerElem_1 = this.gameui.getFlowerElem(card.flowered);
-            // debug("bug", flowerElem, element);
             //wait added to make it running, don't know why
             this.gameui
                 .wait(2)
                 .then(function () { return _this.gameui.attachElementWithSlide(flowerElem_1, element); });
         }
-        var _b = this.getAvailablePlaces(card, element), busyPlaces = _b[0], availablePlaces = _b[1];
         var tokensOnCard = Math.max(0, (_a = card.tokenNb) !== null && _a !== void 0 ? _a : 0);
-        if (busyPlaces.length < tokensOnCard) {
-            // debug(
-            //   `There are ${
-            //     busyPlaces.length
-            //   } tokens on this element, it should have ${tokensOnCard}, i add ${
-            //     card.tokenNb - busyPlaces.length
-            //   } elems`
-            // );
-            this.addTokens(card.tokenNb - busyPlaces.length, card, availablePlaces, from);
+        var tokenElementsOnCard = Token.countTokens(element);
+        if (tokenElementsOnCard < tokensOnCard) {
+            this.addTokens(card.tokenNb - tokenElementsOnCard, card, from);
         }
-        else if (busyPlaces.length > tokensOnCard) {
-            // debug(
-            //   `There are ${
-            //     busyPlaces.length
-            //   } tokens on this element, it should have ${tokensOnCard}, i remove ${
-            //     busyPlaces.length - card.tokenNb
-            //   } elems`
-            // );
-            this.removeTokens(Math.abs(tokensOnCard - busyPlaces.length), element);
+        else if (tokenElementsOnCard > tokensOnCard) {
+            this.removeTokens(Math.abs(tokensOnCard - tokenElementsOnCard), element);
         }
     };
-    Token.prototype.addTokens = function (nb, card, availablePlaces, container) {
+    Token.prototype.addTokens = function (nb, card, container) {
         // debug("addTokens", nb, card, availablePlaces);
         for (var index = 0; index < nb; index++) {
             if (container) {
-                var token = this.createToken(container, availablePlaces[index]);
+                var token = this.createToken(container);
                 this.moveTokenOnCard(token, card);
             }
             else {
-                var token = this.createToken(this.gameui._cardManager.getCardElement(card), availablePlaces[index]);
-                token.dataset.placeId = availablePlaces[index].toString();
+                var token = this.createToken(this.gameui._cardManager.getCardElement(card));
             }
         }
     };
@@ -2222,7 +2207,8 @@ var Token = /** @class */ (function () {
             gameui.slideToObjectAndDestroy(element, "pagemaintitletext");
         }
     };
-    Token.prototype.createToken = function (initialContainer, placeId) {
+    Token.prototype.createToken = function (initialContainer) {
+        var _a;
         var result = document.createElement("div");
         result.id = "token-" + Token.idGen++;
         result.classList.add("token");
@@ -2237,9 +2223,16 @@ var Token = /** @class */ (function () {
             sides.append(sideElem);
         });
         result.append(sides);
-        result.dataset.placeId = placeId.toString();
+        result.dataset.placeId =
+            this.getAvailableNextPlace(initialContainer).toString();
+        // If there is a dedicated placeholder use it
+        initialContainer =
+            (_a = initialContainer.querySelector(".tokenPlaceHolder")) !== null && _a !== void 0 ? _a : initialContainer;
         initialContainer.append(result);
         return result;
+    };
+    Token.prototype.getAvailableNextPlace = function (cardElement) {
+        return Token.countTokens(cardElement) + 1;
     };
     Token.prototype.getAvailablePlaces = function (card, cardElement) {
         var _a;
@@ -2247,7 +2240,7 @@ var Token = /** @class */ (function () {
             debug("ERROR with tokenNb", card);
             return;
         }
-        var places = Array.from(new Array(((_a = card.tokenNb) !== null && _a !== void 0 ? _a : 0) + 4), function (x, i) { return i + 1; });
+        var places = Array.from(new Array(card.maxWater > 0 ? card.maxWater : ((_a = card.tokenNb) !== null && _a !== void 0 ? _a : 0) + 4), function (x, i) { return i + 1; });
         var busyPlaces = Array.from(cardElement.querySelectorAll(".token:not(.flower)")).map(function (elem) { return +elem.dataset.placeId; });
         var getShuffledArr = function (arr) {
             var _a;
@@ -2286,9 +2279,23 @@ var CardSetting = /** @class */ (function () {
         }
     };
     CardSetting.prototype.setupDiv = function (card, element) {
+        var _a;
         element.classList.add(card.type);
         if (card.deck == "starter" && card.type == "pot") {
             element.classList.add("basicPot", card.state > 0 ? "right" : "left");
+        }
+        if (card.type != "pot") {
+            ["token", "flower"].forEach(function (name) {
+                var tokenPlaceHolder = document.createElement("div");
+                tokenPlaceHolder.id = name + "PlaceHolder-" + card.id;
+                tokenPlaceHolder.classList.add(name + "PlaceHolder");
+                if (name == "token")
+                    GretchensGardenGame.addAutomaticCounter(tokenPlaceHolder, ".token");
+                element.appendChild(tokenPlaceHolder);
+            });
+        }
+        else {
+            element.dataset.maxWater = (_a = card.maxWater) === null || _a === void 0 ? void 0 : _a.toString();
         }
     };
     CardSetting.prototype.setupFrontDiv = function (card, element) {
@@ -3351,8 +3358,6 @@ var GretchensGardenGame = /** @class */ (function (_super) {
         }
         var card = this.waterCards[this.player_id];
         //move token
-        var _b = this._tokenManager.getAvailablePlaces(card, this._cardManager.getCardElement(card)), busyPlaces = _b[0], availablePlaces = _b[1];
-        element.dataset.placeId = availablePlaces[0].toString();
         this._tokenManager.moveTokenOnCard(element, card);
         element.classList.remove("selected");
         this.resetTitle();
@@ -3663,7 +3668,7 @@ var GretchensGardenGame = /** @class */ (function (_super) {
         });
         colors.forEach(function (color) {
             var elem = document.querySelector("[data-slot-id='".concat(color, "']"));
-            _this.addAutomaticCounter(elem);
+            GretchensGardenGame.addAutomaticCounter(elem);
             //create flower token
             var flowerElem = document.createElement("div");
             flowerElem.classList.add("token", "flower", color);
@@ -3797,12 +3802,13 @@ var GretchensGardenGame = /** @class */ (function (_super) {
             }, "restartAction");
         }
     };
-    GretchensGardenGame.prototype.addAutomaticCounter = function (elem) {
+    GretchensGardenGame.addAutomaticCounter = function (elem, selector) {
+        if (selector === void 0) { selector = ".card"; }
         elem.classList.add("automaticCounter");
         var observer = new MutationObserver(function (mutationRecords) {
             mutationRecords.forEach(function (record) {
                 record.target.dataset.nb = record.target
-                    .querySelectorAll(".card")
+                    .querySelectorAll(selector)
                     .length.toString();
             });
         });

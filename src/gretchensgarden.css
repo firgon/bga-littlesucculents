@@ -460,17 +460,18 @@
 .dijitTooltipContainer .id-card .total-money::after {
   content: "";
   display: block;
-  aspect-ratio: 1;
-  width: 50px;
-  height: 40px;
-  background-image: url("img/icons.png");
-  background-position-x: 33.3333333333%;
-  background-size: 400%;
+  width: 1em;
+  height: 1em;
+  background-image: url(img/points.png);
+}
+.dijitTooltipContainer .id-card .total-score::after {
+  background-position: 57.5% 44%;
+  background-size: 600% 300%;
 }
 .dijitTooltipContainer .id-card .total-money::after {
-  background-image: url("img/icons.png");
-  background-position-x: 0%;
-  background-size: 400%;
+  background-image: url(img/points.png);
+  background-position: 92.5% 96%;
+  background-size: 500%;
 }
 .dijitTooltipContainer .id-card .rules {
   max-width: 300px;
@@ -1242,84 +1243,91 @@ body > .card, body > .slot, #board-container body > .deck {
   transition: top 1s 0.3s, left 1s 0.3s;
 }
 
+.card.pot, #board-container .pot.deck, .pot.slot {
+  /* prettier-ignore */
+}
+.card.pot[data-max-water="1"] .token:not(.flower)[data-place-id="1"], #board-container .pot[data-max-water="1"].deck .token:not(.flower)[data-place-id="1"], .pot[data-max-water="1"].slot .token:not(.flower)[data-place-id="1"] {
+  left: 36%;
+  top: 50%;
+}
+.card.pot[data-max-water="2"] .token:not(.flower)[data-place-id="1"], #board-container .pot[data-max-water="2"].deck .token:not(.flower)[data-place-id="1"], .pot[data-max-water="2"].slot .token:not(.flower)[data-place-id="1"] {
+  left: 15%;
+  top: 50%;
+}
+.card.pot[data-max-water="2"] .token:not(.flower)[data-place-id="2"], #board-container .pot[data-max-water="2"].deck .token:not(.flower)[data-place-id="2"], .pot[data-max-water="2"].slot .token:not(.flower)[data-place-id="2"] {
+  left: 55%;
+  top: 50%;
+}
+.card.pot[data-max-water="3"] .token:not(.flower)[data-place-id="1"], #board-container .pot[data-max-water="3"].deck .token:not(.flower)[data-place-id="1"], .pot[data-max-water="3"].slot .token:not(.flower)[data-place-id="1"] {
+  left: 38%;
+  top: 41%;
+}
+.card.pot[data-max-water="3"] .token:not(.flower)[data-place-id="2"], #board-container .pot[data-max-water="3"].deck .token:not(.flower)[data-place-id="2"], .pot[data-max-water="3"].slot .token:not(.flower)[data-place-id="2"] {
+  left: 10%;
+  top: 58%;
+}
+.card.pot[data-max-water="3"] .token:not(.flower)[data-place-id="3"], #board-container .pot[data-max-water="3"].deck .token:not(.flower)[data-place-id="3"], .pot[data-max-water="3"].slot .token:not(.flower)[data-place-id="3"] {
+  left: 67%;
+  top: 58%;
+}
+.card.pot[data-max-water="4"] .token:not(.flower)[data-place-id="1"], #board-container .pot[data-max-water="4"].deck .token:not(.flower)[data-place-id="1"], .pot[data-max-water="4"].slot .token:not(.flower)[data-place-id="1"] {
+  left: 29%;
+  top: 58%;
+}
+.card.pot[data-max-water="4"] .token:not(.flower)[data-place-id="2"], #board-container .pot[data-max-water="4"].deck .token:not(.flower)[data-place-id="2"], .pot[data-max-water="4"].slot .token:not(.flower)[data-place-id="2"] {
+  left: 48%;
+  top: 41%;
+}
+.card.pot[data-max-water="4"] .token:not(.flower)[data-place-id="3"], #board-container .pot[data-max-water="4"].deck .token:not(.flower)[data-place-id="3"], .pot[data-max-water="4"].slot .token:not(.flower)[data-place-id="3"] {
+  left: 10%;
+  top: 41%;
+}
+.card.pot[data-max-water="4"] .token:not(.flower)[data-place-id="4"], #board-container .pot[data-max-water="4"].deck .token:not(.flower)[data-place-id="4"], .pot[data-max-water="4"].slot .token:not(.flower)[data-place-id="4"] {
+  left: 67%;
+  top: 58%;
+}
+
+.tokenPlaceHolder {
+  position: absolute;
+  display: flex;
+  bottom: 10%;
+  left: 10%;
+}
+.tokenPlaceHolder.automaticCounter[data-nb]::before {
+  position: relative;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  text-shadow: 1px 0 0 white, 0 1px 0 white, -1px 0 0 white, 0 -1px 0 white, 1px 1px 0 white, -1px 1px 0 white, 1px -1px 0 white, -1px -1px 0 white;
+  font-size: max(0.2666666667 * var(--scale) * 1px, 0.2666666667 * var(--increased-scale) * 1px);
+  margin-right: -0.3em;
+  z-index: 3;
+}
+
+.waterCan .tokenPlaceHolder {
+  bottom: 19%;
+  left: 37%;
+}
+
+.gamezone-cards .tokenPlaceHolder {
+  bottom: 110%;
+  width: 100%;
+  left: 0;
+  justify-content: center;
+}
+.gamezone-cards .tokenPlaceHolder.automaticCounter::before {
+  margin-right: 0.7em;
+}
+.gamezone-cards .slot[data-slot-id^=plant] {
+  margin-top: max(0.3333333333 * var(--scale) * 1px, 0.3333333333 * var(--increased-scale) * 1px);
+}
+
 .token:not(.flower) {
   height: max(0.2666666667 * var(--scale) * 1px, 0.2666666667 * var(--increased-scale) * 1px);
   width: max(0.2666666667 * var(--scale) * 1px, 0.2666666667 * var(--increased-scale) * 1px);
   position: absolute;
   z-index: 2;
   border-radius: 100%;
-}
-.token:not(.flower)[data-place-id="1"] {
-  left: 72%;
-  top: 54%;
-}
-.token:not(.flower)[data-place-id="2"] {
-  left: 49%;
-  top: 59%;
-}
-.token:not(.flower)[data-place-id="3"] {
-  left: 26%;
-  top: 59%;
-}
-.token:not(.flower)[data-place-id="4"] {
-  left: 1%;
-  top: 52%;
-}
-.token:not(.flower)[data-place-id="5"] {
-  left: -7%;
-  top: 25%;
-}
-.token:not(.flower)[data-place-id="6"] {
-  left: 5%;
-  top: 63%;
-}
-.token:not(.flower)[data-place-id="7"] {
-  left: 69%;
-  top: 67%;
-}
-.token:not(.flower)[data-place-id="8"] {
-  left: 76%;
-  top: 36%;
-}
-.token:not(.flower)[data-place-id="9"] {
-  left: 65%;
-  top: 21%;
-}
-.token:not(.flower)[data-place-id="10"] {
-  left: 22%;
-  top: 69%;
-}
-.token:not(.flower)[data-place-id="11"] {
-  left: 77%;
-  top: 8%;
-}
-.token:not(.flower)[data-place-id="12"] {
-  left: 11%;
-  top: -3%;
-}
-.token:not(.flower)[data-place-id="13"] {
-  left: 1%;
-  top: 10%;
-}
-.token:not(.flower)[data-place-id="14"] {
-  left: 63%;
-  top: -5%;
-}
-.token:not(.flower)[data-place-id="15"] {
-  left: 0%;
-  top: 80%;
-}
-.token:not(.flower)[data-place-id="16"] {
-  left: 20%;
-  top: 80%;
-}
-.token:not(.flower)[data-place-id="17"] {
-  left: 54%;
-  top: 77%;
-}
-.token:not(.flower)[data-place-id="18"] {
-  left: 75%;
-  top: 81%;
 }
 .token:not(.flower) .sides {
   transform: rotateY(180deg);
@@ -1487,11 +1495,11 @@ body > .card, body > .slot, #board-container body > .deck {
   text-shadow: 1px 0 0 white, 0 1px 0 white, -1px 0 0 white, 0 -1px 0 white, 1px 1px 0 white, -1px 1px 0 white, 1px -1px 0 white, -1px -1px 0 white;
 }
 #table .succulents-gamezone .gamezone-cards {
-  height: calc(max(3.0866666667 * var(--scale) * 1px, 3.0866666667 * var(--increased-scale) * 1px) + 8px);
+  height: calc(max(3.42 * var(--scale) * 1px, 3.42 * var(--increased-scale) * 1px) + 8px);
   flex-direction: column-reverse;
   align-content: center;
   margin-right: max(1 * var(--scale) * 1px, 1 * var(--increased-scale) * 1px);
-  row-gap: 0;
+  row-gap: 3px;
 }
 #table .succulents-gamezone .gamezone-cards .slot:empty:not(.active) {
   display: none;
@@ -1631,6 +1639,11 @@ body > .card, body > .slot, #board-container body > .deck {
   background-position-x: 100%;
   background-position-y: 100%;
   background-size: 300%;
+}
+.inline-icon.icon-vp {
+  background-position: 57.4% 44%;
+  background-size: 600% 300%;
+  width: 2em;
 }
 
 .id_number {

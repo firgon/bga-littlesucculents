@@ -82,6 +82,18 @@ class CardSetting<T extends Card> implements CardManagerSettings<T> {
     if (card.deck == "starter" && card.type == "pot") {
       element.classList.add("basicPot", card.state > 0 ? "right" : "left");
     }
+    if (card.type != "pot") {
+      ["token", "flower"].forEach((name) => {
+        const tokenPlaceHolder = document.createElement("div");
+        tokenPlaceHolder.id = name + "PlaceHolder-" + card.id;
+        tokenPlaceHolder.classList.add(name + "PlaceHolder");
+        if (name == "token")
+          GretchensGardenGame.addAutomaticCounter(tokenPlaceHolder, ".token");
+        element.appendChild(tokenPlaceHolder);
+      });
+    } else {
+      element.dataset.maxWater = card.maxWater?.toString();
+    }
   }
   setupFrontDiv(card: T, element: HTMLDivElement) {
     if (card.dataId) element.dataset.dataId = card.dataId.toString();

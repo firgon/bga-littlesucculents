@@ -55,11 +55,12 @@ trait GrowTrait
 		//prepare for next phase
 		$babySunRosePlayerIds = Players::getPlayerIdsWithBabySunRose();
 
-		if (count($babySunRosePlayerIds)) {
+		if (count($babySunRosePlayerIds) > 0) {
 			$this->gamestate->setPlayersMultiactive($babySunRosePlayerIds, END_TURN, true);
+			Game::transition(BABY_SUN_ROSE);
+		} else {
+			Game::transition();
 		}
-
-		Game::transition();
 	}
 
 	public function actWater($pId, $args, $stateArgs)
