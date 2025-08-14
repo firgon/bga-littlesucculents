@@ -29,8 +29,11 @@
     "node_modules/bga-cards/src/stocks/slot-stock.ts",
     "node_modules/bga-cards/src/stocks/void-stock.ts",
     "node_modules/bga-cards/src/card-manager.ts",
-    "src/modules/ts/types/framework.d.ts",
-    "src/modules/ts/types/bga-framework.d.ts",
+
+    "src/bga-framework.d.ts",
+    // "src/modules/ts/types/framework.d.ts",
+    "src/modules/ts/types/customGame.d.ts",
+    "src/modules/ts/types/bga-animations.d.ts",
     "src/modules/ts/generics.ts",
 
     "src/modules/ts/define.ts",

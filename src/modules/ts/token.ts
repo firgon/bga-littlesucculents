@@ -84,12 +84,11 @@ class Token {
   }
 
   removeTokens(nb: number, elem: HTMLElement) {
-    debug("removeTOkens", nb, elem);
+    debug("removeTokens", nb, elem);
     const tokens = elem.querySelectorAll(".token");
-    // debug("j'ai trouvé ces tokens :", tokens);
     for (let index = 0; index < nb; index++) {
       const element = tokens[index];
-      gameui.slideToObjectAndDestroy(element, "pagemaintitletext");
+      this.gameui.moveAndDestroy(element, $("page-title"));
     }
   }
 
@@ -121,7 +120,12 @@ class Token {
   }
 
   getAvailableNextPlace(cardElement: HTMLElement) {
-    return Token.countTokens(cardElement) + 1;
+    const tokens = Token.takeAllTokens(cardElement);
+    for (let index = 1; index <= tokens.length; index++) {
+      if (tokens.some((token) => token.dataset.placeId == index)) continue;
+      else return index;
+    }
+    return tokens.length + 1;
   }
 
   getAvailablePlaces(

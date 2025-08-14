@@ -281,8 +281,8 @@
 
 .card.pot {
   /* prettier-ignore */
-  $placeList: (1, (1 36% 50%,)), (2, (1 15% 50%, 2 55% 50%)), (3, (1 38% 41%, 2 10% 58%, 3 67% 58%)),
-    (4, (1 29% 58%, 2 48% 41%, 3 10% 41%, 4 67% 58%));
+  $placeList: (1, (1 36% 50%,2 36% 50%,3 36% 50%,)), (2, (1 15% 50%, 2 55% 50%, 3 55% 50%)), (3, (1 38% 41%, 2 10% 58%, 3 67% 58%, 4 67% 58%)),
+    (4, (1 29% 58%, 2 48% 41%, 3 10% 41%, 4 67% 58%, 5 67% 58%));
   @each $nbPlaces, $listOfPlaces in $placeList {
     &[data-max-water="#{$nbPlaces}"] {
       @each $index, $left, $top in $listOfPlaces {
@@ -540,7 +540,7 @@
                                                                              
                                                                              
 */
-.bga-cards_selectable-card {
+#table .bga-cards_selectable-card {
   .card-side.front::after {
     content: "";
     position: absolute;
@@ -733,10 +733,12 @@
     }
 
     &:before {
-      background: url("img/icons.png");
+      background: url("img/points.png");
+      background-position-x: 91%;
+      background-position-y: 100%;
+      background-size: 500%;
       content: "";
       display: block;
-      background-size: cover;
       width: 30px;
       height: 30px;
       float: left;

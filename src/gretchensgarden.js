@@ -2036,12 +2036,14 @@ define([
     "ebg/core/gamegui",
     "ebg/counter",
     getLibUrl("bga-autofit", "1.x"),
+    getLibUrl("bga-animations", "1.x"),
     g_gamethemeurl + "modules/js/Core/game.js",
     g_gamethemeurl + "modules/js/Core/modal.js",
     g_gamethemeurl + "modules/js/Utils/cheatModule.js",
     g_gamethemeurl + "modules/js/zoomUI.js",
 ], function (dojo, declare, gamegui, counter, BgaAutofit) {
     window.BgaAutofit = BgaAutofit;
+    window.BgaAnimation = BgaAnimation;
     return declare("bgagame.gretchensgarden", [customgame.game, gretchensgarden.cheatModule, gretchensgarden.zoomUI], new GretchensGardenGame());
 });
 var TurnCounter = /** @class */ (function () {
@@ -2199,12 +2201,11 @@ var Token = /** @class */ (function () {
         }
     };
     Token.prototype.removeTokens = function (nb, elem) {
-        debug("removeTOkens", nb, elem);
+        debug("removeTokens", nb, elem);
         var tokens = elem.querySelectorAll(".token");
-        // debug("j'ai trouvé ces tokens :", tokens);
         for (var index = 0; index < nb; index++) {
             var element = tokens[index];
-            gameui.slideToObjectAndDestroy(element, "pagemaintitletext");
+            this.gameui.moveAndDestroy(element, $("page-title"));
         }
     };
     Token.prototype.createToken = function (initialContainer) {
@@ -2232,7 +2233,19 @@ var Token = /** @class */ (function () {
         return result;
     };
     Token.prototype.getAvailableNextPlace = function (cardElement) {
-        return Token.countTokens(cardElement) + 1;
+        var tokens = Token.takeAllTokens(cardElement);
+        var _loop_3 = function (index) {
+            if (tokens.some(function (token) { return token.dataset.placeId == index; }))
+                return "continue";
+            else
+                return { value: index };
+        };
+        for (var index = 1; index <= tokens.length; index++) {
+            var state_1 = _loop_3(index);
+            if (typeof state_1 === "object")
+                return state_1.value;
+        }
+        return tokens.length + 1;
     };
     Token.prototype.getAvailablePlaces = function (card, cardElement) {
         var _a;
@@ -2710,7 +2723,7 @@ var GretchensGardenGame = /** @class */ (function (_super) {
             ["refreshUi", 0],
             ["clearTurn", 0],
             ["playerReady", 0],
-            ["pay", 200],
+            ["pay", 500],
             ["updateCard", 500],
             ["updateDeck", 0],
             ["transfert", 500],
@@ -2763,9 +2776,9 @@ var GretchensGardenGame = /** @class */ (function (_super) {
         this.adaptWidth();
         this.inherited(arguments);
         // Create a new div for tokens before buttons in maintitlebar
-        dojo.place("<div id='token-container'></div>", $("generalactions"), "before");
-        dojo.place("<div id='droplets'></div>", $("token-container"));
-        dojo.place("<div id='dropletsFromCan'></div>", $("token-container"));
+        dojo.place("<div id='token-container'></div>", "generalactions", "before");
+        dojo.place("<div id='droplets'></div>", "token-container");
+        dojo.place("<div id='dropletsFromCan'></div>", "token-container");
         this._turnCounter = new TurnCounter(gamedatas.turn, _("Season: "), "/12");
         if (gamedatas.turn == 12)
             this.displayCaution();
@@ -3014,14 +3027,14 @@ var GretchensGardenGame = /** @class */ (function (_super) {
             if (!args["water" + suffix])
                 return;
             var nbDroplet = args["water" + suffix][_this.player_id];
-            var _loop_3 = function (index) {
+            var _loop_4 = function (index) {
                 var element;
                 //if From can take from can, and if you can't (i don't know why) create it
                 if (suffix) {
                     element = _this.takeDroplet($("droplets" + suffix));
                 }
                 else {
-                    element = _this._tokenManager.createToken($("waterboard"), 0);
+                    element = _this._tokenManager.createToken($("waterboard"));
                     _this.attachElementWithSlide(element, $("droplets" + suffix));
                 }
                 _this.onClick(element.id, function () {
@@ -3043,7 +3056,7 @@ var GretchensGardenGame = /** @class */ (function (_super) {
                 });
             };
             for (var index = 0; index < nbDroplet; index++) {
-                _loop_3(index);
+                _loop_4(index);
             }
         });
         //prepare buttons
@@ -3238,10 +3251,18 @@ var GretchensGardenGame = /** @class */ (function (_super) {
     //     new BgaSlideAnimation({ element, toElement: toElement })
     //   );
     // }
+    GretchensGardenGame.prototype.moveAndDestroy = function (element, toElement) {
+        this.attachElementWithSlide(element, toElement).then(function () {
+            return element.remove();
+        });
+    };
     GretchensGardenGame.prototype.attachElementWithSlide = function (element, toElement) {
         debug("attachElementWithSlide", element, toElement);
         // move an element to a destination element and attach it.
-        this._animationManager.attachWithAnimation(new BgaSlideAnimation({ element: element }), toElement);
+        toElement.style.zIndex = "100";
+        return this._animationManager
+            .attachWithAnimation(new BgaSlideAnimation({ element: element }), toElement)
+            .then(function () { return toElement.style.removeProperty("z-index"); });
     };
     //   █████████               ███                             █████     ███
     //  ███░░░░░███             ░░░                             ░░███     ░░░
@@ -3259,7 +3280,7 @@ var GretchensGardenGame = /** @class */ (function (_super) {
         var token = Token.takeToken($("waterCan-" + this.player_id));
         this.waterCards[playerId].tokenNb--;
         if (!token) {
-            token = this._tokenManager.createToken($("waterboard"), 0);
+            token = this._tokenManager.createToken($("waterboard"));
         }
         this.attachElementWithSlide(token, destination);
         return token;
@@ -3313,6 +3334,8 @@ var GretchensGardenGame = /** @class */ (function (_super) {
      */
     GretchensGardenGame.prototype.pay = function (playerId, n) {
         this._counters["money-" + playerId].incValue(-n);
+        var moneyPlantElem = document.querySelector("#gamezone-cards-".concat(playerId, " #plant0 .card.plant"));
+        this._tokenManager.removeTokens(1, moneyPlantElem);
     };
     /**
      * move all selectable token to status bar
@@ -3344,7 +3367,8 @@ var GretchensGardenGame = /** @class */ (function (_super) {
             $("btn-water").dataset.moves = JSON.stringify(moves);
         });
         $("btn-water").innerText = _("Confirm and store unused droplets");
-        $("btn-water").dataset.remainingDroplets = args.water[this.player_id];
+        $("btn-water").dataset.remainingDroplets =
+            args.water[this.player_id].toString();
         $("btn-reset").style.display = "none";
         $("btn-water").style.display = "inline-block";
     };
@@ -3379,17 +3403,15 @@ var GretchensGardenGame = /** @class */ (function (_super) {
             this.showMessage(_("There are no droplet to place left, but you can select a droplet to move"), "error");
             return;
         }
-        //move token
-        var _b = this._tokenManager.getAvailablePlaces(card, this._cardManager.getCardElement(card)), busyPlaces = _b[0], availablePlaces = _b[1];
-        element.dataset.placeId = availablePlaces[0].toString();
-        this._tokenManager.moveTokenOnCard(element, card);
-        element.classList.remove("selected");
-        this.resetTitle();
         //store data
         var moves = JSON.parse($("btn-water").dataset.moves);
         //if this token was not attributed, lower by one possible moves.
         if (moves[element.id] === undefined) {
             $("btn-water").dataset.remainingDroplets = (+$("btn-water").dataset.remainingDroplets - 1).toString();
+        }
+        else if (moves[element.id] == cardId) {
+            //do not move on the same card
+            return;
         }
         else {
             this.possiblePlaces[moves[element.id]]++;
@@ -3398,6 +3420,12 @@ var GretchensGardenGame = /** @class */ (function (_super) {
         moves[element.id] = cardId;
         $("btn-water").dataset.moves = JSON.stringify(moves);
         $("btn-reset").style.display = "inline-block";
+        //move token
+        var _b = this._tokenManager.getAvailablePlaces(card, this._cardManager.getCardElement(card)), busyPlaces = _b[0], availablePlaces = _b[1];
+        element.dataset.placeId = availablePlaces[0].toString();
+        this._tokenManager.moveTokenOnCard(element, card);
+        element.classList.remove("selected");
+        this.resetTitle();
     };
     /*
      █████  █████ ███████████ █████ █████        █████████
@@ -3429,7 +3457,7 @@ var GretchensGardenGame = /** @class */ (function (_super) {
      */
     GretchensGardenGame.prototype.activePossibleSlots = function () {
         document.querySelectorAll(".gamezone-cards").forEach(function (gamezone) {
-            var _loop_4 = function (index) {
+            var _loop_5 = function (index) {
                 [1, -1].forEach(function (side) {
                     var adjacentNumber = index == 0 ? 0 : index - 1;
                     var plantElem = gamezone.querySelector("[data-slot-id='plant" + index * side + "']");
@@ -3441,7 +3469,7 @@ var GretchensGardenGame = /** @class */ (function (_super) {
                 });
             };
             for (var index = 0; index <= 13; index++) {
-                _loop_4(index);
+                _loop_5(index);
             }
         });
     };
@@ -3852,7 +3880,7 @@ var GretchensGardenGame = /** @class */ (function (_super) {
         if (valuesToDisable === void 0) { valuesToDisable = []; }
         if (from === void 0) { from = 1; }
         if (to === void 0) { to = 6; }
-        var _loop_5 = function (index) {
+        var _loop_6 = function (index) {
             if (!$("btn-" + index)) {
                 this_1.addActionButton("btn-" + index, "" + index, function () {
                     callback(index);
@@ -3864,7 +3892,7 @@ var GretchensGardenGame = /** @class */ (function (_super) {
         };
         var this_1 = this;
         for (var index = from; index <= to; index++) {
-            _loop_5(index);
+            _loop_6(index);
         }
     };
     /**
@@ -3947,9 +3975,9 @@ var GretchensGardenGame = /** @class */ (function (_super) {
         dojo.addClass(id, classes.join(" "));
         dojo.removeClass(id, "bgabutton_blue");
         // you can also add additional styles, such as background
-        if (tooltip) {
-            dojo.attr(id, "title", tooltip);
-        }
+        // if (tooltip) {
+        //   dojo.attr(id, "title", tooltip);
+        // }
         return $(id);
     };
     /*
@@ -3992,7 +4020,7 @@ var GretchensGardenGame = /** @class */ (function (_super) {
         }
     };
     GretchensGardenGame.prototype.isItMe = function (playerId) {
-        return playerId == parseInt(this.player_id);
+        return playerId == this.player_id;
     };
     // █████  █████  █████     ███  ████
     //░░███  ░░███  ░░███     ░░░  ░░███

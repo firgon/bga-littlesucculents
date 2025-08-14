@@ -29,16 +29,11 @@ trait CutTrait
 			Game::error("You shouldn't be able to place this cut card here", $state);
 		}
 
+		Notifications::cut($player, $cutCard);
+
 		//move token leaf on pot
 		$pot = $cutCard->getMatchingCard();
 		$pot->incToken(1, $cutCard);
-		Notifications::message(_('${player_name} cuts a ${cardName} card on ${player_name2}\'s display ${cardLog}'), [
-			'player' => $player,
-			'player2' => $cutCard->getPlayer(),
-			'card' => $cutCard,
-
-		]);
-
 
 		//move card
 		$card = Cards::getCuttedCard($cutCard->getColor());

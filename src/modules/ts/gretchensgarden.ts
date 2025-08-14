@@ -56,7 +56,7 @@ class GretchensGardenGame extends GameGui {
       ["refreshUi", 0],
       ["clearTurn", 0],
       ["playerReady", 0],
-      ["pay", 200],
+      ["pay", 500],
       ["updateCard", 500],
       ["updateDeck", 0],
       ["transfert", 500],
@@ -95,7 +95,7 @@ class GretchensGardenGame extends GameGui {
 														   
 	  */
 
-  public setup(gamedatas: GameDatas) {
+  public setup(gamedatas: Gamedatas) {
     debug("setup", gamedatas);
     this.gamedatas = gamedatas;
 
@@ -129,13 +129,9 @@ class GretchensGardenGame extends GameGui {
     this.inherited(arguments);
 
     // Create a new div for tokens before buttons in maintitlebar
-    dojo.place(
-      "<div id='token-container'></div>",
-      $("generalactions"),
-      "before"
-    );
-    dojo.place("<div id='droplets'></div>", $("token-container"));
-    dojo.place("<div id='dropletsFromCan'></div>", $("token-container"));
+    dojo.place("<div id='token-container'></div>", "generalactions", "before");
+    dojo.place("<div id='droplets'></div>", "token-container");
+    dojo.place("<div id='dropletsFromCan'></div>", "token-container");
 
     this._turnCounter = new TurnCounter(gamedatas.turn, _("Season: "), "/12");
     if (gamedatas.turn == 12) this.displayCaution();
@@ -148,6 +144,7 @@ class GretchensGardenGame extends GameGui {
     this.addTooltips();
 
     BgaAutofit.init();
+
     debug("Ending game setup");
   }
 
@@ -501,7 +498,7 @@ class GretchensGardenGame extends GameGui {
         if (suffix) {
           element = this.takeDroplet($("droplets" + suffix));
         } else {
-          element = this._tokenManager.createToken($("waterboard"), 0);
+          element = this._tokenManager.createToken($("waterboard"));
 
           this.attachElementWithSlide(element, $("droplets" + suffix));
         }
@@ -770,13 +767,19 @@ class GretchensGardenGame extends GameGui {
   //   );
   // }
 
+  moveAndDestroy(element, toElement: HTMLElement) {
+    this.attachElementWithSlide(element, toElement).then(() =>
+      element.remove()
+    );
+  }
+
   attachElementWithSlide(element: HTMLElement, toElement: HTMLElement) {
     debug("attachElementWithSlide", element, toElement);
     // move an element to a destination element and attach it.
-    this._animationManager.attachWithAnimation(
-      new BgaSlideAnimation({ element }),
-      toElement
-    );
+    toElement.style.zIndex = "100";
+    return this._animationManager
+      .attachWithAnimation(new BgaSlideAnimation({ element }), toElement)
+      .then(() => toElement.style.removeProperty("z-index"));
   }
 
   //   █████████               ███                             █████     ███
@@ -796,7 +799,7 @@ class GretchensGardenGame extends GameGui {
     let token = Token.takeToken($("waterCan-" + this.player_id));
     this.waterCards[playerId].tokenNb--;
     if (!token) {
-      token = this._tokenManager.createToken($("waterboard"), 0);
+      token = this._tokenManager.createToken($("waterboard"));
     }
     this.attachElementWithSlide(token, destination);
     return token;
@@ -851,6 +854,10 @@ class GretchensGardenGame extends GameGui {
    */
   pay(playerId: number, n: number) {
     this._counters["money-" + playerId].incValue(-n);
+    const moneyPlantElem = document.querySelector(
+      `#gamezone-cards-${playerId} #plant0 .card.plant`
+    ) as HTMLElement;
+    this._tokenManager.removeTokens(1, moneyPlantElem);
   }
 
   /**
@@ -895,7 +902,8 @@ class GretchensGardenGame extends GameGui {
     });
 
     $("btn-water").innerText = _("Confirm and store unused droplets");
-    $("btn-water").dataset.remainingDroplets = args.water[this.player_id];
+    $("btn-water").dataset.remainingDroplets =
+      args.water[this.player_id].toString();
     $("btn-reset").style.display = "none";
     $("btn-water").style.display = "inline-block";
   }
@@ -944,6 +952,26 @@ class GretchensGardenGame extends GameGui {
       );
       return;
     }
+
+    //store data
+    let moves = JSON.parse($("btn-water").dataset.moves);
+    //if this token was not attributed, lower by one possible moves.
+    if (moves[element.id] === undefined) {
+      $("btn-water").dataset.remainingDroplets = (
+        +$("btn-water").dataset.remainingDroplets - 1
+      ).toString();
+    } else if (moves[element.id] == cardId) {
+      //do not move on the same card
+      return;
+    } else {
+      this.possiblePlaces[moves[element.id]]++;
+    }
+    this.possiblePlaces[cardId]--;
+    moves[element.id] = cardId;
+    $("btn-water").dataset.moves = JSON.stringify(moves);
+
+    $("btn-reset").style.display = "inline-block";
+
     //move token
     const [busyPlaces, availablePlaces] = this._tokenManager.getAvailablePlaces(
       card,
@@ -955,22 +983,6 @@ class GretchensGardenGame extends GameGui {
     this._tokenManager.moveTokenOnCard(element, card);
     element.classList.remove("selected");
     this.resetTitle();
-
-    //store data
-    let moves = JSON.parse($("btn-water").dataset.moves);
-    //if this token was not attributed, lower by one possible moves.
-    if (moves[element.id] === undefined) {
-      $("btn-water").dataset.remainingDroplets = (
-        +$("btn-water").dataset.remainingDroplets - 1
-      ).toString();
-    } else {
-      this.possiblePlaces[moves[element.id]]++;
-    }
-    this.possiblePlaces[cardId]--;
-    moves[element.id] = cardId;
-    $("btn-water").dataset.moves = JSON.stringify(moves);
-
-    $("btn-reset").style.display = "inline-block";
   }
 
   /*
@@ -1191,7 +1203,8 @@ class GretchensGardenGame extends GameGui {
         Token.countTokens(fromElem) == n.args.from.tokenNb ||
         Token.countTokens(toElem) == n.args.to.tokenNb
       ) {
-        debug("Transfert canceled (already visible)");
+        debug(`Transfert canceled (already visible)`);
+
         continue;
       }
 
@@ -1214,7 +1227,7 @@ class GretchensGardenGame extends GameGui {
     });
   }
 
-  notif_refreshUi(n: { args: GameDatas }) {
+  notif_refreshUi(n: { args: Gamedatas }) {
     this.updateCards(n.args.cards);
     this.activePossibleSlots();
     $("droplets").replaceChildren();
@@ -1298,7 +1311,7 @@ class GretchensGardenGame extends GameGui {
         </div>`;
   }
 
-  setupCards(gamedatas: GameDatas) {
+  setupCards(gamedatas: Gamedatas) {
     [/*"discardplant", "discardpot",*/ "water"].forEach((deck) => {
       this._stocks[deck] = new Deck(this._cardManager, $(deck), {
         counter: { show: true, hideWhenEmpty: true },
@@ -1650,7 +1663,7 @@ class GretchensGardenGame extends GameGui {
    */
   addImageActionButton(
     id: string,
-    handler: string | eventhandler,
+    handler: string,
     tooltip: any,
     classes = null,
     bcolor = "blue"
@@ -1666,9 +1679,9 @@ class GretchensGardenGame extends GameGui {
     dojo.addClass(id, classes.join(" "));
     dojo.removeClass(id, "bgabutton_blue");
     // you can also add additional styles, such as background
-    if (tooltip) {
-      dojo.attr(id, "title", tooltip);
-    }
+    // if (tooltip) {
+    //   dojo.attr(id, "title", tooltip);
+    // }
     return $(id);
   }
 
@@ -1719,7 +1732,7 @@ class GretchensGardenGame extends GameGui {
   }
 
   isItMe(playerId: number | string) {
-    return playerId == parseInt(this.player_id);
+    return playerId == this.player_id;
   }
 
   // █████  █████  █████     ███  ████

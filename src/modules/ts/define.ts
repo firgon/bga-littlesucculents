@@ -4,12 +4,14 @@ define([
   "ebg/core/gamegui",
   "ebg/counter",
   getLibUrl("bga-autofit", "1.x"),
+  getLibUrl("bga-animations", "1.x"),
   g_gamethemeurl + "modules/js/Core/game.js",
   g_gamethemeurl + "modules/js/Core/modal.js",
   g_gamethemeurl + "modules/js/Utils/cheatModule.js",
   g_gamethemeurl + "modules/js/zoomUI.js",
 ], function (dojo, declare, gamegui, counter, BgaAutofit) {
   (window as any).BgaAutofit = BgaAutofit;
+  (window as any).BgaAnimation = BgaAnimation;
   return declare(
     "bgagame.gretchensgarden",
     [customgame.game, gretchensgarden.cheatModule, gretchensgarden.zoomUI],

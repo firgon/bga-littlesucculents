@@ -1250,11 +1250,23 @@ body > .card, body > .slot, #board-container body > .deck {
   left: 36%;
   top: 50%;
 }
+.card.pot[data-max-water="1"] .token:not(.flower)[data-place-id="2"], #board-container .pot[data-max-water="1"].deck .token:not(.flower)[data-place-id="2"], .pot[data-max-water="1"].slot .token:not(.flower)[data-place-id="2"] {
+  left: 36%;
+  top: 50%;
+}
+.card.pot[data-max-water="1"] .token:not(.flower)[data-place-id="3"], #board-container .pot[data-max-water="1"].deck .token:not(.flower)[data-place-id="3"], .pot[data-max-water="1"].slot .token:not(.flower)[data-place-id="3"] {
+  left: 36%;
+  top: 50%;
+}
 .card.pot[data-max-water="2"] .token:not(.flower)[data-place-id="1"], #board-container .pot[data-max-water="2"].deck .token:not(.flower)[data-place-id="1"], .pot[data-max-water="2"].slot .token:not(.flower)[data-place-id="1"] {
   left: 15%;
   top: 50%;
 }
 .card.pot[data-max-water="2"] .token:not(.flower)[data-place-id="2"], #board-container .pot[data-max-water="2"].deck .token:not(.flower)[data-place-id="2"], .pot[data-max-water="2"].slot .token:not(.flower)[data-place-id="2"] {
+  left: 55%;
+  top: 50%;
+}
+.card.pot[data-max-water="2"] .token:not(.flower)[data-place-id="3"], #board-container .pot[data-max-water="2"].deck .token:not(.flower)[data-place-id="3"], .pot[data-max-water="2"].slot .token:not(.flower)[data-place-id="3"] {
   left: 55%;
   top: 50%;
 }
@@ -1267,6 +1279,10 @@ body > .card, body > .slot, #board-container body > .deck {
   top: 58%;
 }
 .card.pot[data-max-water="3"] .token:not(.flower)[data-place-id="3"], #board-container .pot[data-max-water="3"].deck .token:not(.flower)[data-place-id="3"], .pot[data-max-water="3"].slot .token:not(.flower)[data-place-id="3"] {
+  left: 67%;
+  top: 58%;
+}
+.card.pot[data-max-water="3"] .token:not(.flower)[data-place-id="4"], #board-container .pot[data-max-water="3"].deck .token:not(.flower)[data-place-id="4"], .pot[data-max-water="3"].slot .token:not(.flower)[data-place-id="4"] {
   left: 67%;
   top: 58%;
 }
@@ -1283,6 +1299,10 @@ body > .card, body > .slot, #board-container body > .deck {
   top: 41%;
 }
 .card.pot[data-max-water="4"] .token:not(.flower)[data-place-id="4"], #board-container .pot[data-max-water="4"].deck .token:not(.flower)[data-place-id="4"], .pot[data-max-water="4"].slot .token:not(.flower)[data-place-id="4"] {
+  left: 67%;
+  top: 58%;
+}
+.card.pot[data-max-water="4"] .token:not(.flower)[data-place-id="5"], #board-container .pot[data-max-water="4"].deck .token:not(.flower)[data-place-id="5"], .pot[data-max-water="4"].slot .token:not(.flower)[data-place-id="5"] {
   left: 67%;
   top: 58%;
 }
@@ -1532,14 +1552,14 @@ body > .card, body > .slot, #board-container body > .deck {
 
 
 */
-.bga-cards_selectable-card .card-side.front::after {
+#table .bga-cards_selectable-card .card-side.front::after {
   content: "";
   position: absolute;
   width: 100%;
   height: 100%;
   background-color: rgba(30, 221, 39, 0.315);
 }
-.bga-cards_selectable-card.bga-cards_selected-card {
+#table .bga-cards_selectable-card.bga-cards_selected-card {
   outline: 3px green solid;
 }
 
@@ -1749,10 +1769,12 @@ body > .card, body > .slot, #board-container body > .deck {
   height: 41px;
 }
 .player-infos .counter:before {
-  background: url("img/icons.png");
+  background: url("img/points.png");
+  background-position-x: 91%;
+  background-position-y: 100%;
+  background-size: 500%;
   content: "";
   display: block;
-  background-size: cover;
   width: 30px;
   height: 30px;
   float: left;

@@ -18,7 +18,7 @@ class Players {
     this.gameui.scoreCtrl[player.id].toValue(player.score);
   }
 
-  setupPlayers(gamedatas: GameDatas) {
+  setupPlayers(gamedatas: Gamedatas) {
     for (const playerId in gamedatas.players) {
       const player = gamedatas.players[playerId];
 

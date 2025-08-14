@@ -9,6 +9,17 @@ use LSU\Core\Globals;
 
 class Notifications
 {
+  public static function cut($player, $cutCard)
+  {
+    $msg = _('${player_name} cuts a ${cardName} card on ${player_name2}\'s display ${cardLog}');
+    $data = [
+      'player' => $player,
+      'player2' => $cutCard->getPlayer(),
+      'card' => $cutCard,
+    ];
+    static::notifyAll('cut', $msg, $data);
+  }
+
   public static function startActionPhase()
   {
     static::notifyAll('startAction', clienttranslate('Actions phase'), ['turn' => 12 - Cards::countInLocation(WATER), 'preserve' => ['turn']]);

@@ -116,7 +116,7 @@ class Card extends \LSU\Helpers\DB_Model
         }
 
         if ($from) {
-            $from->incToken(-$n);
+            $from->incTokenNb(-$n);
             Notifications::transfert($from, $this, $n);
         } else {
             Notifications::updateCard($this);
